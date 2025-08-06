@@ -43,8 +43,12 @@ interface OrganizationBenchmarkData {
   top_missing_skills: Array<{
     skill_name: string;
     affected_employees: number;
+    affected_percentage?: number;
     severity: 'critical' | 'moderate' | 'minor';
   }>;
+  critical_skills_count?: number;
+  moderate_skills_count?: number;
+  minor_skills_count?: number;
   total_employees: number;
   analyzed_employees: number;
   departments_count: number;
@@ -97,6 +101,75 @@ interface ComprehensiveBenchmarkData {
 }
 
 export class MarketSkillsService {
+  private auditLog: Array<{ timestamp: Date; step: string; data: any }> = [];
+  private debugMode: boolean = false;
+  
+  /**
+   * Enable/disable debug mode
+   */
+  setDebugMode(enabled: boolean): void {
+    this.debugMode = enabled;
+    if (enabled) {
+      console.log('🔍 Market Benchmark Debug Mode: ENABLED');
+    }
+  }
+  
+  /**
+   * Add entry to audit log
+   */
+  private logAudit(step: string, data: any): void {
+    const entry = {
+      timestamp: new Date(),
+      step,
+      data: { ...data }
+    };
+    
+    this.auditLog.push(entry);
+    
+    if (this.debugMode) {
+      console.log(`[AUDIT] ${step}:`, data);
+    }
+    
+    // Keep only last 100 entries to prevent memory issues
+    if (this.auditLog.length > 100) {
+      this.auditLog = this.auditLog.slice(-100);
+    }
+  }
+  
+  /**
+   * Get audit log entries
+   */
+  getAuditLog(): Array<{ timestamp: Date; step: string; data: any }> {
+    return [...this.auditLog];
+  }
+  
+  /**
+   * Clear audit log
+   */
+  clearAuditLog(): void {
+    this.auditLog = [];
+  }
+  
+  /**
+   * Standardized method to count analyzed employees
+   * An employee is considered "analyzed" if they have:
+   * 1. A skills profile with analyzed_at timestamp, OR
+   * 2. skills_last_analyzed timestamp in employees table
+   */
+  private isEmployeeAnalyzed(employee: {
+    skills_profile?: {
+      analyzed_at?: string | null;
+      gap_analysis_completed_at?: string | null;
+    } | null;
+    skills_last_analyzed?: string | null;
+  }): boolean {
+    return !!(
+      employee.skills_profile?.analyzed_at || 
+      employee.skills_profile?.gap_analysis_completed_at ||
+      employee.skills_last_analyzed
+    );
+  }
+  
   /**
    * Fetch market benchmarks for a specific role/industry/department
    */
@@ -442,6 +515,9 @@ export class MarketSkillsService {
           market_coverage_rate: 0,
           industry_alignment_index: 0,
           top_missing_skills: [],
+          critical_skills_count: 0,
+          moderate_skills_count: 0,
+          minor_skills_count: 0,
           total_employees: stats?.total_employees || 0,
           analyzed_employees: stats?.analyzed_employees || 0,
           departments_count: stats?.departments_count || 0
@@ -474,13 +550,26 @@ export class MarketSkillsService {
       let skillCount = 0;
       let employeesWithHighSkills = 0;
       let totalEmployeesAnalyzed = 0;
+      
+      this.logAudit('Starting calculations', {
+        totalEmployees: stats?.total_employees,
+        analyzedEmployees: stats?.analyzed_employees,
+        skillsDataCount: skillsData?.length
+      });
 
       skillsData?.forEach(profile => {
-        if (profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
+        // Standardized check: employee is analyzed if they have extracted skills
+        const isAnalyzed = profile.extracted_skills && 
+                          Array.isArray(profile.extracted_skills) && 
+                          profile.extracted_skills.length > 0;
+        
+        if (isAnalyzed) {
+          totalEmployeesAnalyzed++;
+          
           let employeeSkillSum = 0;
           let employeeSkillCount = 0;
           
-          profile.extracted_skills.forEach((skill: any) => {
+          profile.extracted_skills.forEach((skill: ExtractedSkill) => {
             if (skill.skill_name && typeof skill.proficiency === 'number') {
               // Calculate coverage based on proficiency levels (0-5 scale)
               totalProficiencySum += skill.proficiency;
@@ -492,7 +581,6 @@ export class MarketSkillsService {
           
           // Track employees with high skill levels (avg proficiency >= 3)
           if (employeeSkillCount > 0) {
-            totalEmployeesAnalyzed++;
             const avgProficiency = employeeSkillSum / employeeSkillCount;
             if (avgProficiency >= 3) {
               employeesWithHighSkills++;
@@ -501,7 +589,16 @@ export class MarketSkillsService {
         }
         
         if (profile.skills_match_score !== null && profile.skills_match_score !== undefined) {
-          totalMatchScore += Number(profile.skills_match_score);
+          // Validate and clamp skills_match_score to 0-100 range
+          const score = Number(profile.skills_match_score);
+          const validatedScore = Math.min(100, Math.max(0, score));
+          
+          // Log warning if score was out of expected range
+          if (score < 0 || score > 100) {
+            console.warn(`Invalid skills_match_score ${score} for profile, clamped to ${validatedScore}`);
+          }
+          
+          totalMatchScore += validatedScore;
           validScores++;
         }
       });
@@ -515,7 +612,21 @@ export class MarketSkillsService {
       // Industry alignment: Average of skills match scores on 0-10 scale
       // Using a more nuanced calculation that considers the distribution
       const avgMatchScore = validScores > 0 ? totalMatchScore / validScores : 0;
-      const industryAlignmentIndex = Math.round(avgMatchScore / 10); // Already 0-100, convert to 0-10
+      // Fix: Ensure proper conversion from 0-100 to 0-10 scale
+      // If avgMatchScore is 50%, we want 5.0/10, not 0.5/10
+      const industryAlignmentIndex = validScores > 0 
+        ? Math.min(10, Math.max(0, Math.round((avgMatchScore / 100) * 10)))
+        : 0;
+      
+      this.logAudit('Coverage and Alignment calculated', {
+        totalEmployeesAnalyzed,
+        employeesWithHighSkills,
+        marketCoverageRate,
+        totalMatchScore,
+        validScores,
+        avgMatchScore,
+        industryAlignmentIndex
+      });
 
       // Get top missing skills
       const { data: missingSkills, error: missingError } = await supabase
@@ -525,15 +636,54 @@ export class MarketSkillsService {
         console.warn('Could not fetch missing skills:', missingError);
       }
 
-      const topMissingSkills = (missingSkills || []).map((skill: any) => ({
-        skill_name: skill.skill_name,
-        affected_employees: skill.affected_employees || skill.affected_count || 0,
-        severity: skill.severity || (
-          skill.affected_employees > (stats?.total_employees || 1) * 0.5 ? 'critical' as const :
-          skill.affected_employees > (stats?.total_employees || 1) * 0.33 ? 'moderate' as const :
-          'minor' as const
-        )
-      }));
+      // Standardize severity classification across the platform
+      // Critical: >50% of employees affected
+      // Moderate: >33% but <=50% of employees affected  
+      // Minor: <=33% of employees affected
+      const totalEmployees = stats?.total_employees || 1;
+      const topMissingSkills = (missingSkills || []).map((skill: {
+        skill_name: string;
+        affected_employees?: number;
+        affected_count?: number;
+        severity?: 'critical' | 'moderate' | 'minor';
+      }) => {
+        const affectedCount = skill.affected_employees || skill.affected_count || 0;
+        const affectedPercentage = (affectedCount / totalEmployees) * 100;
+        
+        // Use consistent thresholds for severity classification
+        let severity: 'critical' | 'moderate' | 'minor';
+        if (affectedPercentage > 50) {
+          severity = 'critical';
+        } else if (affectedPercentage > 33) {
+          severity = 'moderate';
+        } else {
+          severity = 'minor';
+        }
+        
+        return {
+          skill_name: skill.skill_name,
+          affected_employees: affectedCount,
+          affected_percentage: Math.round(affectedPercentage),
+          severity: skill.severity || severity // Use DB severity if available, otherwise calculate
+        };
+      });
+      
+      // Count skills by severity for consistent display
+      const criticalSkillsCount = topMissingSkills.filter(s => s.severity === 'critical').length;
+      const moderateSkillsCount = topMissingSkills.filter(s => s.severity === 'moderate').length;
+      const minorSkillsCount = topMissingSkills.filter(s => s.severity === 'minor').length;
+      
+      this.logAudit('Missing skills analyzed', {
+        totalMissingSkills: topMissingSkills.length,
+        criticalSkillsCount,
+        moderateSkillsCount,
+        minorSkillsCount,
+        topSkills: topMissingSkills.slice(0, 3).map(s => ({
+          name: s.skill_name,
+          severity: s.severity,
+          affected: s.affected_employees
+        }))
+      });
 
       // Generate AI executive summary using existing market benchmarks function
       let executiveSummary: string | undefined;
@@ -588,6 +738,9 @@ export class MarketSkillsService {
         market_coverage_rate: marketCoverageRate,
         industry_alignment_index: industryAlignmentIndex,
         top_missing_skills: topMissingSkills,
+        critical_skills_count: criticalSkillsCount,
+        moderate_skills_count: moderateSkillsCount,
+        minor_skills_count: minorSkillsCount,
         total_employees: stats?.total_employees || 0,
         analyzed_employees: stats?.analyzed_employees || 0,
         departments_count: stats?.departments_count || 0,
@@ -600,6 +753,9 @@ export class MarketSkillsService {
         market_coverage_rate: 0,
         industry_alignment_index: 0,
         top_missing_skills: [],
+        critical_skills_count: 0,
+        moderate_skills_count: 0,
+        minor_skills_count: 0,
         total_employees: 0,
         analyzed_employees: 0,
         departments_count: 0
@@ -636,11 +792,27 @@ export class MarketSkillsService {
         // Calculate benchmark health score (0-10)
         // Higher score = better health
         // Based on: skills match, gap reduction, and analysis coverage
-        const benchmarkHealthScore = Math.round(
-          ((dept.avg_skills_match || 0) / 100) * 4 +  // 40% weight on skills match (0-4 points)
+        // Fix: Ensure very low match scores cap the overall health score
+        const skillsMatch = dept.avg_skills_match || 0;
+        const baseHealthScore = 
+          (skillsMatch / 100) * 4 +  // 40% weight on skills match (0-4 points)
           Math.max(0, 3 - (dept.critical_gaps || 0) * 0.5) + // 30% weight on few gaps (0-3 points)
-          (analyzed_percentage / 100) * 3  // 30% weight on analysis coverage (0-3 points)
-        );
+          (analyzed_percentage / 100) * 3;  // 30% weight on analysis coverage (0-3 points)
+        
+        // Apply cap based on match percentage to ensure logical consistency
+        // If match < 10%, cap health at 2.0
+        // If match < 25%, cap health at 3.5
+        // If match < 40%, cap health at 5.0
+        let healthScoreCap = 10;
+        if (skillsMatch < 10) {
+          healthScoreCap = 2.0;
+        } else if (skillsMatch < 25) {
+          healthScoreCap = 3.5;
+        } else if (skillsMatch < 40) {
+          healthScoreCap = 5.0;
+        }
+        
+        const benchmarkHealthScore = Math.min(healthScoreCap, Math.round(baseHealthScore));
 
         // Calculate impact score based on business risk
         // Higher score = higher risk/impact if not addressed
@@ -993,6 +1165,9 @@ export class MarketSkillsService {
           market_coverage_rate: 0,
           industry_alignment_index: 0,
           top_missing_skills: [],
+          critical_skills_count: 0,
+          moderate_skills_count: 0,
+          minor_skills_count: 0,
           total_employees: 0,
           analyzed_employees: 0,
           departments_count: 0
@@ -1004,6 +1179,52 @@ export class MarketSkillsService {
     }
   }
 
+  /**
+   * Clear cache for a specific company
+   */
+  async invalidateCache(companyId: string, reason?: string): Promise<void> {
+    try {
+      console.log(`Invalidating cache for company ${companyId}. Reason: ${reason || 'Manual invalidation'}`);
+      
+      const { error } = await supabase
+        .from('market_benchmark_cache')
+        .delete()
+        .eq('company_id', companyId);
+      
+      if (error) {
+        console.error('Error invalidating cache:', error);
+        throw error;
+      }
+      
+      console.log('Cache invalidated successfully');
+    } catch (error) {
+      console.error('Failed to invalidate cache:', error);
+    }
+  }
+  
+  /**
+   * Invalidate cache when underlying data changes
+   */
+  async invalidateCacheOnDataChange(companyId: string, changeType: 'employee' | 'skills' | 'position'): Promise<void> {
+    const reasons = {
+      employee: 'Employee data changed',
+      skills: 'Skills profile updated',
+      position: 'Position requirements changed'
+    };
+    
+    await this.invalidateCache(companyId, reasons[changeType]);
+  }
+  
+  /**
+   * Check if cache is stale
+   */
+  isCacheStale(generatedAt: Date | string, maxAgeMinutes: number = 60): boolean {
+    const generated = typeof generatedAt === 'string' ? new Date(generatedAt) : generatedAt;
+    const now = new Date();
+    const diffMinutes = (now.getTime() - generated.getTime()) / (1000 * 60);
+    return diffMinutes > maxAgeMinutes;
+  }
+  
   /**
    * Utility method to check if benchmarks need refresh
    */

@@ -42,6 +42,7 @@ import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/MarketBenchmarkVerticalLoader';
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+import { Code } from 'lucide-react';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
 import DepartmentAnalysisPanel from '@/components/dashboard/skills/DepartmentAnalysisPanel';
 import CriticalSkillsPanel from '@/components/dashboard/skills/CriticalSkillsPanel';
@@ -132,6 +133,8 @@ export default function SkillsOverview() {
   const [companyIndustry, setCompanyIndustry] = useState<string>('industry');
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [activeTab, setActiveTab] = useState('internal');
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [auditLog, setAuditLog] = useState<Array<{ timestamp: Date; step: string; data: any }>>([]);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -202,6 +205,11 @@ export default function SkillsOverview() {
   const fetchBenchmarkData = async (isRefresh = false) => {
     if (!userProfile?.company_id) return;
     
+    // Enable debug mode if panel is open
+    if (showDebugPanel) {
+      marketSkillsService.setDebugMode(true);
+    }
+    
     if (isRefresh) {
       setBenchmarkRefreshing(true);
     } else {
@@ -229,6 +237,12 @@ export default function SkillsOverview() {
       setDepartmentsBenchmark(comprehensiveData.departments);
       setEmployeesBenchmark(comprehensiveData.employees);
       setLastBenchmarkUpdate(comprehensiveData.generated_at);
+      
+      // Update audit log if debug mode is enabled
+      if (showDebugPanel) {
+        const log = marketSkillsService.getAuditLog();
+        setAuditLog(log);
+      }
       
       // Set first load to false after first successful load
       if (!isRefresh && isFirstLoad) {
@@ -676,6 +690,45 @@ export default function SkillsOverview() {
                     </div>
                   ) : (
                     <div className="space-y-4">
+                      {/* Data Reconciliation Warning */}
+                      {organizationBenchmark && (
+                        (() => {
+                          const coverage = organizationBenchmark.market_coverage_rate || 0;
+                          const alignment = organizationBenchmark.industry_alignment_index || 0;
+                          const criticalCount = organizationBenchmark.critical_skills_count ?? 
+                            organizationBenchmark.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0;
+                          const totalMissing = organizationBenchmark.top_missing_skills?.length || 0;
+                          
+                          // Check for data inconsistencies
+                          const hasInconsistency = 
+                            (coverage === 100 && alignment === 0) ||
+                            (coverage === 100 && totalMissing > 0) ||
+                            (coverage > 80 && alignment < 2) ||
+                            (alignment > 8 && criticalCount > 5);
+                          
+                          if (hasInconsistency) {
+                            return (
+                              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-sm text-yellow-800">
+                                  <span className="font-medium">Data Reconciliation Notice:</span> Some metrics may need recalculation. 
+                                  {organizationBenchmark.analyzed_employees < organizationBenchmark.total_employees && (
+                                    <span> Only {Math.round((organizationBenchmark.analyzed_employees / organizationBenchmark.total_employees) * 100)}% of employees have been analyzed.</span>
+                                  )}
+                                  <button 
+                                    onClick={() => fetchBenchmarkData(true)}
+                                    className="ml-2 text-yellow-900 underline hover:no-underline"
+                                  >
+                                    Refresh data
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()
+                      )}
+                      
                       {/* Stats Grid - Consistent Layout */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Market Coverage Rate */}
@@ -804,7 +857,11 @@ export default function SkillsOverview() {
                           
                           {/* Value Row */}
                           <div className="flex items-baseline gap-1 mb-3">
-                            <span className="text-3xl font-bold text-gray-900">{organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length || 0}</span>
+                            <span className="text-3xl font-bold text-gray-900">
+                              {organizationBenchmark?.critical_skills_count ?? 
+                               organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 
+                               0}
+                            </span>
                             <span className="text-sm text-gray-500">skills</span>
                           </div>
                           
@@ -825,12 +882,12 @@ export default function SkillsOverview() {
                           {/* Context Row */}
                           <div className="flex items-center justify-between text-xs">
                             <span className={`font-medium ${
-                              organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 5 ? 'text-red-600' :
-                              organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 2 ? 'text-yellow-600' :
+                              (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 5 ? 'text-red-600' :
+                              (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 2 ? 'text-yellow-600' :
                               'text-green-600'
                             }`}>
-                              {organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 5 ? 'High Priority' :
-                               organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 2 ? 'Moderate' :
+                              {(organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 5 ? 'High Priority' :
+                               (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 2 ? 'Moderate' :
                                'Managing Well'}
                             </span>
                             {organizationBenchmark?.top_missing_skills?.length > 2 && (
