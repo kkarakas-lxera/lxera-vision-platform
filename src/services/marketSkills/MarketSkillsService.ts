@@ -682,12 +682,16 @@ export class MarketSkillsService {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
 
+      console.log('Getting employee benchmark for user:', userData.user.id);
+
       // Get the user's company_id first
       const { data: userDetails } = await supabase
         .from('users')
         .select('company_id')
         .eq('id', userData.user.id)
         .single();
+      
+      console.log('User details:', userDetails);
       
       // Determine the actual company_id
       let companyId = userDetails?.company_id;
@@ -701,6 +705,7 @@ export class MarketSkillsService {
         
         if (companyCheck) {
           companyId = userData.user.id;
+          console.log('User is a company admin, using user ID as company ID');
         } else {
           // Check if user is an employee
           const { data: employeeCheck } = await supabase
@@ -710,6 +715,7 @@ export class MarketSkillsService {
             .single();
           
           companyId = employeeCheck?.company_id;
+          console.log('User is an employee, company_id from employees table:', companyId);
         }
       }
 
@@ -718,38 +724,47 @@ export class MarketSkillsService {
         return [];
       }
 
-      // Get employee benchmark data with user email from joined table
+      console.log('Fetching employee benchmark data for company:', companyId);
+
+      // Get employee benchmark data - use simpler query structure
       const { data: employeesData, error } = await supabase
         .from('employees')
         .select(`
           id,
-          user:users!employees_user_id_fkey(email, full_name),
           department,
-          current_position:st_company_positions!employees_current_position_id_fkey(position_title),
-          st_employee_skills_profile(
+          user_id,
+          current_position_id,
+          users!inner(email, full_name),
+          st_company_positions(position_title),
+          st_employee_skills_profile!inner(
             skills_match_score,
             extracted_skills,
             gap_analysis_completed_at
           )
         `)
-        .eq('company_id', companyId)
-        .not('st_employee_skills_profile', 'is', null);
+        .eq('company_id', companyId);
 
       if (error) {
         console.error('Error fetching employees data:', error);
         throw error;
       }
 
+      console.log('Employees data fetched:', employeesData?.length || 0, 'employees');
+
       // Process each employee
       const employeeBenchmarks: EmployeeBenchmarkData[] = [];
 
       for (const emp of employeesData || []) {
         const profile = emp.st_employee_skills_profile?.[0];
-        if (!profile) continue;
+        if (!profile) {
+          console.log('Skipping employee without profile:', emp.id);
+          continue;
+        }
 
         // Use full name from user data, fallback to email-based name
-        const name = emp.user?.full_name || 
-                    (emp.user?.email ? emp.user.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+        const userData = emp.users;
+        const name = userData?.full_name || 
+                    (userData?.email ? userData.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
         
         // Calculate skills by source
         const skillsBySource = { ai: 0, cv: 0, verified: 0 };
@@ -782,12 +797,14 @@ export class MarketSkillsService {
           });
         }
 
+        const positionData = emp.st_company_positions?.[0];
+        
         employeeBenchmarks.push({
           employee_id: emp.id,
           name,
           department: emp.department || 'Unknown',
-          position: emp.current_position?.position_title || 'Unknown',
-          market_match_percentage: profile.skills_match_score || 0,
+          position: positionData?.position_title || 'Unknown',
+          market_match_percentage: Number(profile.skills_match_score) || 0,
           critical_gaps_count: criticalGapsCount,
           skills_by_source: skillsBySource,
           top_missing_skills: topMissingSkills,
@@ -797,6 +814,7 @@ export class MarketSkillsService {
         });
       }
 
+      console.log('Processed employee benchmarks:', employeeBenchmarks.length);
       return employeeBenchmarks;
     } catch (error) {
       console.error('Error getting employees benchmark:', error);
