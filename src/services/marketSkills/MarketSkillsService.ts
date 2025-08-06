@@ -726,23 +726,26 @@ export class MarketSkillsService {
 
       console.log('Fetching employee benchmark data for company:', companyId);
 
-      // Get employee benchmark data - use left joins for optional relations
+      // Get employees with skills profiles using explicit filter
       const { data: employeesData, error } = await supabase
-        .from('employees')
+        .from('st_employee_skills_profile')
         .select(`
-          id,
-          department,
-          user_id,
-          current_position_id,
-          users(email, full_name),
-          st_company_positions(position_title),
-          st_employee_skills_profile!inner(
-            skills_match_score,
-            extracted_skills,
-            gap_analysis_completed_at
+          employee_id,
+          skills_match_score,
+          extracted_skills,
+          gap_analysis_completed_at,
+          employees!inner(
+            id,
+            department,
+            user_id,
+            current_position_id,
+            company_id,
+            users(email, full_name),
+            st_company_positions(position_title)
           )
         `)
-        .eq('company_id', companyId);
+        .eq('employees.company_id', companyId)
+        .not('skills_match_score', 'is', null);
 
       if (error) {
         console.error('Error fetching employees data:', error);
@@ -751,18 +754,18 @@ export class MarketSkillsService {
 
       console.log('Employees data fetched:', employeesData?.length || 0, 'employees');
 
-      // Process each employee
+      // Process each skills profile
       const employeeBenchmarks: EmployeeBenchmarkData[] = [];
 
-      for (const emp of employeesData || []) {
-        const profile = emp.st_employee_skills_profile?.[0];
-        if (!profile) {
-          console.log('Skipping employee without profile:', emp.id);
+      for (const profile of employeesData || []) {
+        const employee = profile.employees;
+        if (!employee) {
+          console.log('Skipping profile without employee data');
           continue;
         }
 
         // Use full name from user data, fallback to email-based name
-        const userData = emp.users?.[0] || emp.users; // Handle both array and object response
+        const userData = employee.users?.[0] || employee.users; // Handle both array and object response
         const name = userData?.full_name || 
                     (userData?.email ? userData.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
         
@@ -797,12 +800,12 @@ export class MarketSkillsService {
           });
         }
 
-        const positionData = emp.st_company_positions?.[0];
+        const positionData = employee.st_company_positions?.[0] || employee.st_company_positions;
         
         employeeBenchmarks.push({
-          employee_id: emp.id,
+          employee_id: employee.id,
           name,
-          department: emp.department || 'Unknown',
+          department: employee.department || 'Unknown',
           position: positionData?.position_title || 'Unknown',
           market_match_percentage: Number(profile.skills_match_score) || 0,
           critical_gaps_count: criticalGapsCount,
