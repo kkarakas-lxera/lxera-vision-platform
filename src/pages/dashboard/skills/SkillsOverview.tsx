@@ -28,7 +28,8 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
-  Info
+  Info,
+  RefreshCcw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -642,9 +643,22 @@ export default function SkillsOverview() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <CardDescription className="text-xs mt-0.5">
-                        Compare skills against {companyIndustry} standards
-                      </CardDescription>
+                      <div className="flex items-center gap-4 mt-1">
+                        <CardDescription className="text-xs">
+                          Compare skills against {companyIndustry} standards
+                        </CardDescription>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span>Last updated: {lastBenchmarkUpdate ? new Date(lastBenchmarkUpdate).toLocaleDateString() : 'Never'}</span>
+                          <button
+                            onClick={handleRefreshBenchmark}
+                            disabled={benchmarkRefreshing}
+                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <RefreshCcw className={`h-3 w-3 ${benchmarkRefreshing ? 'animate-spin' : ''}`} />
+                            {benchmarkRefreshing ? 'Refreshing...' : 'Refresh'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     <Brain className="h-4 w-4 text-gray-400" />
                   </div>
@@ -662,120 +676,165 @@ export default function SkillsOverview() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Stats Grid */}
+                      {/* Stats Grid - Consistent Layout */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Market Coverage Rate */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-medium text-gray-600">Market Coverage</span>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <p className="text-sm font-medium mb-1">How we calculate this:</p>
-                                    <p className="text-sm">% of analyzed employees with adequate skills (avg proficiency ≥3/5).</p>
-                                    <p className="text-sm mt-1 text-gray-400">Based on: {organizationBenchmark?.analyzed_employees || 0} employees analyzed</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <Target className="h-3.5 w-3.5 text-blue-600" />
+                          {/* Title Row */}
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Market Coverage</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="text-sm font-medium mb-1">How we calculate this:</p>
+                                  <p className="text-sm">% of analyzed employees with adequate skills (avg proficiency ≥3/5).</p>
+                                  <p className="text-sm mt-1 text-gray-400">Based on: {organizationBenchmark?.analyzed_employees || 0} employees analyzed</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-gray-900">{organizationBenchmark?.market_coverage_rate || 0}%</span>
-                            <span className="text-xs text-gray-500">ready</span>
+                          
+                          {/* Value Row */}
+                          <div className="flex items-baseline gap-1 mb-3">
+                            <span className="text-3xl font-bold text-gray-900">{organizationBenchmark?.market_coverage_rate || 0}</span>
+                            <span className="text-sm text-gray-500">%</span>
                           </div>
-                          <div className="mt-2">
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                                organizationBenchmark?.market_coverage_rate >= 75 ? 'bg-green-500' :
-                                organizationBenchmark?.market_coverage_rate >= 50 ? 'bg-blue-500' :
-                                organizationBenchmark?.market_coverage_rate >= 25 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`} style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
-                            </div>
-                            <div className="flex items-center justify-between text-xs mt-1">
-                              <span className="font-medium">{
-                                organizationBenchmark?.market_coverage_rate > 65 ? 'Above avg' : 
-                                organizationBenchmark?.market_coverage_rate > 40 ? 'Near avg' : 
-                                'Below avg'
-                              }</span>
-                              <span className="text-gray-400">Industry: 65%</span>
-                            </div>
+                          
+                          {/* Visual Indicator */}
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div className={`h-2 rounded-full transition-all duration-500 ${
+                              organizationBenchmark?.market_coverage_rate >= 75 ? 'bg-green-500' :
+                              organizationBenchmark?.market_coverage_rate >= 50 ? 'bg-blue-500' :
+                              organizationBenchmark?.market_coverage_rate >= 25 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`} style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
+                          </div>
+                          
+                          {/* Context Row */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-medium ${
+                              organizationBenchmark?.market_coverage_rate >= 75 ? 'text-green-600' :
+                              organizationBenchmark?.market_coverage_rate >= 50 ? 'text-blue-600' :
+                              organizationBenchmark?.market_coverage_rate >= 25 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>{
+                              organizationBenchmark?.market_coverage_rate >= 75 ? 'Excellent' :
+                              organizationBenchmark?.market_coverage_rate >= 50 ? 'Good' :
+                              organizationBenchmark?.market_coverage_rate >= 25 ? 'Developing' :
+                              'Needs Focus'
+                            }</span>
+                            <span className="text-gray-400">vs Industry: 65%</span>
                           </div>
                         </div>
 
                         {/* Industry Alignment Index */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-medium text-gray-600">Alignment Index</span>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <p className="text-sm">How well your team's skills match industry standards (0-10 scale). Based on average employee skill proficiency compared to market requirements.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <TrendingUp className="h-3.5 w-3.5 text-green-600" />
+                          {/* Title Row */}
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Alignment Index</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="text-sm font-medium mb-1">How we calculate this:</p>
+                                  <p className="text-sm">Average skills match score across all analyzed employees (0-10 scale).</p>
+                                  <p className="text-sm mt-1 text-gray-400">Based on position-specific requirements</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-gray-900">{(organizationBenchmark?.industry_alignment_index || 0).toFixed(1)}</span>
-                            <span className="text-xs text-gray-500">/ 10</span>
+                          
+                          {/* Value Row */}
+                          <div className="flex items-baseline gap-1 mb-3">
+                            <span className="text-3xl font-bold text-gray-900">{(organizationBenchmark?.industry_alignment_index || 0).toFixed(1)}</span>
+                            <span className="text-sm text-gray-500">/ 10</span>
                           </div>
-                          <div className="mt-2">
-                            <div className="flex items-center gap-0.5">
-                              {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                                <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= (organizationBenchmark?.industry_alignment_index || 0) ? 'bg-green-400' : 'bg-gray-200'}`}></div>
-                              ))}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">{
-                              organizationBenchmark?.industry_alignment_index >= 8 ? 'Strong' :
+                          
+                          {/* Visual Indicator */}
+                          <div className="flex items-center gap-0.5 mb-2">
+                            {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                              <div key={i} className={`flex-1 h-2 rounded-full ${
+                                i <= (organizationBenchmark?.industry_alignment_index || 0) 
+                                  ? organizationBenchmark?.industry_alignment_index >= 7 ? 'bg-green-500' :
+                                    organizationBenchmark?.industry_alignment_index >= 4 ? 'bg-yellow-500' :
+                                    'bg-red-500'
+                                  : 'bg-gray-200'
+                              }`}></div>
+                            ))}
+                          </div>
+                          
+                          {/* Context Row */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-medium ${
+                              organizationBenchmark?.industry_alignment_index >= 7 ? 'text-green-600' :
+                              organizationBenchmark?.industry_alignment_index >= 4 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>{
+                              organizationBenchmark?.industry_alignment_index >= 8 ? 'Excellent' :
                               organizationBenchmark?.industry_alignment_index >= 6 ? 'Good' :
                               organizationBenchmark?.industry_alignment_index >= 4 ? 'Moderate' :
                               'Low'
-                            } alignment</div>
+                            }</span>
+                            <span className="text-gray-400">vs Industry: 6.2</span>
                           </div>
                         </div>
 
-                        {/* Top Missing Skills */}
+                        {/* Critical Gaps */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-medium text-gray-600">Critical Gaps</span>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <p className="text-sm">High-priority skills that are in demand by the market but missing or underdeveloped in your organization. These should be addressed first for maximum impact.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
+                          {/* Title Row */}
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Critical Gaps</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="text-sm font-medium mb-1">What are critical gaps?</p>
+                                  <p className="text-sm">High-priority skills missing in your organization but essential for your positions. Based on position requirements vs actual employee skills.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-gray-900">{organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length || 0}</span>
-                            <span className="text-xs text-gray-500">skills</span>
+                          
+                          {/* Value Row */}
+                          <div className="flex items-baseline gap-1 mb-3">
+                            <span className="text-3xl font-bold text-gray-900">{organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length || 0}</span>
+                            <span className="text-sm text-gray-500">skills</span>
                           </div>
-                          <div className="mt-2 space-y-1">
+                          
+                          {/* Skills List */}
+                          <div className="space-y-1.5 mb-2">
                             {(organizationBenchmark?.top_missing_skills || []).slice(0, 2).map((skill, i) => (
-                              <div key={i} className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                                <span className="text-xs text-gray-600 truncate">{skill.skill_name}</span>
+                              <div key={i} className="flex items-center gap-2">
+                                <div className={`w-1.5 h-1.5 rounded-full ${
+                                  skill.severity === 'critical' ? 'bg-red-500' :
+                                  skill.severity === 'moderate' ? 'bg-yellow-500' :
+                                  'bg-gray-400'
+                                }`}></div>
+                                <span className="text-xs text-gray-700 truncate">{skill.skill_name}</span>
                               </div>
                             ))}
+                          </div>
+                          
+                          {/* Context Row */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-medium ${
+                              organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 5 ? 'text-red-600' :
+                              organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 2 ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`}>
+                              {organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 5 ? 'High Priority' :
+                               organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length > 2 ? 'Moderate' :
+                               'Managing Well'}
+                            </span>
                             {organizationBenchmark?.top_missing_skills?.length > 2 && (
-                              <span className="text-xs text-gray-400">+{organizationBenchmark.top_missing_skills.length - 2} more</span>
+                              <span className="text-gray-400">+{organizationBenchmark.top_missing_skills.length - 2} more</span>
                             )}
                           </div>
                         </div>
