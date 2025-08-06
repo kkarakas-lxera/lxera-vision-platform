@@ -585,24 +585,9 @@ export default function DepartmentSkillsDetail() {
                       </div>
                     </div>
                     
-                    {needsTraining && (
-                      <div className="pt-2 border-t flex items-center justify-between">
-                        <div className="text-xs text-muted-foreground">
-                          {groupSize > 5 ? (
-                            <span className="flex items-center gap-1">
-                              <GraduationCap className="h-3 w-3" />
-                              Recommended: Group training
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              Recommended: Individual coaching
-                            </span>
-                          )}
-                        </div>
-                        {isUrgent && (
-                          <span className="text-xs font-medium text-red-600">Priority</span>
-                        )}
+                    {needsTraining && isUrgent && (
+                      <div className="pt-2 border-t flex items-center justify-end">
+                        <span className="text-xs font-medium text-red-600">Priority</span>
                       </div>
                     )}
                   </div>
