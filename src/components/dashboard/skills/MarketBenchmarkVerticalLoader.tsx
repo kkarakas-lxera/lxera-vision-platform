@@ -33,8 +33,23 @@ export function MarketBenchmarkVerticalLoader({
     }
   };
 
+  // Show regenerating state when refreshing
+  if (refreshing) {
+    return (
+      <div className="flex items-center justify-between px-3 py-2 bg-blue-50 rounded-lg border border-blue-200 mb-4 animate-pulse">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+          <div>
+            <span className="text-sm font-medium text-blue-900">Regenerating Market Benchmark...</span>
+            <p className="text-xs text-blue-700 mt-0.5">Analyzing latest market data and recalculating all metrics</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // Show minimal status bar when not loading
-  if (!isLoading && !refreshing) {
+  if (!isLoading) {
     return (
       <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200 mb-4">
         <div className="flex items-center gap-3">

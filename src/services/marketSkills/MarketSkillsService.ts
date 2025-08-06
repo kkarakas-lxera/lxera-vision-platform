@@ -625,7 +625,15 @@ export class MarketSkillsService {
         totalMatchScore,
         validScores,
         avgMatchScore,
-        industryAlignmentIndex
+        industryAlignmentIndex,
+        statsAnalyzedEmployees: stats?.analyzed_employees, // Log the RPC value for comparison
+        skillsDataCount: skillsData?.length
+      });
+      
+      console.log('Employee analysis discrepancy check:', {
+        calculatedAnalyzed: totalEmployeesAnalyzed,
+        rpcAnalyzed: stats?.analyzed_employees,
+        skillsProfiles: skillsData?.length
       });
 
       // Get top missing skills
@@ -728,8 +736,8 @@ export class MarketSkillsService {
       }
       
       // Fallback to basic summary if AI generation fails
-      if (!executiveSummary && stats?.analyzed_employees > 0) {
-        executiveSummary = `Your organization has analyzed ${stats.analyzed_employees} of ${stats.total_employees} employees across ${stats.departments_count} departments. ` +
+      if (!executiveSummary && totalEmployeesAnalyzed > 0) {
+        executiveSummary = `Your organization has analyzed ${totalEmployeesAnalyzed} of ${stats?.total_employees || 0} employees across ${stats?.departments_count || 0} departments. ` +
           `Current market coverage is at ${marketCoverageRate}% with an industry alignment index of ${industryAlignmentIndex}/10. ` +
           `Focus on addressing ${topMissingSkills.length} critical skill gaps to improve market competitiveness.`;
       }
@@ -742,7 +750,7 @@ export class MarketSkillsService {
         moderate_skills_count: moderateSkillsCount,
         minor_skills_count: minorSkillsCount,
         total_employees: stats?.total_employees || 0,
-        analyzed_employees: stats?.analyzed_employees || 0,
+        analyzed_employees: totalEmployeesAnalyzed, // Use our calculated value, not the RPC value
         departments_count: stats?.departments_count || 0,
         executive_summary: executiveSummary
       };
@@ -1076,6 +1084,12 @@ export class MarketSkillsService {
         throw new Error('Could not determine company ID');
       }
 
+      // If force refresh, delete existing cache first
+      if (forceRefresh) {
+        console.log('Force refresh requested - clearing existing cache...');
+        await this.invalidateCache(companyId, 'Manual refresh requested');
+      }
+      
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         const { data: cachedData } = await supabase

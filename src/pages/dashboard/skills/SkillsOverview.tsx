@@ -212,6 +212,15 @@ export default function SkillsOverview() {
     
     if (isRefresh) {
       setBenchmarkRefreshing(true);
+      // Clear existing data to show regenerating state
+      setOrganizationBenchmark(null);
+      setDepartmentsBenchmark([]);
+      setEmployeesBenchmark([]);
+      toast({
+        title: "Regenerating Market Benchmark",
+        description: "Analyzing latest market data and recalculating all metrics...",
+        duration: 5000,
+      });
     } else {
       setBenchmarkLoading(true);
     }
@@ -249,19 +258,29 @@ export default function SkillsOverview() {
         setIsFirstLoad(false);
       }
       
+      // Show success message for manual refresh
       if (isRefresh) {
         toast({
-          title: 'Success',
-          description: 'Market benchmark data refreshed and cached successfully',
+          title: "✓ Market Benchmark Updated",
+          description: "All metrics have been recalculated with the latest data.",
+          duration: 3000,
         });
       }
     } catch (error) {
       console.error('Error fetching benchmark data:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load market benchmark data',
+        title: isRefresh ? 'Refresh Failed' : 'Error',
+        description: isRefresh 
+          ? 'Failed to regenerate market benchmark. Please try again.' 
+          : 'Failed to load market benchmark data',
         variant: 'destructive'
       });
+      
+      // If refresh failed, try to restore cached data
+      if (isRefresh && !organizationBenchmark) {
+        console.log('Attempting to restore cached data after refresh failure...');
+        await fetchBenchmarkData(false);
+      }
     } finally {
       setBenchmarkLoading(false);
       setBenchmarkRefreshing(false);
