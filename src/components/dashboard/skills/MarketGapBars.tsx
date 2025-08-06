@@ -1,7 +1,7 @@
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface MarketSkill {
   skill_name: string;
@@ -25,6 +26,9 @@ interface MarketGapBarsProps {
   role?: string;
   showSource?: boolean;
   className?: string;
+  lastUpdated?: Date;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export default function MarketGapBars({ 
@@ -32,7 +36,10 @@ export default function MarketGapBars({
   industry, 
   role, 
   showSource = false,
-  className = ''
+  className = '',
+  lastUpdated,
+  onRefresh,
+  isRefreshing = false
 }: MarketGapBarsProps) {
   // Group skills by match percentage
   const missingSkills = skills.filter(s => s.match_percentage <= 40);
@@ -131,6 +138,42 @@ export default function MarketGapBars({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Clock className="h-3 w-3" />
+              <span>
+                {lastUpdated.toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
+          )}
+          {onRefresh && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={onRefresh}
+                    disabled={isRefreshing}
+                    className="h-7 px-2"
+                  >
+                    <RefreshCw className={cn(
+                      "h-3 w-3",
+                      isRefreshing && "animate-spin"
+                    )} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Refresh market data</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
       

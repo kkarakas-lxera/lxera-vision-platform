@@ -4,6 +4,8 @@ import type { MarketSkillData, DepartmentMarketGap } from '@/types/marketSkills'
 interface MarketBenchmarkResponse {
   skills: MarketSkillData[];
   cached: boolean;
+  generated_at?: string;
+  expires_at?: string;
 }
 
 interface InternalSkill {
@@ -48,7 +50,7 @@ export class MarketSkillsService {
   /**
    * Compare internal skills with market benchmarks
    */
-  compareWithInternal(
+  public compareWithInternal(
     marketSkills: MarketSkillData[],
     internalSkills: InternalSkill[]
   ): MarketSkillData[] {
@@ -137,11 +139,16 @@ export class MarketSkillsService {
     // Compare with aggregated employee skills
     const comparedSkills = this.compareWithInternal(benchmarks.skills, employeeSkills);
     
+    // Use generated_at from benchmarks if available, otherwise use current date
+    const lastUpdated = benchmarks.generated_at 
+      ? new Date(benchmarks.generated_at)
+      : new Date();
+    
     return {
       department,
       industry: industry || 'General',
       skills: comparedSkills,
-      last_updated: new Date()
+      last_updated: lastUpdated
     };
   }
 

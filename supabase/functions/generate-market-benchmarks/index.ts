@@ -42,18 +42,26 @@ serve(async (req) => {
 
     // Check for cached benchmarks if not forcing refresh
     if (!force_refresh) {
-      const { data: cachedData } = await supabase.rpc('get_market_benchmarks', {
-        p_role_name: role,
-        p_industry: industry,
-        p_department: department
-      })
+      // Get full benchmark data including metadata
+      const { data: cachedBenchmark } = await supabase
+        .from('market_skills_benchmarks')
+        .select('skills, generated_at, expires_at')
+        .eq('role_name', role)
+        .eq('industry', industry || '')
+        .eq('department', department || '')
+        .gt('expires_at', new Date().toISOString())
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-      if (cachedData) {
+      if (cachedBenchmark?.skills) {
         console.log('Returning cached benchmarks')
         return new Response(
           JSON.stringify({ 
-            skills: cachedData,
-            cached: true 
+            skills: cachedBenchmark.skills,
+            cached: true,
+            generated_at: cachedBenchmark.generated_at,
+            expires_at: cachedBenchmark.expires_at
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )

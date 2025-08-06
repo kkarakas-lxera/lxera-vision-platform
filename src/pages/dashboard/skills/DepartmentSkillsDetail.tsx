@@ -208,6 +208,7 @@ export default function DepartmentSkillsDetail() {
     moderateGaps: 0
   });
   const [marketGapSkills, setMarketGapSkills] = useState<MarketSkillData[]>([]);
+  const [marketGapLastUpdated, setMarketGapLastUpdated] = useState<Date | undefined>();
   const [loadingMarketGaps, setLoadingMarketGaps] = useState(false);
 
   useEffect(() => {
@@ -413,7 +414,7 @@ export default function DepartmentSkillsDetail() {
     return `${diffDays} days ago`;
   };
 
-  const fetchMarketGaps = async () => {
+  const fetchMarketGaps = async (forceRefresh = false) => {
     if (!userProfile?.company_id || !department) return;
 
     setLoadingMarketGaps(true);
@@ -444,16 +445,45 @@ export default function DepartmentSkillsDetail() {
         parseJsonSkills(profile.extracted_skills)
       ) || [];
 
-      // Get market gaps
-      const marketGap = await marketSkillsService.getDepartmentMarketGaps(
-        decodeURIComponent(department),
-        companyData?.industry,
-        allSkills
-      );
+      // Get market gaps - modify service to support force refresh
+      if (forceRefresh) {
+        // Force a refresh by calling the edge function directly
+        const { data, error } = await supabase.functions.invoke('generate-market-benchmarks', {
+          body: { 
+            role: decodeURIComponent(department), 
+            industry: companyData?.industry, 
+            department: decodeURIComponent(department), 
+            force_refresh: true
+          }
+        });
 
-      setMarketGapSkills(marketGap.skills);
+        if (!error && data) {
+          // Compare with internal skills
+          const comparedSkills = marketSkillsService.compareWithInternal(
+            data.skills || [], 
+            allSkills
+          );
+          setMarketGapSkills(comparedSkills);
+          setMarketGapLastUpdated(data.generated_at ? new Date(data.generated_at) : new Date());
+        }
+      } else {
+        // Get market gaps normally (with caching)
+        const marketGap = await marketSkillsService.getDepartmentMarketGaps(
+          decodeURIComponent(department),
+          companyData?.industry,
+          allSkills
+        );
+
+        setMarketGapSkills(marketGap.skills);
+        setMarketGapLastUpdated(marketGap.last_updated);
+      }
     } catch (error) {
       console.error('Error fetching market gaps:', error);
+      toast({
+        title: 'Error',
+        description: forceRefresh ? 'Failed to refresh market data' : 'Failed to load market data',
+        variant: 'destructive'
+      });
     } finally {
       setLoadingMarketGaps(false);
     }
@@ -595,6 +625,9 @@ export default function DepartmentSkillsDetail() {
             role={decodeURIComponent(department)}
             showSource={false}
             className="text-sm"
+            lastUpdated={marketGapLastUpdated}
+            onRefresh={() => fetchMarketGaps(true)}
+            isRefreshing={loadingMarketGaps}
           />
         </div>
       )}
