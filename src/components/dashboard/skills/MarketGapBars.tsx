@@ -337,7 +337,7 @@ export default function MarketGapBars({
                       {insights.action_items.map((item, index) => (
                         <li key={index} className="text-xs text-gray-700 flex items-start gap-1.5">
                           <CheckCircle2 className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
-                          <span>{item}</span>
+                          <span>{typeof item === 'string' ? item : item.task || item}</span>
                         </li>
                       ))}
                     </ul>

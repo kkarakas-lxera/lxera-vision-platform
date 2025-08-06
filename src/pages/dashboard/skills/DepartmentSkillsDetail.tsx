@@ -625,15 +625,29 @@ export default function DepartmentSkillsDetail() {
       }
 
       {/* Market Skills Gap Section */}
-      {marketGapSkills.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Market Skills Comparison</h2>
-            <Badge variant="outline" className="text-xs">
-              <Brain className="h-3 w-3 mr-1" />
-              2025 Market Data
-            </Badge>
+      <div className="bg-card rounded-lg border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Market Skills Comparison</h2>
+          <Badge variant="outline" className="text-xs">
+            <Brain className="h-3 w-3 mr-1" />
+            2025 Market Data
+          </Badge>
+        </div>
+        {loadingMarketGaps && marketGapSkills.length === 0 ? (
+          <div className="space-y-4 py-8">
+            <div className="flex justify-center">
+              <div className="animate-pulse flex items-center gap-2">
+                <Brain className="h-6 w-6 text-purple-500" />
+                <span className="text-sm text-muted-foreground">Analyzing market trends...</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
           </div>
+        ) : marketGapSkills.length > 0 ? (
           <MarketGapBars
             skills={marketGapSkills}
             insights={marketGapInsights}
@@ -644,8 +658,22 @@ export default function DepartmentSkillsDetail() {
             onRefresh={() => fetchMarketGaps(true)}
             isRefreshing={loadingMarketGaps}
           />
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Brain className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <p className="text-sm">No market benchmark data available</p>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="mt-3"
+              onClick={() => fetchMarketGaps(true)}
+              disabled={loadingMarketGaps}
+            >
+              Generate Market Analysis
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Main Content - Single Column Layout */}
       <div className="space-y-4">

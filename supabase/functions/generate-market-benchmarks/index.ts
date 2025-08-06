@@ -264,7 +264,7 @@ Provide strategic insights in JSON format with:
 - key_findings: Array of 3-4 specific observations about skill gaps and market alignment
 - recommendations: Array of 3-4 actionable recommendations for addressing gaps
 - business_impact: A paragraph explaining the business value and ROI of addressing these gaps
-- action_items: Array of 3-4 immediate next steps with timelines
+- action_items: Array of 3-4 immediate next steps (as plain strings, not objects)
 
 Focus on:
 1. Competitive advantage implications
@@ -295,7 +295,16 @@ Return only valid JSON with these exact fields.`
 
         const insightsResponse = insightsCompletion.choices[0]?.message?.content
         if (insightsResponse) {
-          insights = JSON.parse(insightsResponse)
+          const parsedInsights = JSON.parse(insightsResponse)
+          
+          // Ensure action_items are strings
+          if (parsedInsights.action_items && Array.isArray(parsedInsights.action_items)) {
+            parsedInsights.action_items = parsedInsights.action_items.map(item => 
+              typeof item === 'string' ? item : (item.task || item.toString())
+            )
+          }
+          
+          insights = parsedInsights
           
           // Update the benchmark with insights in metadata
           if (benchmarkId) {
