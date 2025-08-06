@@ -26,6 +26,7 @@ import { parseJsonSkills } from '@/utils/typeGuards';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import type { MarketSkillData } from '@/types/marketSkills';
+import { cn } from '@/lib/utils';
 
 interface DepartmentEmployee {
   employee_id: string;
@@ -107,6 +108,90 @@ function calculateDepartmentHealth(stats: {
     };
   }
 }
+
+// Component for individual skill cards
+const SkillCard = ({ 
+  skill, 
+  employees, 
+  variant 
+}: { 
+  skill: DepartmentSkillBreakdown; 
+  employees: DepartmentEmployee[]; 
+  variant: 'critical' | 'developing' | 'strong';
+}) => {
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'critical':
+        return {
+          bgColor: 'bg-red-50 border-red-200',
+          textColor: 'text-red-700',
+          badgeColor: 'bg-red-100 text-red-700 border-red-200'
+        };
+      case 'developing':
+        return {
+          bgColor: 'bg-orange-50 border-orange-200',
+          textColor: 'text-orange-700',
+          badgeColor: 'bg-orange-100 text-orange-700 border-orange-200'
+        };
+      default:
+        return {
+          bgColor: 'bg-green-50 border-green-200',
+          textColor: 'text-green-700',
+          badgeColor: 'bg-green-100 text-green-700 border-green-200'
+        };
+    }
+  };
+  
+  const styles = getVariantStyles();
+  const coveragePercentage = employees.length > 0 
+    ? Math.round((skill.employees_count / employees.length) * 100)
+    : 0;
+  
+  return (
+    <div className={`p-3 rounded-lg border ${styles.bgColor}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <h4 className="font-medium text-sm text-gray-900">{skill.skill_name}</h4>
+          <p className="text-xs text-gray-600 mt-0.5">
+            {skill.employees_count}/{employees.length} employees ({coveragePercentage}%)
+          </p>
+        </div>
+        {skill.below_target_count > 0 && (
+          <Badge className={`text-xs px-2 py-0.5 ${styles.badgeColor} border`}>
+            {skill.below_target_count} gap
+          </Badge>
+        )}
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-600">Avg. proficiency:</span>
+          <span className={`font-semibold ${styles.textColor}`}>
+            {skill.avg_proficiency.toFixed(1)}/5
+          </span>
+        </div>
+        {skill.below_target_count > 5 && variant === 'critical' && (
+          <Badge variant="outline" className="text-xs px-1.5 py-0">
+            Group training
+          </Badge>
+        )}
+      </div>
+      
+      <div className="mt-2">
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className={`h-full rounded-full transition-all ${
+              variant === 'critical' ? 'bg-red-500' : 
+              variant === 'developing' ? 'bg-orange-500' : 
+              'bg-green-500'
+            }`}
+            style={{ width: `${(skill.avg_proficiency / 5) * 100}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function DepartmentSkillsDetail() {
   const { department } = useParams<{ department: string }>();
@@ -526,134 +611,215 @@ export default function DepartmentSkillsDetail() {
       {/* Main Content - Single Column Layout */}
       <div className="space-y-4">
         {/* Skills Analysis Card */}
-        <Card>
-          <CardHeader>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Skills Analysis</CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {skillBreakdown.length} skills tracked
+                <Brain className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-lg">Skills Analysis</CardTitle>
+                <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
+                  {skillBreakdown.length} skills
                 </Badge>
-                <Button size="sm" variant="outline">
-                  Export Data
-                </Button>
               </div>
+              <Button size="sm" variant="ghost" className="text-xs">
+                <FileText className="h-3 w-3 mr-1" />
+                Export
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {skillBreakdown.slice(0, 10).map((skill) => {
-              const needsTraining = skill.below_target_count > 0;
-              const groupSize = skill.below_target_count;
-              const isUrgent = skill.avg_proficiency < 2;
-              
-              return (
-                <div key={skill.skill_name} className="group hover:bg-gray-50 p-3 rounded-lg border transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-medium text-sm">{skill.skill_name}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {skill.employees_count} of {employees.length} employees have this skill
-                      </p>
-                    </div>
-                    {needsTraining && (
-                      <Badge 
-                        variant={isUrgent ? "destructive" : "secondary"} 
-                        className="text-xs"
-                      >
-                        {skill.below_target_count} gap
-                      </Badge>
-                    )}
+            <div className="space-y-2">
+              {/* Critical Skills Section */}
+              {skillBreakdown.filter(s => s.avg_proficiency < 2).length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <h4 className="text-sm font-medium text-gray-900">Critical Skills ({skillBreakdown.filter(s => s.avg_proficiency < 2).length})</h4>
                   </div>
-                  
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-muted-foreground">Average Proficiency</span>
-                          <span className="font-medium">{skill.avg_proficiency.toFixed(1)}/5.0</span>
-                        </div>
-                        <Progress 
-                          value={(skill.avg_proficiency / 5) * 100} 
-                          className="h-2"
-                          indicatorClassName={`${
-                            skill.avg_proficiency < 2 ? 'bg-red-500' : 
-                            skill.avg_proficiency < 3 ? 'bg-orange-500' : 
-                            skill.avg_proficiency < 4 ? 'bg-yellow-500' : 'bg-green-500'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                    
-                    {needsTraining && isUrgent && (
-                      <div className="pt-2 border-t flex items-center justify-end">
-                        <span className="text-xs font-medium text-red-600">Priority</span>
-                      </div>
+                    {skillBreakdown.filter(s => s.avg_proficiency < 2).map((skill) => (
+                      <SkillCard key={skill.skill_name} skill={skill} employees={employees} variant="critical" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Developing Skills Section */}
+              {skillBreakdown.filter(s => s.avg_proficiency >= 2 && s.avg_proficiency < 3.5).length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    <h4 className="text-sm font-medium text-gray-900">Developing Skills ({skillBreakdown.filter(s => s.avg_proficiency >= 2 && s.avg_proficiency < 3.5).length})</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {skillBreakdown.filter(s => s.avg_proficiency >= 2 && s.avg_proficiency < 3.5).slice(0, 5).map((skill) => (
+                      <SkillCard key={skill.skill_name} skill={skill} employees={employees} variant="developing" />
+                    ))}
+                    {skillBreakdown.filter(s => s.avg_proficiency >= 2 && s.avg_proficiency < 3.5).length > 5 && (
+                      <p className="text-xs text-gray-500 pl-4">
+                        +{skillBreakdown.filter(s => s.avg_proficiency >= 2 && s.avg_proficiency < 3.5).length - 5} more skills
+                      </p>
                     )}
                   </div>
                 </div>
-              );
-            })}
+              )}
+              
+              {/* Strong Skills Section */}
+              {skillBreakdown.filter(s => s.avg_proficiency >= 3.5).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <h4 className="text-sm font-medium text-gray-900">Strong Skills ({skillBreakdown.filter(s => s.avg_proficiency >= 3.5).length})</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {skillBreakdown.filter(s => s.avg_proficiency >= 3.5).slice(0, 6).map((skill) => (
+                      <div key={skill.skill_name} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                        <span className="text-xs text-gray-700 truncate">{skill.skill_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {skillBreakdown.filter(s => s.avg_proficiency >= 3.5).length > 6 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      +{skillBreakdown.filter(s => s.avg_proficiency >= 3.5).length - 6} more strong skills
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Team Members Card */}
-        <Card>
-          <CardHeader>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Team Members</CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
+                <Users className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-lg">Team Members</CardTitle>
+                <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-700">
                   {employees.length} analyzed
                 </Badge>
-                {departmentStats.totalEmployees > employees.length && (
-                  <Badge variant="secondary" className="text-xs">
-                    {departmentStats.totalEmployees - employees.length} pending
-                  </Badge>
-                )}
               </div>
+              {departmentStats.totalEmployees > employees.length && (
+                <Badge className="text-xs bg-gray-100 text-gray-600 border-gray-200">
+                  {departmentStats.totalEmployees - employees.length} pending analysis
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {employees.map((employee) => {
-              const readinessLevel = employee.skills_match_score >= 80 ? 'ready' : 
-                                   employee.skills_match_score >= 60 ? 'developing' : 'needs-support';
-              // Count all skills (technical_skills now contains all skills)
-              const skillsCount = employee.technical_skills?.length || 0;
-              
-              return (
-                <div key={employee.employee_id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-b-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{employee.employee_name}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{employee.position_title}</span>
-                      <span>{skillsCount} skills</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {employees.map((employee) => {
+                const readinessLevel = employee.skills_match_score >= 80 ? 'ready' : 
+                                     employee.skills_match_score >= 60 ? 'developing' : 'needs-support';
+                const skillsCount = employee.technical_skills?.length || 0;
+                
+                // Find critical skills for this employee
+                const criticalSkills = skillBreakdown
+                  .filter(skill => skill.avg_proficiency < 2)
+                  .filter(skill => {
+                    const hasSkill = employee.technical_skills?.some(
+                      empSkill => empSkill.skill_name === skill.skill_name
+                    );
+                    return !hasSkill || (hasSkill && employee.technical_skills?.find(
+                      empSkill => empSkill.skill_name === skill.skill_name
+                    )?.proficiency_level < 2);
+                  })
+                  .slice(0, 2);
+                
+                return (
+                  <div 
+                    key={employee.employee_id} 
+                    className={cn(
+                      "p-3 rounded-lg border transition-all hover:shadow-md cursor-pointer",
+                      readinessLevel === 'ready' ? "bg-green-50/50 border-green-200 hover:border-green-300" :
+                      readinessLevel === 'developing' ? "bg-orange-50/50 border-orange-200 hover:border-orange-300" :
+                      "bg-red-50/50 border-red-200 hover:border-red-300"
+                    )}
+                    onClick={() => navigate(`/dashboard/employees/${employee.employee_id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-900 truncate">
+                          {employee.employee_name}
+                        </h4>
+                        <p className="text-xs text-gray-600 truncate">{employee.position_title}</p>
+                      </div>
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold",
+                        readinessLevel === 'ready' ? "bg-green-100 text-green-700" :
+                        readinessLevel === 'developing' ? "bg-orange-100 text-orange-700" :
+                        "bg-red-100 text-red-700"
+                      )}>
+                        {employee.skills_match_score}%
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">{skillsCount} skills</span>
+                        <span className="text-gray-500">
+                          Analyzed {formatTimeAgo(employee.analyzed_at)}
+                        </span>
+                      </div>
+                      
+                      {criticalSkills.length > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Needs training:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {criticalSkills.map((skill, idx) => (
+                              <Badge 
+                                key={idx} 
+                                variant="outline" 
+                                className="text-xs px-1.5 py-0 bg-white"
+                              >
+                                {skill.skill_name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {readinessLevel === 'ready' && (
+                        <div className="flex items-center gap-1 text-xs text-green-700">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>Ready for advanced projects</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {readinessLevel === 'ready' && (
-                      <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        Ready
-                      </Badge>
-                    )}
-                    {readinessLevel === 'developing' && (
-                      <Badge variant="outline" className="text-xs bg-orange-50 border-orange-200 text-orange-700">
-                        Developing
-                      </Badge>
-                    )}
-                    {readinessLevel === 'needs-support' && (
-                      <Badge variant="outline" className="text-xs bg-red-50 border-red-200 text-red-700">
-                        Support needed
-                      </Badge>
-                    )}
-                  </div>
+                );
+              })}
+              
+              {departmentStats.totalEmployees > employees.length && (
+                <div 
+                  className="p-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center min-h-[140px] cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => navigate('/dashboard/employees')}
+                >
+                  <UserPlus className="h-6 w-6 text-gray-400 mb-2" />
+                  <p className="text-sm font-medium text-gray-600">
+                    {departmentStats.totalEmployees - employees.length} more
+                  </p>
+                  <p className="text-xs text-gray-500">Pending analysis</p>
                 </div>
-              );
-            })}
+              )}
             </div>
+            
+            {employees.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="h-8 w-8 mx-auto text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500">No analyzed employees yet</p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-3"
+                  onClick={() => navigate('/dashboard/employees')}
+                >
+                  Analyze Employees
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
