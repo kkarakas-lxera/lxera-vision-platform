@@ -501,7 +501,7 @@ export class MarketSkillsService {
 
       // Get top missing skills
       const { data: missingSkills, error: missingError } = await supabase
-        .rpc('get_top_missing_skills', { limit: 10 });
+        .rpc('get_top_missing_skills', { gap_limit: 10 });
 
       if (missingError) {
         console.warn('Could not fetch missing skills:', missingError);
@@ -517,6 +517,9 @@ export class MarketSkillsService {
 
       // Generate AI executive summary
       let executiveSummary: string | undefined;
+      // TODO: Create generate-organization-summary Edge Function
+      // Temporarily disabled as the Edge Function doesn't exist yet
+      /*
       try {
         const { data: aiSummary } = await supabase.functions.invoke('generate-organization-summary', {
           body: {
@@ -529,6 +532,14 @@ export class MarketSkillsService {
         executiveSummary = aiSummary?.summary;
       } catch (error) {
         console.warn('Could not generate AI summary:', error);
+      }
+      */
+      
+      // Provide a basic summary for now
+      if (stats?.analyzed_employees > 0) {
+        executiveSummary = `Your organization has analyzed ${stats.analyzed_employees} of ${stats.total_employees} employees across ${stats.departments_count} departments. ` +
+          `Current market coverage is at ${marketCoverageRate}% with an industry alignment index of ${industryAlignmentIndex}/10. ` +
+          `Focus on addressing ${topMissingSkills.length} critical skill gaps to improve market competitiveness.`;
       }
 
       return {
@@ -646,12 +657,12 @@ export class MarketSkillsService {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Not authenticated');
 
-      // Get employee benchmark data
+      // Get employee benchmark data with user email from joined table
       const { data: employeesData, error } = await supabase
         .from('employees')
         .select(`
           id,
-          email,
+          user:users!inner(email, full_name),
           department,
           current_position:st_company_positions!employees_current_position_id_fkey(position_title),
           st_employee_skills_profile(
@@ -674,8 +685,9 @@ export class MarketSkillsService {
         const profile = emp.st_employee_skills_profile?.[0];
         if (!profile) continue;
 
-        // Extract name from email if not available
-        const name = emp.email.split('@')[0].replace(/[._]/g, ' ');
+        // Use full name from user data, fallback to email-based name
+        const name = emp.user?.full_name || 
+                    (emp.user?.email ? emp.user.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
         
         // Calculate skills by source
         const skillsBySource = { ai: 0, cv: 0, verified: 0 };
