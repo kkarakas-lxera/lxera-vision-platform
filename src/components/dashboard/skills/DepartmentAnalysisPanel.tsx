@@ -5,14 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users,
-  ArrowRight,
-  Brain,
-  ChevronDown,
-  ChevronUp
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
-import type { DepartmentMarketGap } from '@/types/marketSkills';
 
 interface DepartmentSummary {
   department: string;
@@ -35,34 +30,16 @@ interface HealthStatus {
 
 interface DepartmentAnalysisPanelProps {
   departmentSummaries: DepartmentSummary[];
-  departmentMarketGaps: Record<string, DepartmentMarketGap>;
-  expandedDepartments: Set<string>;
-  setExpandedDepartments: React.Dispatch<React.SetStateAction<Set<string>>>;
   getDepartmentHealthStatus: (dept: DepartmentSummary) => HealthStatus;
   className?: string;
 }
 
 export default function DepartmentAnalysisPanel({
   departmentSummaries,
-  departmentMarketGaps,
-  expandedDepartments,
-  setExpandedDepartments,
   getDepartmentHealthStatus,
   className
 }: DepartmentAnalysisPanelProps) {
   const navigate = useNavigate();
-
-  const toggleDepartmentExpansion = (department: string) => {
-    setExpandedDepartments(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(department)) {
-        newSet.delete(department);
-      } else {
-        newSet.add(department);
-      }
-      return newSet;
-    });
-  };
 
   return (
     <Card className={cn(className)}>
@@ -82,8 +59,6 @@ export default function DepartmentAnalysisPanel({
       </CardHeader>
       <CardContent className="space-y-3">
         {departmentSummaries.slice(0, 5).map((dept, index) => {
-          const marketGap = departmentMarketGaps[dept.department];
-          const isExpanded = expandedDepartments.has(dept.department);
           const health = getDepartmentHealthStatus(dept);
           const HealthIcon = health.icon;
           
@@ -144,39 +119,6 @@ export default function DepartmentAnalysisPanel({
                 <ArrowRight className="h-4 w-4 text-gray-400 ml-3" />
               </div>
               
-              {/* Market Gap Toggle */}
-              {marketGap && marketGap.skills.length > 0 && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleDepartmentExpansion(dept.department);
-                    }}
-                    className="mt-2 flex items-center justify-between w-full text-xs text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    <span className="flex items-center gap-1">
-                      <Brain className="h-3 w-3" />
-                      Market Skills Gap ({marketGap.skills.length} skills)
-                    </span>
-                    {isExpanded ? (
-                      <ChevronUp className="h-3 w-3" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3" />
-                    )}
-                  </button>
-                  
-                  {/* Expandable Market Gap Section */}
-                  {isExpanded && (
-                    <div className="mt-2 pt-2 border-t border-gray-100">
-                      <MarketGapBars
-                        skills={marketGap.skills}
-                        industry={marketGap.industry}
-                        className="text-xs"
-                      />
-                    </div>
-                  )}
-                </>
-              )}
             </div>
           );
         })}

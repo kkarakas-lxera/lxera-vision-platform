@@ -27,7 +27,8 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  HelpCircle
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -511,9 +512,6 @@ export default function SkillsOverview() {
             {/* Department Analysis */}
             <DepartmentAnalysisPanel
               departmentSummaries={departmentSummaries}
-              departmentMarketGaps={departmentMarketGaps}
-              expandedDepartments={expandedDepartments}
-              setExpandedDepartments={setExpandedDepartments}
               getDepartmentHealthStatus={getDepartmentHealthStatus}
             />
 
@@ -668,10 +666,10 @@ export default function SkillsOverview() {
                     onClick={() => navigate('/dashboard/skills/employees')}
                     className="text-xs"
                   >
-                    View Details <ArrowRight className="h-3 w-3 ml-1" />
+                    View All Departments <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   {benchmarkLoading ? (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                       {[1, 2, 3].map(i => (
@@ -679,16 +677,19 @@ export default function SkillsOverview() {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="space-y-4">
                       {departmentsBenchmark.length === 0 ? (
-                        <div className="col-span-full text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-gray-500">
                           No department benchmark data available
                         </div>
                       ) : (
-                        departmentsBenchmark.map((dept, index) => {
+                        // Department cards with expandable market gaps
+                        departmentsBenchmark.slice(0, 5).map((dept, index) => {
                           const healthScore = dept.benchmark_health_score || 0;
                           const matchPercentage = dept.avg_market_match || 0;
                           const topGap = dept.top_gaps?.[0];
+                          const isExpanded = expandedDepartments.has(dept.department);
+                          const marketGap = departmentMarketGaps[dept.department];
                           
                           const getBadgeColor = (score: number) => {
                             if (score >= 80) return 'bg-green-50 text-green-700 border-green-200';
@@ -707,66 +708,118 @@ export default function SkillsOverview() {
                           const moderateGaps = dept.market_skill_breakdown?.emerging || 0;
                           
                           return (
-                            <Card key={index} className="border border-gray-200 hover:shadow-md transition-shadow">
+                            <Card key={index} className="border border-gray-200 hover:shadow-md transition-all">
                               <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-3">
+                                {/* Department Header */}
+                                <div 
+                                  className="flex items-center justify-between mb-3 cursor-pointer"
+                                  onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
+                                >
                                   <h4 className="font-medium text-sm">{dept.department}</h4>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <Badge className={`px-2 py-1 text-xs ${getBadgeColor(matchPercentage)}`}>
-                                          {matchPercentage.toFixed(0)}% Match
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p className="text-sm">Market skill match: {matchPercentage.toFixed(0)}% ({dept.analyzed_count} of {dept.employee_count} employees analyzed)</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  <div className="flex items-center gap-2">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger>
+                                          <Badge className={`px-2 py-1 text-xs ${getBadgeColor(matchPercentage)}`}>
+                                            {matchPercentage.toFixed(0)}% Match
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p className="text-sm">Market skill match: {matchPercentage.toFixed(0)}% ({dept.analyzed_count} of {dept.employee_count} employees analyzed)</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                                  </div>
                                 </div>
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-600">Market Gaps:</span>
-                                    <span className={`font-medium ${
+                                
+                                {/* Department Metrics */}
+                                <div className="grid grid-cols-3 gap-4 mb-4 text-xs">
+                                  <div className="text-center">
+                                    <div className={`font-semibold ${
                                       criticalGaps > 5 ? 'text-red-600' : 
                                       criticalGaps > 0 || moderateGaps > 3 ? 'text-orange-600' : 
                                       'text-green-600'
                                     }`}>
                                       {criticalGaps > 0 ? `${criticalGaps} critical` : 
                                        moderateGaps > 0 ? `${moderateGaps} moderate` : 
-                                       'None'}
-                                    </span>
+                                       'No gaps'}
+                                    </div>
+                                    <div className="text-gray-500">Market Gaps</div>
                                   </div>
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-600">Health Score:</span>
-                                    <div className="flex items-center gap-1">
-                                      <div className={`w-12 h-1.5 ${healthColors.bg} rounded-full`}>
+                                  <div className="text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <div className={`w-8 h-1.5 ${healthColors.bg} rounded-full`}>
                                         <div className={`h-1.5 ${healthColors.fill} rounded-full`} style={{width: `${(healthScore / 10) * 100}%`}}></div>
                                       </div>
-                                      <span className={`${healthColors.text} font-medium`}>{healthScore.toFixed(1)}/10</span>
+                                      <span className={`${healthColors.text} font-semibold`}>{healthScore.toFixed(1)}</span>
                                     </div>
+                                    <div className="text-gray-500">Health Score</div>
                                   </div>
-                                  {topGap && (
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span className="text-gray-600">Top Gap:</span>
-                                      <span className="text-gray-900 font-medium truncate">{topGap.skill_name}</span>
-                                    </div>
-                                  )}
-                                  {dept.ai_explanation && (
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <div className="text-xs text-blue-600 cursor-help border-b border-dotted border-blue-300">
-                                            Impact Score: {dept.impact_score.toFixed(1)}/10
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                          <p className="text-sm">{dept.ai_explanation}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  )}
+                                  <div className="text-center">
+                                    <div className="font-semibold text-gray-900">{dept.analyzed_count}/{dept.employee_count}</div>
+                                    <div className="text-gray-500">Analyzed</div>
+                                  </div>
                                 </div>
+                                
+                                {/* Market Gap Toggle */}
+                                {marketGap && marketGap.skills.length > 0 && (
+                                  <>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedDepartments(prev => {
+                                          const newSet = new Set(prev);
+                                          if (newSet.has(dept.department)) {
+                                            newSet.delete(dept.department);
+                                          } else {
+                                            newSet.add(dept.department);
+                                          }
+                                          return newSet;
+                                        });
+                                      }}
+                                      className="w-full flex items-center justify-between p-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                                    >
+                                      <span className="flex items-center gap-1">
+                                        <Brain className="h-3 w-3" />
+                                        Market Skills Gap ({marketGap.skills.length} skills)
+                                      </span>
+                                      {isExpanded ? (
+                                        <ChevronUp className="h-3 w-3" />
+                                      ) : (
+                                        <ChevronDown className="h-3 w-3" />
+                                      )}
+                                    </button>
+                                    
+                                    {/* Expandable Market Gap Section */}
+                                    {isExpanded && (
+                                      <div className="mt-3 pt-3 border-t border-gray-100">
+                                        <MarketGapBars
+                                          skills={marketGap.skills}
+                                          industry={marketGap.industry}
+                                          className="text-xs"
+                                        />
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                
+                                {/* AI Insights */}
+                                {dept.ai_explanation && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="flex items-center gap-1 text-xs text-blue-600 cursor-help mt-2 p-2 bg-blue-50 rounded-lg">
+                                          <Info className="h-3 w-3" />
+                                          <span>Impact Score: {dept.impact_score?.toFixed(1) || 'N/A'}/10</span>
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="text-sm">{dept.ai_explanation}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
                               </CardContent>
                             </Card>
                           );
