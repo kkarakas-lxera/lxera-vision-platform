@@ -83,7 +83,8 @@ export default function MarketGapBars({
       </div>
       
       {skills.length > 0 ? (
-        <div className="space-y-2">
+        <>
+          <div className="space-y-2">
             {skills.slice(0, 8).map((skill, index) => (
               <div key={index} className="space-y-1">
                 <div className="flex items-center justify-between">
@@ -129,7 +130,7 @@ export default function MarketGapBars({
               +{skills.length - 8} more skills
             </p>
           )}
-        </div>
+        </>
       ) : (
         <p className="text-xs text-gray-500 italic">
           No market benchmark data available yet
