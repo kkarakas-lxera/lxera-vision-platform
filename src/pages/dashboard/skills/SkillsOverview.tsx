@@ -5,6 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { 
   Users, 
   Target,
@@ -19,7 +25,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  HelpCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -698,7 +705,31 @@ export default function SkillsOverview() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-base font-medium">Critical Skills Gaps</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base font-medium">Critical Skills Gaps</CardTitle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-gray-400" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm font-medium mb-1">What are Critical Skills Gaps?</p>
+                      <p className="text-sm">
+                        These are skills where employees have significantly low proficiency 
+                        (below 40% match) compared to position requirements. Critical gaps 
+                        directly impact productivity and should be addressed through immediate 
+                        training or hiring.
+                      </p>
+                      <p className="text-sm mt-2">
+                        <span className="font-medium">Severity levels:</span><br/>
+                        • <span className="text-red-600">Critical:</span> &lt;40% proficiency<br/>
+                        • <span className="text-orange-600">Moderate:</span> 40-70% proficiency<br/>
+                        • <span className="text-green-600">Minor:</span> &gt;70% proficiency
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <CardDescription>Skills requiring immediate attention</CardDescription>
             </div>
             <Button 
