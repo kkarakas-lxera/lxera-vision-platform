@@ -37,6 +37,65 @@ interface InternalSkill {
   source?: 'ai' | 'cv' | 'verified';
 }
 
+interface OrganizationBenchmarkData {
+  market_coverage_rate: number;
+  industry_alignment_index: number;
+  top_missing_skills: Array<{
+    skill_name: string;
+    affected_employees: number;
+    severity: 'critical' | 'moderate' | 'minor';
+  }>;
+  total_employees: number;
+  analyzed_employees: number;
+  departments_count: number;
+}
+
+interface DepartmentBenchmarkData {
+  department: string;
+  benchmark_health_score: number; // 0-10
+  impact_score: number; // 0-10
+  market_skill_breakdown: {
+    critical: number;
+    emerging: number;
+    foundational: number;
+  };
+  employee_count: number;
+  analyzed_count: number;
+  avg_market_match: number;
+  top_gaps: Array<{
+    skill_name: string;
+    gap_percentage: number;
+    category: 'critical' | 'emerging' | 'foundational';
+  }>;
+}
+
+interface EmployeeBenchmarkData {
+  employee_id: string;
+  name: string;
+  department: string;
+  position: string;
+  market_match_percentage: number;
+  critical_gaps_count: number;
+  skills_by_source: {
+    ai: number;
+    cv: number;
+    verified: number;
+  };
+  top_missing_skills: Array<{
+    skill_name: string;
+    category: 'critical' | 'emerging' | 'foundational';
+    market_importance: number;
+  }>;
+  last_analyzed: Date | null;
+}
+
+interface ComprehensiveBenchmarkData {
+  organization: OrganizationBenchmarkData;
+  departments: DepartmentBenchmarkData[];
+  employees: EmployeeBenchmarkData[];
+  generated_at: Date;
+}
+
 export class MarketSkillsService {
   /**
    * Fetch market benchmarks for a specific role/industry/department
@@ -316,6 +375,357 @@ export class MarketSkillsService {
     } catch (error) {
       console.error('Error getting employee market gaps:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get organization-level benchmark data
+   */
+  async getOrganizationBenchmark(): Promise<OrganizationBenchmarkData & { executive_summary?: string }> {
+    try {
+      const { data: company } = await supabase.auth.getUser();
+      if (!company.user) throw new Error('Not authenticated');
+
+      // Get organization stats
+      const { data: stats, error: statsError } = await supabase
+        .rpc('get_organization_stats');
+
+      if (statsError) {
+        console.error('Error fetching organization stats:', statsError);
+        throw statsError;
+      }
+
+      // Get aggregated skills data
+      const { data: skillsData, error: skillsError } = await supabase
+        .from('st_employee_skills_profile')
+        .select(`
+          extracted_skills,
+          skills_match_score,
+          employee:employees!inner(
+            department,
+            current_position:positions(name),
+            company_id
+          )
+        `)
+        .eq('employee.company_id', company.user.id);
+
+      if (skillsError) {
+        console.error('Error fetching skills data:', skillsError);
+        throw skillsError;
+      }
+
+      // Calculate market coverage and alignment
+      const totalSkills = new Set<string>();
+      const marketAlignedSkills = new Set<string>();
+      let totalMatchScore = 0;
+      let validScores = 0;
+
+      skillsData?.forEach(profile => {
+        if (profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
+          profile.extracted_skills.forEach((skill: any) => {
+            if (skill.skill_name) {
+              totalSkills.add(skill.skill_name.toLowerCase());
+              if (skill.market_aligned) {
+                marketAlignedSkills.add(skill.skill_name.toLowerCase());
+              }
+            }
+          });
+        }
+        
+        if (profile.skills_match_score !== null) {
+          totalMatchScore += profile.skills_match_score;
+          validScores++;
+        }
+      });
+
+      const marketCoverageRate = totalSkills.size > 0 
+        ? Math.round((marketAlignedSkills.size / totalSkills.size) * 100)
+        : 0;
+
+      const industryAlignmentIndex = validScores > 0 
+        ? Math.round((totalMatchScore / validScores) / 10) // Convert to 0-10 scale
+        : 0;
+
+      // Get top missing skills
+      const { data: missingSkills, error: missingError } = await supabase
+        .rpc('get_top_missing_skills', { limit: 10 });
+
+      if (missingError) {
+        console.warn('Could not fetch missing skills:', missingError);
+      }
+
+      const topMissingSkills = (missingSkills || []).map((skill: any) => ({
+        skill_name: skill.skill_name,
+        affected_employees: skill.affected_count || 0,
+        severity: skill.affected_count > stats.total_employees * 0.5 ? 'critical' as const :
+                 skill.affected_count > stats.total_employees * 0.33 ? 'moderate' as const :
+                 'minor' as const
+      }));
+
+      // Generate AI executive summary
+      let executiveSummary: string | undefined;
+      try {
+        const { data: aiSummary } = await supabase.functions.invoke('generate-organization-summary', {
+          body: {
+            market_coverage_rate: marketCoverageRate,
+            industry_alignment_index: industryAlignmentIndex,
+            top_missing_skills: topMissingSkills,
+            organization_stats: stats
+          }
+        });
+        executiveSummary = aiSummary?.summary;
+      } catch (error) {
+        console.warn('Could not generate AI summary:', error);
+      }
+
+      return {
+        market_coverage_rate: marketCoverageRate,
+        industry_alignment_index: industryAlignmentIndex,
+        top_missing_skills: topMissingSkills,
+        total_employees: stats?.total_employees || 0,
+        analyzed_employees: stats?.analyzed_employees || 0,
+        departments_count: stats?.departments_count || 0,
+        executive_summary: executiveSummary
+      };
+    } catch (error) {
+      console.error('Error getting organization benchmark:', error);
+      // Return empty data on error
+      return {
+        market_coverage_rate: 0,
+        industry_alignment_index: 0,
+        top_missing_skills: [],
+        total_employees: 0,
+        analyzed_employees: 0,
+        departments_count: 0
+      };
+    }
+  }
+
+  /**
+   * Get departments benchmark data
+   */
+  async getDepartmentsBenchmark(): Promise<(DepartmentBenchmarkData & { ai_explanation?: string })[]> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Not authenticated');
+
+      // Get department stats
+      const { data: deptStats, error: statsError } = await supabase
+        .rpc('get_departments_benchmark_data');
+
+      if (statsError) {
+        console.error('Error fetching department stats:', statsError);
+        throw statsError;
+      }
+
+      // Process each department
+      const departmentBenchmarks: (DepartmentBenchmarkData & { ai_explanation?: string })[] = [];
+
+      for (const dept of deptStats || []) {
+        // Calculate benchmark health score (0-10)
+        const benchmarkHealthScore = Math.min(10, Math.round(
+          (dept.avg_match_percentage || 0) / 10 +
+          Math.max(0, 5 - (dept.critical_gaps || 0)) +
+          (dept.analyzed_percentage || 0) / 20
+        ));
+
+        // Calculate impact score based on employee count and gaps
+        const impactScore = Math.min(10, Math.round(
+          (dept.employee_count || 0) / 10 +
+          (dept.critical_gaps || 0) * 2 +
+          (100 - (dept.avg_match_percentage || 0)) / 10
+        ));
+
+        // Get market skill breakdown
+        const { data: skillBreakdown } = await supabase
+          .rpc('get_department_skill_breakdown', { dept_name: dept.department });
+
+        const marketSkillBreakdown = {
+          critical: skillBreakdown?.critical || 0,
+          emerging: skillBreakdown?.emerging || 0,
+          foundational: skillBreakdown?.foundational || 0
+        };
+
+        // Get top gaps for this department
+        const { data: topGaps } = await supabase
+          .rpc('get_department_top_gaps', { 
+            dept_name: dept.department,
+            gap_limit: 5 
+          });
+
+        const processedTopGaps = (topGaps || []).map((gap: any) => ({
+          skill_name: gap.skill_name,
+          gap_percentage: gap.gap_percentage || 0,
+          category: gap.category || 'foundational' as const
+        }));
+
+        // Generate AI explanation for impact score
+        let aiExplanation: string | undefined;
+        try {
+          const { data: explanation } = await supabase.functions.invoke('explain-department-impact', {
+            body: {
+              department: dept.department,
+              impact_score: impactScore,
+              health_score: benchmarkHealthScore,
+              top_gaps: processedTopGaps,
+              employee_stats: {
+                total: dept.employee_count,
+                analyzed: dept.analyzed_count,
+                avg_match: dept.avg_match_percentage
+              }
+            }
+          });
+          aiExplanation = explanation?.explanation;
+        } catch (error) {
+          console.warn(`Could not generate AI explanation for ${dept.department}:`, error);
+        }
+
+        departmentBenchmarks.push({
+          department: dept.department,
+          benchmark_health_score: benchmarkHealthScore,
+          impact_score: impactScore,
+          market_skill_breakdown: marketSkillBreakdown,
+          employee_count: dept.employee_count || 0,
+          analyzed_count: dept.analyzed_count || 0,
+          avg_market_match: dept.avg_match_percentage || 0,
+          top_gaps: processedTopGaps,
+          ai_explanation: aiExplanation
+        });
+      }
+
+      return departmentBenchmarks;
+    } catch (error) {
+      console.error('Error getting departments benchmark:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get employees benchmark data
+   */
+  async getEmployeesBenchmark(): Promise<EmployeeBenchmarkData[]> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Not authenticated');
+
+      // Get employee benchmark data
+      const { data: employeesData, error } = await supabase
+        .from('employees')
+        .select(`
+          id,
+          email,
+          department,
+          current_position:positions(name),
+          st_employee_skills_profile(
+            skills_match_score,
+            extracted_skills,
+            gap_analysis_completed_at
+          )
+        `)
+        .not('st_employee_skills_profile', 'is', null);
+
+      if (error) {
+        console.error('Error fetching employees data:', error);
+        throw error;
+      }
+
+      // Process each employee
+      const employeeBenchmarks: EmployeeBenchmarkData[] = [];
+
+      for (const emp of employeesData || []) {
+        const profile = emp.st_employee_skills_profile?.[0];
+        if (!profile) continue;
+
+        // Extract name from email if not available
+        const name = emp.email.split('@')[0].replace(/[._]/g, ' ');
+        
+        // Calculate skills by source
+        const skillsBySource = { ai: 0, cv: 0, verified: 0 };
+        const topMissingSkills: EmployeeBenchmarkData['top_missing_skills'] = [];
+        let criticalGapsCount = 0;
+
+        if (profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
+          profile.extracted_skills.forEach((skill: any) => {
+            const source = skill.source || 'ai';
+            if (source in skillsBySource) {
+              skillsBySource[source as keyof typeof skillsBySource]++;
+            }
+
+            // Check for gaps (missing or low proficiency skills)
+            if (!skill.proficiency_level || skill.proficiency_level < 2) {
+              const category = skill.market_importance > 8 ? 'critical' as const :
+                             skill.market_importance > 5 ? 'emerging' as const :
+                             'foundational' as const;
+              
+              if (category === 'critical') criticalGapsCount++;
+              
+              if (topMissingSkills.length < 5) {
+                topMissingSkills.push({
+                  skill_name: skill.skill_name,
+                  category,
+                  market_importance: skill.market_importance || 0
+                });
+              }
+            }
+          });
+        }
+
+        employeeBenchmarks.push({
+          employee_id: emp.id,
+          name,
+          department: emp.department || 'Unknown',
+          position: emp.current_position?.name || 'Unknown',
+          market_match_percentage: profile.skills_match_score || 0,
+          critical_gaps_count: criticalGapsCount,
+          skills_by_source: skillsBySource,
+          top_missing_skills: topMissingSkills,
+          last_analyzed: profile.gap_analysis_completed_at 
+            ? new Date(profile.gap_analysis_completed_at)
+            : null
+        });
+      }
+
+      return employeeBenchmarks;
+    } catch (error) {
+      console.error('Error getting employees benchmark:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get comprehensive benchmark data combining all levels
+   */
+  async getComprehensiveBenchmark(): Promise<ComprehensiveBenchmarkData> {
+    try {
+      // Fetch all benchmark data in parallel
+      const [organization, departments, employees] = await Promise.all([
+        this.getOrganizationBenchmark(),
+        this.getDepartmentsBenchmark(),
+        this.getEmployeesBenchmark()
+      ]);
+
+      return {
+        organization,
+        departments,
+        employees,
+        generated_at: new Date()
+      };
+    } catch (error) {
+      console.error('Error getting comprehensive benchmark:', error);
+      // Return empty data structure on error
+      return {
+        organization: {
+          market_coverage_rate: 0,
+          industry_alignment_index: 0,
+          top_missing_skills: [],
+          total_employees: 0,
+          analyzed_employees: 0,
+          departments_count: 0
+        },
+        departments: [],
+        employees: [],
+        generated_at: new Date()
+      };
     }
   }
 
