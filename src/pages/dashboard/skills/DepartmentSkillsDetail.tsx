@@ -609,16 +609,29 @@ export default function DepartmentSkillsDetail() {
                 </div>
               );
             })}
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Compact Team Members */}
-        <div className="bg-card rounded-lg border p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Team Members</h2>
-            <span className="text-sm text-muted-foreground">{employees.length} people</span>
-          </div>
-          <div className="space-y-2">
+        {/* Team Members Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Team Members</CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {employees.length} analyzed
+                </Badge>
+                {departmentStats.totalEmployees > employees.length && (
+                  <Badge variant="secondary" className="text-xs">
+                    {departmentStats.totalEmployees - employees.length} pending
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {employees.map((employee) => {
               const readinessLevel = employee.skills_match_score >= 80 ? 'ready' : 
                                    employee.skills_match_score >= 60 ? 'developing' : 'needs-support';
@@ -655,8 +668,9 @@ export default function DepartmentSkillsDetail() {
                 </div>
               );
             })}
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
