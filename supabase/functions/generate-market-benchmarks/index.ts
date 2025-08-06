@@ -15,12 +15,26 @@ interface MarketSkill {
   source?: 'ai' | 'cv' | 'verified';
 }
 
+interface SkillInsight {
+  skill_name: string;
+  why_crucial: string;
+  market_context: string;
+  impact_score: number;
+}
+
+interface Citation {
+  id: number;
+  text: string;
+  source: string;
+  url?: string;
+}
+
 interface MarketInsights {
-  summary: string;
-  key_findings: string[];
-  recommendations: string[];
-  business_impact: string;
-  action_items: string[];
+  executive_summary: string;
+  skill_insights: SkillInsight[];
+  competitive_positioning: string;
+  talent_strategy: string;
+  citations: Citation[];
 }
 
 interface BenchmarkRequest {
@@ -251,6 +265,7 @@ Example format:
       const insightsPrompt = `Based on the skills gap analysis for ${role} in ${department || 'this department'} ${industry ? `in the ${industry} industry` : ''}:
 
 Company Context:
+- Department: ${department}
 - Total employees: ${company_context.employees_count || 'Unknown'}
 - Analyzed employees: ${company_context.analyzed_count || 0}
 - Critical skill gaps: ${company_context.critical_gaps || 0}
@@ -259,21 +274,37 @@ Company Context:
 Skills Analysis:
 ${skills.map(s => `- ${s.skill_name}: ${s.category} skill with ${s.market_demand} market demand`).join('\n')}
 
-Provide strategic insights in JSON format with:
-- summary: A 2-3 sentence executive summary of the department's skills situation
-- key_findings: Array of 3-4 specific observations about skill gaps and market alignment
-- recommendations: Array of 3-4 actionable recommendations for addressing gaps
-- business_impact: A paragraph explaining the business value and ROI of addressing these gaps
-- action_items: Array of 3-4 immediate next steps (as plain strings, not objects)
+Critical Missing Skills (0% coverage):
+${skills.filter(s => s.match_percentage === 0 && s.category === 'critical').map(s => s.skill_name).join(', ')}
 
-Focus on:
-1. Competitive advantage implications
-2. Talent acquisition vs. training trade-offs
-3. Industry-specific trends and benchmarks
-4. Practical implementation strategies
-5. Measurable business outcomes
+Provide personalized strategic insights in JSON format with:
 
-Return only valid JSON with these exact fields.`
+1. executive_summary: A compelling 2-3 sentence executive summary specifically for this ${department} department's unique situation
+
+2. skill_insights: Array of objects for the TOP 5 CRITICAL skills, each with:
+   - skill_name: The exact skill name
+   - why_crucial: Detailed explanation of why this specific skill is crucial for ${department} department in ${industry || 'your'} industry (include market data and trends)
+   - market_context: Current market demand, salary premiums, and competitor adoption rates with specific data points
+   - impact_score: 1-10 rating of business impact
+
+3. competitive_positioning: Analysis of how these skill gaps affect market position compared to industry leaders
+
+4. talent_strategy: Specific recommendations balancing hiring vs. training, considering the ${company_context.analyzed_count || 0} analyzed employees
+
+5. citations: Array of 5-8 citations with:
+   - id: Sequential number (1, 2, 3...)
+   - text: Brief description of the source
+   - source: Name of source (e.g., "2025 Tech Skills Report", "LinkedIn Workforce Analysis")
+   - url: Optional URL if applicable
+
+Include inline citations using (1), (2) format in your text. Focus on:
+- Department-specific challenges and opportunities
+- Quantifiable business impacts
+- Industry benchmarks and competitor analysis
+- ROI of addressing each skill gap
+- Market salary data and talent availability
+
+Return only valid JSON.`
 
       try {
         const insightsCompletion = await openai.chat.completions.create({
@@ -295,16 +326,7 @@ Return only valid JSON with these exact fields.`
 
         const insightsResponse = insightsCompletion.choices[0]?.message?.content
         if (insightsResponse) {
-          const parsedInsights = JSON.parse(insightsResponse)
-          
-          // Ensure action_items are strings
-          if (parsedInsights.action_items && Array.isArray(parsedInsights.action_items)) {
-            parsedInsights.action_items = parsedInsights.action_items.map(item => 
-              typeof item === 'string' ? item : (item.task || item.toString())
-            )
-          }
-          
-          insights = parsedInsights
+          insights = JSON.parse(insightsResponse)
           
           // Update the benchmark with insights in metadata
           if (benchmarkId) {

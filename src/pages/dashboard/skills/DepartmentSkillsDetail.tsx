@@ -455,42 +455,18 @@ export default function DepartmentSkillsDetail() {
         moderate_gaps: departmentStats.moderateGaps
       };
 
-      if (forceRefresh) {
-        // Force a refresh by calling the edge function directly
-        const { data, error } = await supabase.functions.invoke('generate-market-benchmarks', {
-          body: { 
-            role: decodeURIComponent(department), 
-            industry: companyData?.industry, 
-            department: decodeURIComponent(department), 
-            force_refresh: true,
-            include_insights: true,
-            company_context: companyContext
-          }
-        });
+      // Always get market gaps through the service (handles caching properly)
+      const marketGap = await marketSkillsService.getDepartmentMarketGaps(
+        decodeURIComponent(department),
+        companyData?.industry,
+        allSkills,
+        companyContext,
+        forceRefresh
+      );
 
-        if (!error && data) {
-          // Compare with internal skills
-          const comparedSkills = marketSkillsService.compareWithInternal(
-            data.skills || [], 
-            allSkills
-          );
-          setMarketGapSkills(comparedSkills);
-          setMarketGapInsights(data.insights);
-          setMarketGapLastUpdated(data.generated_at ? new Date(data.generated_at) : new Date());
-        }
-      } else {
-        // Get market gaps normally (with caching)
-        const marketGap = await marketSkillsService.getDepartmentMarketGaps(
-          decodeURIComponent(department),
-          companyData?.industry,
-          allSkills,
-          companyContext
-        );
-
-        setMarketGapSkills(marketGap.skills);
-        setMarketGapInsights(marketGap.insights);
-        setMarketGapLastUpdated(marketGap.last_updated);
-      }
+      setMarketGapSkills(marketGap.skills);
+      setMarketGapInsights(marketGap.insights);
+      setMarketGapLastUpdated(marketGap.last_updated);
     } catch (error) {
       console.error('Error fetching market gaps:', error);
       toast({

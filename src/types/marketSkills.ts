@@ -6,12 +6,26 @@ export interface MarketSkillData {
   category?: 'critical' | 'emerging' | 'foundational';
 }
 
+export interface SkillInsight {
+  skill_name: string;
+  why_crucial: string;
+  market_context: string;
+  impact_score: number; // 1-10
+}
+
+export interface Citation {
+  id: number;
+  text: string;
+  source: string;
+  url?: string;
+}
+
 export interface MarketInsights {
-  summary: string;
-  key_findings: string[];
-  recommendations: string[];
-  business_impact: string;
-  action_items: string[];
+  executive_summary: string;
+  skill_insights: SkillInsight[];
+  competitive_positioning: string;
+  talent_strategy: string;
+  citations: Citation[];
 }
 
 export interface DepartmentMarketGap {

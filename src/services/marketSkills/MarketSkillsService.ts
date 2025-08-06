@@ -1,12 +1,26 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { MarketSkillData, DepartmentMarketGap } from '@/types/marketSkills';
 
+interface SkillInsight {
+  skill_name: string;
+  why_crucial: string;
+  market_context: string;
+  impact_score: number;
+}
+
+interface Citation {
+  id: number;
+  text: string;
+  source: string;
+  url?: string;
+}
+
 interface MarketInsights {
-  summary: string;
-  key_findings: string[];
-  recommendations: string[];
-  business_impact: string;
-  action_items: string[];
+  executive_summary: string;
+  skill_insights: SkillInsight[];
+  competitive_positioning: string;
+  talent_strategy: string;
+  citations: Citation[];
 }
 
 interface MarketBenchmarkResponse {
@@ -150,14 +164,15 @@ export class MarketSkillsService {
       analyzed_count?: number;
       critical_gaps?: number;
       moderate_gaps?: number;
-    }
+    },
+    forceRefresh = false
   ): Promise<DepartmentMarketGap> {
     // Use department name as a proxy for role
     const benchmarks = await this.fetchMarketBenchmarks(
       department, 
       industry, 
       department, 
-      false,
+      forceRefresh,
       true, // Include insights
       companyContext
     );

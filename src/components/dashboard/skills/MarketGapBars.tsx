@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2, RefreshCw, Clock, ChevronDown, ChevronUp, Sparkles, Target, DollarSign, Zap } from 'lucide-react';
+import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2, RefreshCw, Clock, ChevronDown, ChevronUp, Sparkles, Target, DollarSign, Zap, ExternalLink, Info, BarChart3, Users, Building2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MarketSkill {
   skill_name: string;
@@ -21,12 +22,26 @@ interface MarketSkill {
   market_demand?: 'high' | 'medium' | 'low';
 }
 
+interface SkillInsight {
+  skill_name: string;
+  why_crucial: string;
+  market_context: string;
+  impact_score: number;
+}
+
+interface Citation {
+  id: number;
+  text: string;
+  source: string;
+  url?: string;
+}
+
 interface MarketInsights {
-  summary: string;
-  key_findings: string[];
-  recommendations: string[];
-  business_impact: string;
-  action_items: string[];
+  executive_summary: string;
+  skill_insights: SkillInsight[];
+  competitive_positioning: string;
+  talent_strategy: string;
+  citations: Citation[];
 }
 
 interface MarketGapBarsProps {
@@ -41,6 +56,66 @@ interface MarketGapBarsProps {
   isRefreshing?: boolean;
 }
 
+// Citation component with hover tooltip
+const CitationLink = ({ citation }: { citation: Citation }) => {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <sup className="inline-flex items-center">
+            <a 
+              href={citation.url || '#'} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 font-medium text-xs ml-0.5 cursor-pointer"
+              onClick={(e) => {
+                if (!citation.url) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              ({citation.id})
+            </a>
+          </sup>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs bg-white border shadow-lg">
+          <div className="space-y-1 p-1">
+            <p className="text-xs font-medium text-gray-900">{citation.source}</p>
+            <p className="text-xs text-gray-600">{citation.text}</p>
+            {citation.url && (
+              <a 
+                href={citation.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
+              >
+                <span>View source</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+// Helper function to render text with citations
+const renderTextWithCitations = (text: string, citations: Citation[]) => {
+  const citationRegex = /\((\d+)\)/g;
+  const parts = text.split(citationRegex);
+  
+  return parts.map((part, index) => {
+    const citationId = parseInt(part);
+    const citation = citations.find(c => c.id === citationId);
+    
+    if (citation) {
+      return <CitationLink key={index} citation={citation} />;
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export default function MarketGapBars({ 
   skills, 
   insights,
@@ -54,6 +129,8 @@ export default function MarketGapBars({
 }: MarketGapBarsProps) {
   const [showAllMissing, setShowAllMissing] = useState(false);
   const [showAllEmerging, setShowAllEmerging] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+  
   // Group skills by match percentage
   const missingSkills = skills.filter(s => s.match_percentage <= 40);
   const emergingSkills = skills.filter(s => s.match_percentage > 40 && s.match_percentage <= 80);
@@ -81,6 +158,7 @@ export default function MarketGapBars({
   const SkillRow = ({ skill }: { skill: MarketSkill }) => {
     const categoryBadge = getSkillCategoryBadge(skill);
     const sourceIcon = showSource ? getSourceIcon(skill.source) : null;
+    const isSelected = selectedSkill === skill.skill_name;
     
     // Determine color based on match percentage
     const getMatchColor = (percentage: number) => {
@@ -91,9 +169,15 @@ export default function MarketGapBars({
     };
     
     return (
-      <div className="flex items-center justify-between py-1.5">
+      <div 
+        className={cn(
+          "flex items-center justify-between py-2 px-2 rounded-lg cursor-pointer transition-all",
+          isSelected ? "bg-purple-50 border border-purple-200" : "hover:bg-gray-50"
+        )}
+        onClick={() => setSelectedSkill(skill.skill_name)}
+      >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-sm text-gray-900 truncate">{skill.skill_name}</span>
+          <span className="text-sm text-gray-900 truncate font-medium">{skill.skill_name}</span>
           <Badge className={cn("text-xs px-1.5 py-0", categoryBadge.className)}>
             {categoryBadge.label}
           </Badge>
@@ -289,61 +373,112 @@ export default function MarketGapBars({
           {/* AI Insights Column */}
           {insights && (
             <div className="lg:col-span-1">
-              <Card className="p-4 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold text-gray-900">AI Analysis</h3>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-700 leading-relaxed">{insights.summary}</p>
-                  </div>
-
-                  {/* Key Findings */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4 text-blue-600" />
-                      <h4 className="text-sm font-medium text-gray-900">Key Findings</h4>
+              <div className="space-y-4">
+                {/* Executive Summary Card */}
+                <Card className="p-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-purple-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 bg-purple-100 rounded-lg">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
                     </div>
-                    <ul className="space-y-1">
-                      {insights.key_findings.map((finding, index) => (
-                        <li key={index} className="text-xs text-gray-600 flex items-start gap-1.5">
-                          <span className="text-blue-500 mt-0.5">•</span>
-                          <span>{finding}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <h3 className="font-semibold text-gray-900">Executive Insights</h3>
                   </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {insights.citations ? renderTextWithCitations(insights.executive_summary, insights.citations) : insights.executive_summary}
+                  </p>
+                </Card>
 
-                  {/* Business Impact */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <h4 className="text-sm font-medium text-gray-900">Business Impact</h4>
+                {/* Selected Skill Analysis */}
+                {selectedSkill && insights.skill_insights && (
+                  <Card className="p-4 border-2 border-purple-200 bg-purple-50/30">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <Info className="h-4 w-4 text-purple-600" />
+                          {selectedSkill}
+                        </h4>
+                        <button 
+                          onClick={() => setSelectedSkill(null)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      
+                      {(() => {
+                        const skillInsight = insights.skill_insights.find(s => s.skill_name === selectedSkill);
+                        if (!skillInsight) return null;
+                        
+                        return (
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-xs font-medium text-gray-600 mb-1">Why it's crucial:</p>
+                              <p className="text-sm text-gray-700">
+                                {insights.citations ? renderTextWithCitations(skillInsight.why_crucial, insights.citations) : skillInsight.why_crucial}
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-xs font-medium text-gray-600 mb-1">Market context:</p>
+                              <p className="text-sm text-gray-700">
+                                {insights.citations ? renderTextWithCitations(skillInsight.market_context, insights.citations) : skillInsight.market_context}
+                              </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 pt-2 border-t border-purple-200">
+                              <BarChart3 className="h-4 w-4 text-purple-600" />
+                              <p className="text-xs font-medium text-purple-700">
+                                Impact Score: {skillInsight.impact_score}/10
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
-                    <p className="text-xs text-gray-600 leading-relaxed">{insights.business_impact}</p>
-                  </div>
+                  </Card>
+                )}
 
-                  {/* Action Items */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-orange-600" />
-                      <h4 className="text-sm font-medium text-gray-900">Next Steps</h4>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {insights.action_items.map((item, index) => (
-                        <li key={index} className="text-xs text-gray-700 flex items-start gap-1.5">
-                          <CheckCircle2 className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
-                          <span>{typeof item === 'string' ? item : item.task || item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </Card>
+                {/* Strategic Insights Tabs */}
+                <Tabs defaultValue="positioning" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 h-8">
+                    <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
+                    <TabsTrigger value="talent" className="text-xs">Talent Strategy</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="positioning" className="mt-3">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-medium text-sm text-gray-900">Competitive Positioning</h4>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed">
+                        {insights.citations ? renderTextWithCitations(insights.competitive_positioning, insights.citations) : insights.competitive_positioning}
+                      </p>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="talent" className="mt-3">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="h-4 w-4 text-green-600" />
+                        <h4 className="font-medium text-sm text-gray-900">Talent Strategy</h4>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed">
+                        {insights.citations ? renderTextWithCitations(insights.talent_strategy, insights.citations) : insights.talent_strategy}
+                      </p>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+
+                {/* Prompt to select a skill */}
+                {!selectedSkill && (
+                  <Card className="p-3 bg-gray-50 border-gray-200">
+                    <p className="text-xs text-gray-600 text-center flex items-center justify-center gap-1">
+                      <Info className="h-3 w-3" />
+                      Click on any skill to see detailed analysis
+                    </p>
+                  </Card>
+                )}
+              </div>
             </div>
           )}</div>
       ) : (
