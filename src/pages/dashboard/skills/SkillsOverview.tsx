@@ -621,8 +621,23 @@ export default function SkillsOverview() {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-medium">Organization Benchmark</CardTitle>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg font-medium">Organization Benchmark</CardTitle>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">What is Market Benchmark?</p>
+                                <p className="text-xs text-gray-600">AI-powered analysis comparing your organization's skills against current market demands and industry standards. Updated weekly to reflect the latest trends.</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <CardDescription className="text-xs mt-0.5">
                         Compare skills against {companyIndustry} standards
                       </CardDescription>
@@ -648,7 +663,19 @@ export default function SkillsOverview() {
                         {/* Market Coverage Rate */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-gray-600">Market Coverage</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-medium text-gray-600">Market Coverage</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-sm">Percentage of in-demand market skills your employees currently possess. Higher coverage means your workforce is better equipped for industry requirements.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <Target className="h-3.5 w-3.5 text-blue-600" />
                           </div>
                           <div className="flex items-baseline gap-1">
@@ -670,7 +697,19 @@ export default function SkillsOverview() {
                         {/* Industry Alignment Index */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-gray-600">Alignment Index</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-medium text-gray-600">Alignment Index</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-sm">How well your team's skills match industry standards (0-10 scale). Based on average employee skill proficiency compared to market requirements.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <TrendingUp className="h-3.5 w-3.5 text-green-600" />
                           </div>
                           <div className="flex items-baseline gap-1">
@@ -695,7 +734,19 @@ export default function SkillsOverview() {
                         {/* Top Missing Skills */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-gray-600">Critical Gaps</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-medium text-gray-600">Critical Gaps</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-sm">High-priority skills that are in demand by the market but missing or underdeveloped in your organization. These should be addressed first for maximum impact.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
                           </div>
                           <div className="flex items-baseline gap-1">
@@ -829,13 +880,24 @@ export default function SkillsOverview() {
                                     <div className="text-gray-500">Market Gaps</div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <div className={`w-8 h-1.5 ${healthColors.bg} rounded-full`}>
-                                        <div className={`h-1.5 ${healthColors.fill} rounded-full`} style={{width: `${(healthScore / 10) * 100}%`}}></div>
-                                      </div>
-                                      <span className={`${healthColors.text} font-semibold`}>{healthScore.toFixed(1)}</span>
-                                    </div>
-                                    <div className="text-gray-500">Health Score</div>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <div className="cursor-help">
+                                            <div className="flex items-center justify-center gap-1">
+                                              <div className={`w-8 h-1.5 ${healthColors.bg} rounded-full`}>
+                                                <div className={`h-1.5 ${healthColors.fill} rounded-full`} style={{width: `${(healthScore / 10) * 100}%`}}></div>
+                                              </div>
+                                              <span className={`${healthColors.text} font-semibold`}>{healthScore.toFixed(1)}</span>
+                                            </div>
+                                            <div className="text-gray-500">Health Score</div>
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p className="text-sm">Overall department readiness (0-10). Combines skills coverage, gap severity, and employee analysis rate.</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                   </div>
                                   <div className="text-center">
                                     <div className="font-semibold text-gray-900">{dept.analyzed_count}/{dept.employee_count}</div>
