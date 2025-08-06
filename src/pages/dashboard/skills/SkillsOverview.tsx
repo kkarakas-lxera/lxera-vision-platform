@@ -38,6 +38,7 @@ import type { CriticalSkillsGap } from '@/types/common';
 import type { DepartmentMarketGap } from '@/types/marketSkills';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
 import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
+import { MarketBenchmarkLoader } from '@/components/dashboard/skills/MarketBenchmarkLoader';
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
@@ -125,6 +126,8 @@ export default function SkillsOverview() {
   const [departmentsBenchmark, setDepartmentsBenchmark] = useState<any[]>([]);
   const [employeesBenchmark, setEmployeesBenchmark] = useState<any[]>([]);
   const [benchmarkLoading, setBenchmarkLoading] = useState(false);
+  const [benchmarkRefreshing, setBenchmarkRefreshing] = useState(false);
+  const [lastBenchmarkUpdate, setLastBenchmarkUpdate] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState('internal');
 
   useEffect(() => {
@@ -163,15 +166,28 @@ export default function SkillsOverview() {
     }
   }, [activeTab]);
 
-  const fetchBenchmarkData = async () => {
+  const fetchBenchmarkData = async (isRefresh = false) => {
     if (!userProfile?.company_id) return;
     
-    setBenchmarkLoading(true);
+    if (isRefresh) {
+      setBenchmarkRefreshing(true);
+    } else {
+      setBenchmarkLoading(true);
+    }
+    
     try {
       const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
       setOrganizationBenchmark(comprehensiveData.organization);
       setDepartmentsBenchmark(comprehensiveData.departments);
       setEmployeesBenchmark(comprehensiveData.employees);
+      setLastBenchmarkUpdate(new Date());
+      
+      if (isRefresh) {
+        toast({
+          title: 'Success',
+          description: 'Market benchmark data refreshed successfully',
+        });
+      }
     } catch (error) {
       console.error('Error fetching benchmark data:', error);
       toast({
@@ -181,7 +197,12 @@ export default function SkillsOverview() {
       });
     } finally {
       setBenchmarkLoading(false);
+      setBenchmarkRefreshing(false);
     }
+  };
+
+  const handleRefreshBenchmark = () => {
+    fetchBenchmarkData(true);
   };
 
   const fetchSkillsOverview = async () => {
@@ -536,6 +557,31 @@ export default function SkillsOverview() {
         <TabsContent value="market" className="space-y-6 mt-6">
           {/* Market Benchmark Tab Content */}
           <div className="relative">
+            {/* Loading State */}
+            {(benchmarkLoading || benchmarkRefreshing) && (
+              <MarketBenchmarkLoader
+                isLoading={benchmarkLoading}
+                refreshing={benchmarkRefreshing}
+                lastUpdate={lastBenchmarkUpdate}
+                nextUpdateHours={336}
+                onRefresh={handleRefreshBenchmark}
+              />
+            )}
+            
+            {/* Status Bar when not loading */}
+            {!benchmarkLoading && !benchmarkRefreshing && organizationBenchmark && (
+              <div className="mb-6">
+                <MarketBenchmarkLoader
+                  isLoading={false}
+                  lastUpdate={lastBenchmarkUpdate}
+                  nextUpdateHours={336}
+                  onRefresh={handleRefreshBenchmark}
+                />
+              </div>
+            )}
+            
+            {/* Main Content */}
+            {!benchmarkLoading && !benchmarkRefreshing && (
             <div className="space-y-6">
               {/* Organization-Level Section */}
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
@@ -959,6 +1005,7 @@ export default function SkillsOverview() {
                 </CardContent>
               </Card>
             </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
