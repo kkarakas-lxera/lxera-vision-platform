@@ -661,17 +661,6 @@ export default function SkillsOverview() {
                         <CardDescription className="text-xs">
                           Compare skills against {companyIndustry} standards
                         </CardDescription>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span>Last updated: {lastBenchmarkUpdate ? new Date(lastBenchmarkUpdate).toLocaleDateString() : 'Never'}</span>
-                          <button
-                            onClick={handleRefreshBenchmark}
-                            disabled={benchmarkRefreshing}
-                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <RefreshCcw className={`h-3 w-3 ${benchmarkRefreshing ? 'animate-spin' : ''}`} />
-                            {benchmarkRefreshing ? 'Refreshing...' : 'Refresh'}
-                          </button>
-                        </div>
                       </div>
                     </div>
                     <Brain className="h-4 w-4 text-gray-400" />
@@ -715,12 +704,7 @@ export default function SkillsOverview() {
                                   {organizationBenchmark.analyzed_employees < organizationBenchmark.total_employees && (
                                     <span> Only {Math.round((organizationBenchmark.analyzed_employees / organizationBenchmark.total_employees) * 100)}% of employees have been analyzed.</span>
                                   )}
-                                  <button 
-                                    onClick={() => fetchBenchmarkData(true)}
-                                    className="ml-2 text-yellow-900 underline hover:no-underline"
-                                  >
-                                    Refresh data
-                                  </button>
+                                  <span className="text-gray-700"> Use the refresh button above to update.</span>
                                 </div>
                               </div>
                             );
