@@ -279,6 +279,11 @@ export class MarketSkillsService {
    */
   async refreshStaleBenchmarks(): Promise<void> {
     try {
+      // Skip if refresh_stale_market_benchmarks doesn't exist
+      // TODO: Deploy the refresh_stale_market_benchmarks function if needed
+      console.log('Skipping stale benchmark refresh - function not deployed');
+      return;
+      
       // Get benchmarks that need refreshing
       const { data: staleConfigs, error } = await supabase
         .rpc('refresh_stale_market_benchmarks');
@@ -318,6 +323,11 @@ export class MarketSkillsService {
    * Get all active benchmark configurations with their refresh status
    */
   async getBenchmarkRefreshStatus(): Promise<any[]> {
+    // Skip if get_active_benchmark_configs doesn't exist
+    // TODO: Deploy the get_active_benchmark_configs function if needed
+    console.log('Skipping benchmark config fetch - function not deployed');
+    return [];
+    
     const { data, error } = await supabase
       .rpc('get_active_benchmark_configs');
 
@@ -446,7 +456,7 @@ export class MarketSkillsService {
           skills_match_score,
           employee:employees!inner(
             department,
-            current_position:positions(name),
+            current_position:st_company_positions(name),
             company_id
           )
         `)
@@ -643,7 +653,7 @@ export class MarketSkillsService {
           id,
           email,
           department,
-          current_position:positions(name),
+          current_position:st_company_positions(name),
           st_employee_skills_profile(
             skills_match_score,
             extracted_skills,
