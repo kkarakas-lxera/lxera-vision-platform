@@ -220,6 +220,10 @@ export default function SkillsOverview() {
       
       // Pass forceRefresh parameter to service
       const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark(isRefresh);
+      console.log('Comprehensive benchmark data received:', comprehensiveData);
+      console.log('Employees data:', comprehensiveData.employees);
+      console.log('Employees data length:', comprehensiveData.employees?.length);
+      
       setOrganizationBenchmark(comprehensiveData.organization);
       setDepartmentsBenchmark(comprehensiveData.departments);
       setEmployeesBenchmark(comprehensiveData.employees);
@@ -1017,6 +1021,7 @@ export default function SkillsOverview() {
                         ) : employeesBenchmark.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-gray-500">
+                              {console.log('Rendering empty state, employeesBenchmark:', employeesBenchmark)}
                               No employee benchmark data available
                             </td>
                           </tr>

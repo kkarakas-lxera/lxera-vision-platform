@@ -727,6 +727,8 @@ export class MarketSkillsService {
       console.log('Fetching employee benchmark data for company:', companyId);
 
       // Get employees with skills profiles using explicit filter
+      console.log('About to query st_employee_skills_profile with company_id:', companyId);
+      
       const { data: employeesData, error } = await supabase
         .from('st_employee_skills_profile')
         .select(`
@@ -747,12 +749,19 @@ export class MarketSkillsService {
         .eq('employees.company_id', companyId)
         .not('skills_match_score', 'is', null);
 
+      console.log('Supabase query response:', { data: employeesData, error });
+      
       if (error) {
         console.error('Error fetching employees data:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         throw error;
       }
 
       console.log('Employees data fetched:', employeesData?.length || 0, 'employees');
+      console.log('Raw employees data:', JSON.stringify(employeesData, null, 2));
 
       // Process each skills profile
       const employeeBenchmarks: EmployeeBenchmarkData[] = [];
@@ -818,9 +827,11 @@ export class MarketSkillsService {
       }
 
       console.log('Processed employee benchmarks:', employeeBenchmarks.length);
+      console.log('Employee benchmarks data:', JSON.stringify(employeeBenchmarks, null, 2));
       return employeeBenchmarks;
     } catch (error) {
-      console.error('Error getting employees benchmark:', error);
+      console.error('Error getting employees benchmark - full error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return [];
     }
   }
@@ -897,6 +908,12 @@ export class MarketSkillsService {
         this.getDepartmentsBenchmark(),
         this.getEmployeesBenchmark()
       ]);
+      
+      console.log('Fresh benchmark data fetched:');
+      console.log('- Organization data:', organization);
+      console.log('- Departments count:', departments?.length);
+      console.log('- Employees count:', employees?.length);
+      console.log('- Employees data:', employees);
 
       const comprehensiveData = {
         organization,
