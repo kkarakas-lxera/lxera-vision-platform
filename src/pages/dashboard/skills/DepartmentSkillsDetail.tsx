@@ -566,12 +566,7 @@ export default function DepartmentSkillsDetail() {
               <div className="flex items-start gap-3">
                 <HealthIcon className={`h-5 w-5 ${health.color} mt-0.5`} />
                 <div className="flex-1">
-                  <h3 className={`font-semibold ${health.color} text-sm`}>
-                    Department Status: {health.status.split('-').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ')}
-                  </h3>
-                  <p className="text-sm text-gray-700 mt-1">{health.reason}</p>
+                  <p className="text-sm text-gray-700">{health.reason}</p>
                   {health.status === 'needs-improvement' && (
                     <div className="mt-2 flex items-center gap-2 text-xs text-orange-700">
                       <AlertCircle className="h-3 w-3" />
