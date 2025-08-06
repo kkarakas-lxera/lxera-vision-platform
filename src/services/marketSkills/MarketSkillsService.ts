@@ -522,62 +522,47 @@ export class MarketSkillsService {
       const departmentBenchmarks: (DepartmentBenchmarkData & { ai_explanation?: string })[] = [];
 
       for (const dept of deptStats || []) {
+        // Calculate analyzed percentage
+        const analyzed_percentage = dept.employee_count > 0 
+          ? (dept.analyzed_count / dept.employee_count) * 100 
+          : 0;
+
         // Calculate benchmark health score (0-10)
         const benchmarkHealthScore = Math.min(10, Math.round(
-          (dept.avg_match_percentage || 0) / 10 +
+          (dept.avg_skills_match || 0) / 10 +
           Math.max(0, 5 - (dept.critical_gaps || 0)) +
-          (dept.analyzed_percentage || 0) / 20
+          analyzed_percentage / 20
         ));
 
         // Calculate impact score based on employee count and gaps
         const impactScore = Math.min(10, Math.round(
           (dept.employee_count || 0) / 10 +
           (dept.critical_gaps || 0) * 2 +
-          (100 - (dept.avg_match_percentage || 0)) / 10
+          (100 - (dept.avg_skills_match || 0)) / 10
         ));
 
-        // Get market skill breakdown
-        const { data: skillBreakdown } = await supabase
-          .rpc('get_department_skill_breakdown', { dept_name: dept.department });
-
+        // Use the critical and emerging gaps from the main query as breakdown
         const marketSkillBreakdown = {
-          critical: skillBreakdown?.critical || 0,
-          emerging: skillBreakdown?.emerging || 0,
-          foundational: skillBreakdown?.foundational || 0
+          critical: dept.critical_gaps || 0,
+          emerging: dept.emerging_gaps || 0,
+          foundational: 0 // Not tracked in current implementation
         };
 
-        // Get top gaps for this department
-        const { data: topGaps } = await supabase
-          .rpc('get_department_top_gaps', { 
-            dept_name: dept.department,
-            gap_limit: 5 
-          });
+        // Create simplified top gaps based on available data
+        const processedTopGaps = dept.critical_gaps > 0 ? [{
+          skill_name: 'Skills Assessment Needed',
+          gap_percentage: 100 - (dept.avg_skills_match || 0),
+          category: 'critical' as const
+        }] : [];
 
-        const processedTopGaps = (topGaps || []).map((gap: any) => ({
-          skill_name: gap.skill_name,
-          gap_percentage: gap.gap_percentage || 0,
-          category: gap.category || 'foundational' as const
-        }));
-
-        // Generate AI explanation for impact score
+        // Generate simple AI explanation based on scores
         let aiExplanation: string | undefined;
-        try {
-          const { data: explanation } = await supabase.functions.invoke('explain-department-impact', {
-            body: {
-              department: dept.department,
-              impact_score: impactScore,
-              health_score: benchmarkHealthScore,
-              top_gaps: processedTopGaps,
-              employee_stats: {
-                total: dept.employee_count,
-                analyzed: dept.analyzed_count,
-                avg_match: dept.avg_match_percentage
-              }
-            }
-          });
-          aiExplanation = explanation?.explanation;
-        } catch (error) {
-          console.warn(`Could not generate AI explanation for ${dept.department}:`, error);
+        if (impactScore >= 7) {
+          aiExplanation = `${dept.department} has high impact potential with ${dept.critical_gaps || 0} critical gaps affecting ${dept.employee_count} employees. Immediate attention recommended.`;
+        } else if (impactScore >= 4) {
+          aiExplanation = `${dept.department} shows moderate impact with ${dept.analyzed_count} of ${dept.employee_count} employees analyzed. Focus on closing critical gaps to improve market alignment.`;
+        } else {
+          aiExplanation = `${dept.department} is relatively well-positioned with ${Math.round(dept.avg_skills_match || 0)}% average skills match. Continue monitoring for emerging skill requirements.`;
         }
 
         departmentBenchmarks.push({
@@ -587,7 +572,7 @@ export class MarketSkillsService {
           market_skill_breakdown: marketSkillBreakdown,
           employee_count: dept.employee_count || 0,
           analyzed_count: dept.analyzed_count || 0,
-          avg_market_match: dept.avg_match_percentage || 0,
+          avg_market_match: dept.avg_skills_match || 0,
           top_gaps: processedTopGaps,
           ai_explanation: aiExplanation
         });

@@ -23,9 +23,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { parseJsonSkills } from '@/utils/typeGuards';
-import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
-import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
-import type { MarketSkillData, MarketInsights } from '@/types/marketSkills';
 import { cn } from '@/lib/utils';
 
 interface DepartmentEmployee {
@@ -207,15 +204,10 @@ export default function DepartmentSkillsDetail() {
     criticalGaps: 0,
     moderateGaps: 0
   });
-  const [marketGapSkills, setMarketGapSkills] = useState<MarketSkillData[]>([]);
-  const [marketGapInsights, setMarketGapInsights] = useState<MarketInsights | undefined>();
-  const [marketGapLastUpdated, setMarketGapLastUpdated] = useState<Date | undefined>();
-  const [loadingMarketGaps, setLoadingMarketGaps] = useState(false);
 
   useEffect(() => {
     if (userProfile?.company_id && department) {
       fetchDepartmentData();
-      fetchMarketGaps();
     }
   }, [userProfile, department]);
 
@@ -415,69 +407,6 @@ export default function DepartmentSkillsDetail() {
     return `${diffDays} days ago`;
   };
 
-  const fetchMarketGaps = async (forceRefresh = false) => {
-    if (!userProfile?.company_id || !department) return;
-
-    setLoadingMarketGaps(true);
-    try {
-      // Get company industry
-      const { data: companyData } = await supabase
-        .from('companies')
-        .select('industry')
-        .eq('id', userProfile.company_id)
-        .single();
-
-      // Get all employees' skills for this department
-      const { data: employeeSkills } = await supabase
-        .from('st_employee_skills_profile')
-        .select(`
-          extracted_skills,
-          employees!inner(
-            company_id,
-            department
-          )
-        `)
-        .eq('employees.company_id', userProfile.company_id)
-        .eq('employees.department', decodeURIComponent(department))
-        .not('extracted_skills', 'is', null);
-
-      // Aggregate all skills
-      const allSkills = employeeSkills?.flatMap(profile => 
-        parseJsonSkills(profile.extracted_skills)
-      ) || [];
-
-      // Get market gaps - modify service to support force refresh
-      // Prepare company context for insights
-      const companyContext = {
-        employees_count: departmentStats.totalEmployees,
-        analyzed_count: departmentStats.analyzedEmployees,
-        critical_gaps: departmentStats.criticalGaps,
-        moderate_gaps: departmentStats.moderateGaps
-      };
-
-      // Always get market gaps through the service (handles caching properly)
-      const marketGap = await marketSkillsService.getDepartmentMarketGaps(
-        decodeURIComponent(department),
-        companyData?.industry,
-        allSkills,
-        companyContext,
-        forceRefresh
-      );
-
-      setMarketGapSkills(marketGap.skills);
-      setMarketGapInsights(marketGap.insights);
-      setMarketGapLastUpdated(marketGap.last_updated);
-    } catch (error) {
-      console.error('Error fetching market gaps:', error);
-      toast({
-        title: 'Error',
-        description: forceRefresh ? 'Failed to refresh market data' : 'Failed to load market data',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoadingMarketGaps(false);
-    }
-  };
 
   const getDepartmentIcon = (deptName: string) => {
     switch (deptName?.toLowerCase()) {
@@ -600,56 +529,6 @@ export default function DepartmentSkillsDetail() {
         })()
       }
 
-      {/* Market Skills Gap Section */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Market Skills Comparison</h2>
-          <Badge variant="outline" className="text-xs">
-            <Brain className="h-3 w-3 mr-1" />
-            2025 Market Data
-          </Badge>
-        </div>
-        {loadingMarketGaps && marketGapSkills.length === 0 ? (
-          <div className="space-y-4 py-8">
-            <div className="flex justify-center">
-              <div className="animate-pulse flex items-center gap-2">
-                <Brain className="h-6 w-6 text-purple-500" />
-                <span className="text-sm text-muted-foreground">Analyzing market trends...</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          </div>
-        ) : marketGapSkills.length > 0 ? (
-          <MarketGapBars
-            skills={marketGapSkills}
-            insights={marketGapInsights}
-            role={decodeURIComponent(department)}
-            showSource={false}
-            className="text-sm"
-            lastUpdated={marketGapLastUpdated}
-            onRefresh={() => fetchMarketGaps(true)}
-            isRefreshing={loadingMarketGaps}
-          />
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Brain className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">No market benchmark data available</p>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="mt-3"
-              onClick={() => fetchMarketGaps(true)}
-              disabled={loadingMarketGaps}
-            >
-              Generate Market Analysis
-            </Button>
-          </div>
-        )}
-      </div>
 
       {/* Main Content - Single Column Layout */}
       <div className="space-y-4">
