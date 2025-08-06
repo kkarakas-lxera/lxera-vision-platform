@@ -743,7 +743,7 @@ export class MarketSkillsService {
             current_position_id,
             company_id,
             users(email, full_name),
-            st_company_positions(position_title)
+            st_company_positions!employees_current_position_id_fkey(position_title)
           )
         `)
         .eq('employees.company_id', companyId)
