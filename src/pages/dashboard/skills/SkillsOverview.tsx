@@ -584,15 +584,17 @@ export default function SkillsOverview() {
             {!benchmarkLoading && !benchmarkRefreshing && (
             <div className="space-y-6">
               {/* Organization-Level Section */}
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-blue-600" />
-                    Market Skills Benchmark
-                  </CardTitle>
-                  <CardDescription>
-                    Compare your organization's skills against industry standards and market demands
-                  </CardDescription>
+              <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg font-medium">Organization Benchmark</CardTitle>
+                      <CardDescription className="text-xs mt-0.5">
+                        Compare skills against {organizationBenchmark?.industry || 'industry'} standards
+                      </CardDescription>
+                    </div>
+                    <Brain className="h-4 w-4 text-gray-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {benchmarkLoading ? (
@@ -606,94 +608,94 @@ export default function SkillsOverview() {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                      {/* Market Coverage Rate */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Target className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-gray-700">Market Coverage</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="text-3xl font-bold text-blue-700">{organizationBenchmark?.market_coverage_rate || 0}%</div>
-                          <div className="text-xs text-gray-600">of market skills covered</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className="bg-blue-500 h-2 rounded-full transition-all duration-500" style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
+                    <div className="space-y-4">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Market Coverage Rate */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-600">Market Coverage</span>
+                            <Target className="h-3.5 w-3.5 text-blue-600" />
                           </div>
-                          <div className="text-xs text-blue-600">{
-                            organizationBenchmark?.market_coverage_rate > 65 ? 'Above industry avg (65%)' : 
-                            organizationBenchmark?.market_coverage_rate > 40 ? 'Near industry avg (65%)' : 
-                            'Below industry avg (65%)'
-                          }</div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-bold text-gray-900">{organizationBenchmark?.market_coverage_rate || 0}%</span>
+                            <span className="text-xs text-gray-500">of skills</span>
+                          </div>
+                          <div className="mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{
+                              organizationBenchmark?.market_coverage_rate > 65 ? 'Above avg' : 
+                              organizationBenchmark?.market_coverage_rate > 40 ? 'Near avg' : 
+                              'Below avg'
+                            } (65%)</div>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Industry Alignment Index */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-gray-700">Alignment Index</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <div className="text-3xl font-bold text-green-700">{(organizationBenchmark?.industry_alignment_index || 0).toFixed(1)}</div>
-                            <div className="text-lg text-green-600">/ 10</div>
+                        {/* Industry Alignment Index */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-600">Alignment Index</span>
+                            <TrendingUp className="h-3.5 w-3.5 text-green-600" />
                           </div>
-                          <div className="text-xs text-gray-600">industry alignment score</div>
-                          <div className="flex items-center gap-1">
-                            {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                              <div key={i} className={`w-3 h-3 rounded-full ${i <= (organizationBenchmark?.industry_alignment_index || 0) ? 'bg-green-400' : 'bg-gray-200'}`}></div>
-                            ))}
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-bold text-gray-900">{(organizationBenchmark?.industry_alignment_index || 0).toFixed(1)}</span>
+                            <span className="text-xs text-gray-500">/ 10</span>
                           </div>
-                          <div className="text-xs text-green-600">{
-                            organizationBenchmark?.industry_alignment_index >= 8 ? 'Strong alignment' :
-                            organizationBenchmark?.industry_alignment_index >= 6 ? 'Good alignment' :
-                            organizationBenchmark?.industry_alignment_index >= 4 ? 'Moderate alignment' :
-                            'Needs improvement'
-                          }</div>
+                          <div className="mt-2">
+                            <div className="flex items-center gap-0.5">
+                              {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                                <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= (organizationBenchmark?.industry_alignment_index || 0) ? 'bg-green-400' : 'bg-gray-200'}`}></div>
+                              ))}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{
+                              organizationBenchmark?.industry_alignment_index >= 8 ? 'Strong' :
+                              organizationBenchmark?.industry_alignment_index >= 6 ? 'Good' :
+                              organizationBenchmark?.industry_alignment_index >= 4 ? 'Moderate' :
+                              'Low'
+                            } alignment</div>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Top Missing Skills */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 text-orange-600" />
-                          <span className="text-sm font-medium text-gray-700">Missing Skills</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="text-3xl font-bold text-orange-700">{organizationBenchmark?.top_missing_skills?.length || 0}</div>
-                          <div className="text-xs text-gray-600">high-demand market skills</div>
-                          <div className="space-y-1">
-                            {(organizationBenchmark?.top_missing_skills || []).slice(0, 3).map((skill, i) => (
-                              <div key={i} className="flex items-center justify-between text-xs">
-                                <span className="text-gray-700 truncate">{skill.skill_name}</span>
-                                <Badge className={`text-xs px-1 py-0 ${
-                                  skill.severity === 'critical' ? 'bg-red-100 text-red-700 border-red-200' :
-                                  skill.severity === 'moderate' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                  'bg-gray-100 text-gray-700 border-gray-200'
-                                }`}>
-                                  {skill.severity}
-                                </Badge>
+                        {/* Top Missing Skills */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-600">Critical Gaps</span>
+                            <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-bold text-gray-900">{organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length || 0}</span>
+                            <span className="text-xs text-gray-500">skills</span>
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            {(organizationBenchmark?.top_missing_skills || []).slice(0, 2).map((skill, i) => (
+                              <div key={i} className="flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                <span className="text-xs text-gray-600 truncate">{skill.skill_name}</span>
                               </div>
                             ))}
+                            {organizationBenchmark?.top_missing_skills?.length > 2 && (
+                              <span className="text-xs text-gray-400">+{organizationBenchmark.top_missing_skills.length - 2} more</span>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Executive Summary */}
-                      <div className="space-y-3 p-4 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg border border-indigo-200">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                          <span className="text-sm font-medium text-indigo-800">Executive Summary</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="text-sm font-semibold text-indigo-900">Organization Health</div>
-                          <div className="text-xs text-indigo-700 leading-relaxed">
-                            {organizationBenchmark?.executive_summary || 
-                             `Your organization has analyzed ${organizationBenchmark?.analyzed_employees || 0} of ${organizationBenchmark?.total_employees || 0} employees across ${organizationBenchmark?.departments_count || 0} departments. Focus on addressing ${organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length || 0} critical skill gaps.`
-                            }
+                      {/* Executive Summary - Horizontal */}
+                      {organizationBenchmark?.executive_summary && (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium text-gray-900 mb-1">Executive Summary</h4>
+                              <p className="text-xs text-gray-600 leading-relaxed">
+                                {organizationBenchmark.executive_summary}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -701,19 +703,18 @@ export default function SkillsOverview() {
 
               {/* Department-Level Section */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div>
-                    <CardTitle className="text-base font-medium">Department Market Analysis</CardTitle>
-                    <CardDescription>Market skill gaps and health scores by department</CardDescription>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium">Departments</CardTitle>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => navigate('/dashboard/skills/employees')}
+                      className="text-xs h-7 px-2"
+                    >
+                      View All <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/dashboard/skills/employees')}
-                    className="text-xs"
-                  >
-                    View All Departments <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {benchmarkLoading ? (
@@ -878,19 +879,18 @@ export default function SkillsOverview() {
 
               {/* Employee-Level Section */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div>
-                    <CardTitle className="text-base font-medium">Employee Market Readiness</CardTitle>
-                    <CardDescription>Individual market skill alignment and development opportunities</CardDescription>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium">Employee Readiness</CardTitle>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => navigate('/dashboard/skills/employees')}
+                      className="text-xs h-7 px-2"
+                    >
+                      View All <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/dashboard/skills/employees')}
-                    className="text-xs"
-                  >
-                    View All Employees <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">

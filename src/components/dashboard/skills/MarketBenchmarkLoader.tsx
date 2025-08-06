@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, TrendingUp, Users, Building2, CheckCircle2, Clock, RefreshCcw, Sparkles } from 'lucide-react';
+import { Brain, TrendingUp, Users, CheckCircle2, RefreshCcw, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MarketBenchmarkLoaderProps {
@@ -15,7 +14,6 @@ interface MarketBenchmarkLoaderProps {
 interface LoadingStep {
   id: string;
   label: string;
-  description: string;
   icon: React.FC<{ className?: string }>;
   duration: number; // in milliseconds
 }
@@ -23,31 +21,21 @@ interface LoadingStep {
 const loadingSteps: LoadingStep[] = [
   {
     id: 'fetch',
-    label: 'Fetching Organization Data',
-    description: 'Retrieving employee skills and department information',
-    icon: Building2,
-    duration: 1500
+    label: 'Fetching data',
+    icon: Users,
+    duration: 800
   },
   {
     id: 'analyze',
-    label: 'Analyzing Market Trends',
-    description: 'Comparing skills against industry benchmarks',
+    label: 'Analyzing trends',
     icon: TrendingUp,
-    duration: 2000
+    duration: 1200
   },
   {
     id: 'ai',
-    label: 'Generating AI Insights',
-    description: 'Creating personalized strategic recommendations',
+    label: 'AI insights',
     icon: Brain,
-    duration: 2500
-  },
-  {
-    id: 'compile',
-    label: 'Compiling Reports',
-    description: 'Preparing department and employee analytics',
-    icon: Users,
-    duration: 1000
+    duration: 1500
   }
 ];
 
@@ -140,17 +128,18 @@ export function MarketBenchmarkLoader({
   if (!isLoading && !refreshing) {
     // Show update status when not loading
     return (
-      <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-        <div className="flex items-center gap-4">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <div className="flex items-center gap-6 text-sm">
-            <span className="text-gray-600">
-              Last updated: <span className="font-medium text-gray-900">
-                {lastUpdate ? formatLastUpdate(lastUpdate) : 'Never'}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+          <div className="flex items-center gap-4 text-xs">
+            <span className="text-gray-500">
+              Updated <span className="font-medium text-gray-700">
+                {lastUpdate ? formatLastUpdate(lastUpdate) : 'never'}
               </span>
             </span>
-            <span className="text-gray-600">
-              Next update: <span className="font-medium text-gray-900">
+            <span className="text-gray-400">•</span>
+            <span className="text-gray-500">
+              Next in <span className="font-medium text-gray-700">
                 {formatNextUpdate(nextUpdateHours)}
               </span>
             </span>
@@ -159,10 +148,10 @@ export function MarketBenchmarkLoader({
         {onRefresh && (
           <button
             onClick={onRefresh}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
           >
-            <RefreshCcw className="h-3.5 w-3.5" />
-            Refresh Now
+            <RefreshCcw className="h-3 w-3" />
+            Refresh
           </button>
         )}
       </div>
@@ -170,131 +159,72 @@ export function MarketBenchmarkLoader({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Main Loading Card */}
-      <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-lg">
-        <CardContent className="p-8">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-2 text-blue-700">
-                <Sparkles className="h-5 w-5 animate-pulse" />
-                <h3 className="text-lg font-semibold">Generating Market Intelligence</h3>
-                <Sparkles className="h-5 w-5 animate-pulse" />
-              </div>
-              <p className="text-sm text-gray-600">
-                Analyzing your organization against industry benchmarks
-              </p>
-            </div>
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 p-4">
+      <div className="flex items-center justify-between">
+        {/* Left side - Progress steps */}
+        <div className="flex items-center gap-6">
+          {loadingSteps.map((step, index) => {
+            const StepIcon = step.icon;
+            const isActive = index === currentStep;
+            const isComplete = index < currentStep;
+            const isPending = index > currentStep;
 
-            {/* Overall Progress */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Overall Progress</span>
-                <span className="font-medium text-blue-700">{Math.round(overallProgress)}%</span>
-              </div>
-              <Progress value={overallProgress} className="h-2" />
-            </div>
-
-            {/* Steps */}
-            <div className="space-y-4 mt-8">
-              {loadingSteps.map((step, index) => {
-                const StepIcon = step.icon;
-                const isActive = index === currentStep;
-                const isComplete = index < currentStep;
-                const isPending = index > currentStep;
-
-                return (
-                  <div
-                    key={step.id}
-                    className={cn(
-                      "flex items-start gap-4 p-4 rounded-lg transition-all duration-300",
-                      isActive && "bg-white/80 shadow-md border border-blue-200",
-                      isComplete && "opacity-60",
-                      isPending && "opacity-30"
-                    )}
-                  >
-                    {/* Icon */}
-                    <div className={cn(
-                      "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                      isActive && "bg-blue-600 text-white animate-pulse",
-                      isComplete && "bg-green-600 text-white",
-                      isPending && "bg-gray-300 text-gray-500"
-                    )}>
-                      {isComplete ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : (
-                        <StepIcon className="h-5 w-5" />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className={cn(
-                          "font-medium transition-colors",
-                          isActive && "text-blue-900",
-                          isComplete && "text-green-700",
-                          isPending && "text-gray-500"
-                        )}>
-                          {step.label}
-                        </h4>
-                        {isActive && (
-                          <span className="text-sm font-medium text-blue-600">
-                            {Math.round(stepProgress)}%
-                          </span>
-                        )}
-                      </div>
-                      <p className={cn(
-                        "text-sm",
-                        isActive && "text-gray-700",
-                        !isActive && "text-gray-500"
-                      )}>
-                        {step.description}
-                      </p>
-                      {isActive && (
-                        <Progress value={stepProgress} className="h-1.5 mt-2" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Fun Facts / Tips */}
-            <div className="mt-6 p-4 bg-blue-100/50 rounded-lg border border-blue-200">
-              <div className="flex items-start gap-3">
-                <Clock className="h-4 w-4 text-blue-600 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-blue-900">
-                    Did you know?
-                  </p>
-                  <p className="text-xs text-blue-700">
-                    Our AI analyzes over 1,000 market data points to provide you with the most accurate skills benchmarks for your industry.
-                  </p>
+            return (
+              <div
+                key={step.id}
+                className={cn(
+                  "flex items-center gap-2 transition-all duration-300",
+                  isActive && "scale-105",
+                  isComplete && "opacity-70",
+                  isPending && "opacity-30"
+                )}
+              >
+                {/* Icon */}
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                  isActive && "bg-blue-600 text-white animate-pulse",
+                  isComplete && "bg-green-600 text-white",
+                  isPending && "bg-gray-300 text-gray-500"
+                )}>
+                  {isComplete ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <StepIcon className="h-4 w-4" />
+                  )}
                 </div>
+
+                {/* Label */}
+                <span className={cn(
+                  "text-sm font-medium transition-colors",
+                  isActive && "text-blue-700",
+                  isComplete && "text-green-700",
+                  isPending && "text-gray-400"
+                )}>
+                  {step.label}
+                </span>
+
+                {/* Connector line */}
+                {index < loadingSteps.length - 1 && (
+                  <div className="w-12 h-0.5 bg-gray-300 mx-2" />
+                )}
               </div>
-            </div>
+            );
+          })}
+        </div>
+
+        {/* Right side - Progress bar and percentage */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
+            <span className="text-sm text-gray-600">Generating insights</span>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Skeleton placeholders for the content that will appear */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-gray-200 rounded"></div>
-                  <div className="h-2 bg-gray-200 rounded w-4/5"></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          <div className="flex items-center gap-3">
+            <Progress value={overallProgress} className="w-32 h-1.5" />
+            <span className="text-sm font-medium text-blue-700 min-w-[3ch]">
+              {Math.round(overallProgress)}%
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
