@@ -456,7 +456,7 @@ export class MarketSkillsService {
           skills_match_score,
           employee:employees!inner(
             department,
-            current_position:st_company_positions(name),
+            current_position:st_company_positions!employees_current_position_id_fkey(name),
             company_id
           )
         `)
@@ -653,7 +653,7 @@ export class MarketSkillsService {
           id,
           email,
           department,
-          current_position:st_company_positions(name),
+          current_position:st_company_positions!employees_current_position_id_fkey(name),
           st_employee_skills_profile(
             skills_match_score,
             extracted_skills,
