@@ -128,6 +128,7 @@ export default function SkillsOverview() {
   const [benchmarkLoading, setBenchmarkLoading] = useState(false);
   const [benchmarkRefreshing, setBenchmarkRefreshing] = useState(false);
   const [lastBenchmarkUpdate, setLastBenchmarkUpdate] = useState<Date | null>(null);
+  const [companyIndustry, setCompanyIndustry] = useState<string>('industry');
   const [activeTab, setActiveTab] = useState('internal');
 
   useEffect(() => {
@@ -176,6 +177,16 @@ export default function SkillsOverview() {
     }
     
     try {
+      // Fetch company industry
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('settings')
+        .eq('id', userProfile.company_id)
+        .single();
+      
+      const industry = companyData?.settings?.industry as string || 'industry';
+      setCompanyIndustry(industry);
+      
       const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
       setOrganizationBenchmark(comprehensiveData.organization);
       setDepartmentsBenchmark(comprehensiveData.departments);
@@ -590,7 +601,7 @@ export default function SkillsOverview() {
                     <div>
                       <CardTitle className="text-lg font-medium">Organization Benchmark</CardTitle>
                       <CardDescription className="text-xs mt-0.5">
-                        Compare skills against {organizationBenchmark?.industry || 'industry'} standards
+                        Compare skills against {companyIndustry} standards
                       </CardDescription>
                     </div>
                     <Brain className="h-4 w-4 text-gray-400" />

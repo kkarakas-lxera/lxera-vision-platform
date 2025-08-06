@@ -467,34 +467,35 @@ export class MarketSkillsService {
         throw skillsError;
       }
 
-      // Calculate market coverage and alignment
-      const totalSkills = new Set<string>();
-      const marketAlignedSkills = new Set<string>();
+      // Calculate market coverage and alignment based on skills match scores
       let totalMatchScore = 0;
       let validScores = 0;
+      let totalProficiencySum = 0;
+      let skillCount = 0;
 
       skillsData?.forEach(profile => {
         if (profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
           profile.extracted_skills.forEach((skill: any) => {
-            if (skill.skill_name) {
-              totalSkills.add(skill.skill_name.toLowerCase());
-              if (skill.market_aligned) {
-                marketAlignedSkills.add(skill.skill_name.toLowerCase());
-              }
+            if (skill.skill_name && typeof skill.proficiency === 'number') {
+              // Calculate coverage based on proficiency levels (0-5 scale)
+              totalProficiencySum += skill.proficiency;
+              skillCount++;
             }
           });
         }
         
-        if (profile.skills_match_score !== null) {
-          totalMatchScore += profile.skills_match_score;
+        if (profile.skills_match_score !== null && profile.skills_match_score !== undefined) {
+          totalMatchScore += Number(profile.skills_match_score);
           validScores++;
         }
       });
 
-      const marketCoverageRate = totalSkills.size > 0 
-        ? Math.round((marketAlignedSkills.size / totalSkills.size) * 100)
+      // Market coverage: Average proficiency as percentage (proficiency 3/5 = 60%)
+      const marketCoverageRate = skillCount > 0 
+        ? Math.round((totalProficiencySum / skillCount) * 20) // Convert 0-5 scale to 0-100%
         : 0;
 
+      // Industry alignment: Average of skills match scores converted to 0-10 scale
       const industryAlignmentIndex = validScores > 0 
         ? Math.round((totalMatchScore / validScores) / 10) // Convert to 0-10 scale
         : 0;
@@ -509,10 +510,12 @@ export class MarketSkillsService {
 
       const topMissingSkills = (missingSkills || []).map((skill: any) => ({
         skill_name: skill.skill_name,
-        affected_employees: skill.affected_count || 0,
-        severity: skill.affected_count > stats.total_employees * 0.5 ? 'critical' as const :
-                 skill.affected_count > stats.total_employees * 0.33 ? 'moderate' as const :
-                 'minor' as const
+        affected_employees: skill.affected_employees || skill.affected_count || 0,
+        severity: skill.severity || (
+          skill.affected_employees > (stats?.total_employees || 1) * 0.5 ? 'critical' as const :
+          skill.affected_employees > (stats?.total_employees || 1) * 0.33 ? 'moderate' as const :
+          'minor' as const
+        )
       }));
 
       // Generate AI executive summary using existing market benchmarks function
@@ -528,11 +531,20 @@ export class MarketSkillsService {
         
         const industry = companyData?.settings?.industry as string | undefined;
         
+        // Get primary department if available
+        const { data: primaryDept } = await supabase
+          .from('employees')
+          .select('department')
+          .eq('company_id', companyId)
+          .not('department', 'is', null)
+          .limit(1)
+          .single();
+        
         // Use existing fetchMarketBenchmarks with insights enabled
         const benchmarkResponse = await this.fetchMarketBenchmarks(
-          'organization',
-          industry,
-          null,
+          'General Manager', // Use a generic role instead of 'organization'
+          industry || 'General',
+          primaryDept?.department || 'General Operations',
           false,
           true, // include_insights = true
           {
