@@ -726,7 +726,7 @@ export class MarketSkillsService {
 
       console.log('Fetching employee benchmark data for company:', companyId);
 
-      // Get employee benchmark data - use simpler query structure
+      // Get employee benchmark data - use left joins for optional relations
       const { data: employeesData, error } = await supabase
         .from('employees')
         .select(`
@@ -734,7 +734,7 @@ export class MarketSkillsService {
           department,
           user_id,
           current_position_id,
-          users!inner(email, full_name),
+          users(email, full_name),
           st_company_positions(position_title),
           st_employee_skills_profile!inner(
             skills_match_score,
@@ -762,7 +762,7 @@ export class MarketSkillsService {
         }
 
         // Use full name from user data, fallback to email-based name
-        const userData = emp.users;
+        const userData = emp.users?.[0] || emp.users; // Handle both array and object response
         const name = userData?.full_name || 
                     (userData?.email ? userData.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
         
