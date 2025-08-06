@@ -38,7 +38,7 @@ import type { CriticalSkillsGap } from '@/types/common';
 import type { DepartmentMarketGap } from '@/types/marketSkills';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
 import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
-import { MarketBenchmarkLoader } from '@/components/dashboard/skills/MarketBenchmarkLoader';
+import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/MarketBenchmarkVerticalLoader';
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
@@ -129,6 +129,7 @@ export default function SkillsOverview() {
   const [benchmarkRefreshing, setBenchmarkRefreshing] = useState(false);
   const [lastBenchmarkUpdate, setLastBenchmarkUpdate] = useState<Date | null>(null);
   const [companyIndustry, setCompanyIndustry] = useState<string>('industry');
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [activeTab, setActiveTab] = useState('internal');
 
   useEffect(() => {
@@ -163,9 +164,39 @@ export default function SkillsOverview() {
   // Fetch benchmark data when Market Benchmark tab becomes active
   useEffect(() => {
     if (activeTab === 'market' && !organizationBenchmark) {
-      fetchBenchmarkData();
+      // Check if we have cached data first
+      checkCachedData();
     }
   }, [activeTab]);
+
+  const checkCachedData = async () => {
+    if (!userProfile?.company_id) return;
+    
+    try {
+      // Quick check for cached data
+      const { data: cacheCheck } = await supabase
+        .from('market_benchmark_cache')
+        .select('generated_at')
+        .eq('company_id', userProfile.company_id)
+        .eq('cache_key', 'comprehensive')
+        .gt('expires_at', new Date().toISOString())
+        .single();
+      
+      if (cacheCheck) {
+        // We have cached data, load it without showing loading state
+        setIsFirstLoad(false);
+        await fetchBenchmarkData(false);
+      } else {
+        // No cache, this is first load
+        setIsFirstLoad(true);
+        await fetchBenchmarkData(false);
+      }
+    } catch (error) {
+      // No cache found, proceed with first load
+      setIsFirstLoad(true);
+      await fetchBenchmarkData(false);
+    }
+  };
 
   const fetchBenchmarkData = async (isRefresh = false) => {
     if (!userProfile?.company_id) return;
@@ -187,16 +218,22 @@ export default function SkillsOverview() {
       const industry = companyData?.settings?.industry as string || 'industry';
       setCompanyIndustry(industry);
       
-      const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
+      // Pass forceRefresh parameter to service
+      const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark(isRefresh);
       setOrganizationBenchmark(comprehensiveData.organization);
       setDepartmentsBenchmark(comprehensiveData.departments);
       setEmployeesBenchmark(comprehensiveData.employees);
-      setLastBenchmarkUpdate(new Date());
+      setLastBenchmarkUpdate(comprehensiveData.generated_at);
+      
+      // Set first load to false after first successful load
+      if (!isRefresh && isFirstLoad) {
+        setIsFirstLoad(false);
+      }
       
       if (isRefresh) {
         toast({
           title: 'Success',
-          description: 'Market benchmark data refreshed successfully',
+          description: 'Market benchmark data refreshed and cached successfully',
         });
       }
     } catch (error) {
@@ -568,31 +605,17 @@ export default function SkillsOverview() {
         <TabsContent value="market" className="space-y-6 mt-6">
           {/* Market Benchmark Tab Content */}
           <div className="relative">
-            {/* Loading State */}
-            {(benchmarkLoading || benchmarkRefreshing) && (
-              <MarketBenchmarkLoader
-                isLoading={benchmarkLoading}
-                refreshing={benchmarkRefreshing}
-                lastUpdate={lastBenchmarkUpdate}
-                nextUpdateHours={336}
-                onRefresh={handleRefreshBenchmark}
-              />
-            )}
-            
-            {/* Status Bar when not loading */}
-            {!benchmarkLoading && !benchmarkRefreshing && organizationBenchmark && (
-              <div className="mb-6">
-                <MarketBenchmarkLoader
-                  isLoading={false}
-                  lastUpdate={lastBenchmarkUpdate}
-                  nextUpdateHours={336}
-                  onRefresh={handleRefreshBenchmark}
-                />
-              </div>
-            )}
+            {/* Vertical Loading State or Status Bar */}
+            <MarketBenchmarkVerticalLoader
+              isLoading={benchmarkLoading || benchmarkRefreshing}
+              refreshing={benchmarkRefreshing}
+              lastUpdate={lastBenchmarkUpdate}
+              isFirstLoad={isFirstLoad && !organizationBenchmark}
+              onRefresh={handleRefreshBenchmark}
+            />
             
             {/* Main Content */}
-            {!benchmarkLoading && !benchmarkRefreshing && (
+            {!benchmarkLoading && !benchmarkRefreshing && organizationBenchmark && (
             <div className="space-y-6">
               {/* Organization-Level Section */}
               <Card>

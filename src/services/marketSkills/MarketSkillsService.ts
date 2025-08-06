@@ -805,10 +805,71 @@ export class MarketSkillsService {
   }
 
   /**
-   * Get comprehensive benchmark data combining all levels
+   * Get comprehensive benchmark data combining all levels (with caching)
    */
-  async getComprehensiveBenchmark(): Promise<ComprehensiveBenchmarkData> {
+  async getComprehensiveBenchmark(forceRefresh = false): Promise<ComprehensiveBenchmarkData> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
+
+      // Determine company ID
+      let companyId: string | null = null;
+      const { data: userDetails } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', userData.user.id)
+        .single();
+      
+      companyId = userDetails?.company_id;
+      if (!companyId) {
+        // Check if user ID is itself a company (admin case)
+        const { data: companyCheck } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('id', userData.user.id)
+          .single();
+        
+        if (companyCheck) {
+          companyId = userData.user.id;
+        } else {
+          // Check if user is an employee
+          const { data: employeeCheck } = await supabase
+            .from('employees')
+            .select('company_id')
+            .eq('user_id', userData.user.id)
+            .single();
+          
+          companyId = employeeCheck?.company_id;
+        }
+      }
+
+      if (!companyId) {
+        throw new Error('Could not determine company ID');
+      }
+
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const { data: cachedData } = await supabase
+          .from('market_benchmark_cache')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('cache_key', 'comprehensive')
+          .gt('expires_at', new Date().toISOString())
+          .single();
+
+        if (cachedData) {
+          console.log('Returning cached benchmark data');
+          return {
+            organization: cachedData.organization_data as OrganizationBenchmarkData & { executive_summary?: string },
+            departments: cachedData.departments_data as DepartmentBenchmarkData[],
+            employees: cachedData.employees_data as EmployeeBenchmarkData[],
+            generated_at: new Date(cachedData.generated_at)
+          };
+        }
+      }
+
+      console.log('Generating fresh benchmark data...');
+      
       // Fetch all benchmark data in parallel
       const [organization, departments, employees] = await Promise.all([
         this.getOrganizationBenchmark(),
@@ -816,12 +877,39 @@ export class MarketSkillsService {
         this.getEmployeesBenchmark()
       ]);
 
-      return {
+      const comprehensiveData = {
         organization,
         departments,
         employees,
         generated_at: new Date()
       };
+
+      // Save to cache
+      const { error: cacheError } = await supabase
+        .from('market_benchmark_cache')
+        .upsert({
+          company_id: companyId,
+          cache_key: 'comprehensive',
+          organization_data: organization,
+          departments_data: departments,
+          employees_data: employees,
+          metadata: {
+            total_employees: organization.total_employees,
+            analyzed_employees: organization.analyzed_employees,
+            departments_count: departments.length,
+            generated_by: 'MarketSkillsService'
+          },
+          generated_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+        }, {
+          onConflict: 'company_id,cache_key'
+        });
+
+      if (cacheError) {
+        console.warn('Failed to cache benchmark data:', cacheError);
+      }
+
+      return comprehensiveData;
     } catch (error) {
       console.error('Error getting comprehensive benchmark:', error);
       // Return empty data structure on error
