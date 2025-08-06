@@ -131,7 +131,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         // Get company info for industry context
         const { data: companyData } = await supabase
           .from('companies')
-          .select('industry')
+          .select('settings')
           .eq('id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
           .single();
 
@@ -140,7 +140,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         const marketGapData = await marketSkillsService.getEmployeeMarketGaps(
           employee.id,
           employee.current_position_title,
-          companyData?.industry,
+          companyData?.settings?.industry as string | undefined,
           employeeSkills.map(skill => ({
             skill_name: skill.skill_name,
             proficiency_level: skill.proficiency_level,

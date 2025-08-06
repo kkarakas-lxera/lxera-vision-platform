@@ -328,11 +328,11 @@ export default function SkillsOverview() {
       // Get company information for industry context
       const { data: companyData } = await supabase
         .from('companies')
-        .select('industry')
+        .select('settings')
         .eq('id', userProfile.company_id)
         .single();
 
-      const companyIndustry = companyData?.industry;
+      const companyIndustry = companyData?.settings?.industry as string | undefined;
 
       // Fetch market gaps for each department
       const gaps = await Promise.all(

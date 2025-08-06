@@ -456,7 +456,7 @@ export class MarketSkillsService {
           skills_match_score,
           employee:employees!inner(
             department,
-            current_position:st_company_positions!employees_current_position_id_fkey(name),
+            current_position:st_company_positions!employees_current_position_id_fkey(position_title),
             company_id
           )
         `)
@@ -653,7 +653,7 @@ export class MarketSkillsService {
           id,
           email,
           department,
-          current_position:st_company_positions!employees_current_position_id_fkey(name),
+          current_position:st_company_positions!employees_current_position_id_fkey(position_title),
           st_employee_skills_profile(
             skills_match_score,
             extracted_skills,
@@ -712,7 +712,7 @@ export class MarketSkillsService {
           employee_id: emp.id,
           name,
           department: emp.department || 'Unknown',
-          position: emp.current_position?.name || 'Unknown',
+          position: emp.current_position?.position_title || 'Unknown',
           market_match_percentage: profile.skills_match_score || 0,
           critical_gaps_count: criticalGapsCount,
           skills_by_source: skillsBySource,
