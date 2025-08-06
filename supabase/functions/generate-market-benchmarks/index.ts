@@ -15,11 +15,26 @@ interface MarketSkill {
   source?: 'ai' | 'cv' | 'verified';
 }
 
+interface MarketInsights {
+  summary: string;
+  key_findings: string[];
+  recommendations: string[];
+  business_impact: string;
+  action_items: string[];
+}
+
 interface BenchmarkRequest {
   role: string;
   industry?: string;
   department?: string;
   force_refresh?: boolean;
+  include_insights?: boolean;
+  company_context?: {
+    employees_count?: number;
+    analyzed_count?: number;
+    critical_gaps?: number;
+    moderate_gaps?: number;
+  };
 }
 
 serve(async (req) => {
@@ -29,7 +44,7 @@ serve(async (req) => {
   }
 
   try {
-    const { role, industry, department, force_refresh = false }: BenchmarkRequest = await req.json()
+    const { role, industry, department, force_refresh = false, include_insights = false, company_context }: BenchmarkRequest = await req.json()
 
     if (!role) {
       throw new Error('Role is required')
@@ -56,9 +71,31 @@ serve(async (req) => {
 
       if (cachedBenchmark?.skills) {
         console.log('Returning cached benchmarks')
+        
+        // If insights are requested, check if we have cached insights
+        let cachedInsights = undefined
+        if (include_insights && cachedBenchmark.skills) {
+          // Try to get cached insights from metadata
+          const { data: benchmarkWithMeta } = await supabase
+            .from('market_skills_benchmarks')
+            .select('metadata')
+            .eq('role_name', role)
+            .eq('industry', industry || '')
+            .eq('department', department || '')
+            .gt('expires_at', new Date().toISOString())
+            .order('generated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          
+          if (benchmarkWithMeta?.metadata?.insights) {
+            cachedInsights = benchmarkWithMeta.metadata.insights
+          }
+        }
+        
         return new Response(
           JSON.stringify({ 
             skills: cachedBenchmark.skills,
+            insights: cachedInsights,
             cached: true,
             generated_at: cachedBenchmark.generated_at,
             expires_at: cachedBenchmark.expires_at
@@ -179,8 +216,9 @@ Example format:
       throw new Error('Failed to parse AI response')
     }
 
-    // Store in database
-    const { error: insertError } = await supabase
+    // Store in database - will be updated after insights if needed
+    let benchmarkId: string | null = null
+    const { data: insertData, error: insertError } = await supabase
       .from('market_skills_benchmarks')
       .insert({
         role_name: role,
@@ -193,10 +231,91 @@ Example format:
           timestamp: new Date().toISOString()
         }
       })
+      .select('id')
+      .single()
+    
+    if (insertData) {
+      benchmarkId = insertData.id
+    }
 
     if (insertError) {
       console.error('Error storing benchmarks:', insertError)
       // Continue even if storage fails
+    }
+
+    // Generate insights if requested
+    let insights: MarketInsights | undefined;
+    if (include_insights && company_context) {
+      console.log('Generating market insights...')
+      
+      const insightsPrompt = `Based on the skills gap analysis for ${role} in ${department || 'this department'} ${industry ? `in the ${industry} industry` : ''}:
+
+Company Context:
+- Total employees: ${company_context.employees_count || 'Unknown'}
+- Analyzed employees: ${company_context.analyzed_count || 0}
+- Critical skill gaps: ${company_context.critical_gaps || 0}
+- Moderate skill gaps: ${company_context.moderate_gaps || 0}
+
+Skills Analysis:
+${skills.map(s => `- ${s.skill_name}: ${s.category} skill with ${s.market_demand} market demand`).join('\n')}
+
+Provide strategic insights in JSON format with:
+- summary: A 2-3 sentence executive summary of the department's skills situation
+- key_findings: Array of 3-4 specific observations about skill gaps and market alignment
+- recommendations: Array of 3-4 actionable recommendations for addressing gaps
+- business_impact: A paragraph explaining the business value and ROI of addressing these gaps
+- action_items: Array of 3-4 immediate next steps with timelines
+
+Focus on:
+1. Competitive advantage implications
+2. Talent acquisition vs. training trade-offs
+3. Industry-specific trends and benchmarks
+4. Practical implementation strategies
+5. Measurable business outcomes
+
+Return only valid JSON with these exact fields.`
+
+      try {
+        const insightsCompletion = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a strategic workforce planning advisor specializing in skills gap analysis and talent optimization. Provide actionable, business-focused insights that drive ROI.'
+            },
+            {
+              role: 'user',
+              content: insightsPrompt
+            }
+          ],
+          temperature: 0.4,
+          max_tokens: 1500,
+          response_format: { type: "json_object" }
+        })
+
+        const insightsResponse = insightsCompletion.choices[0]?.message?.content
+        if (insightsResponse) {
+          insights = JSON.parse(insightsResponse)
+          
+          // Update the benchmark with insights in metadata
+          if (benchmarkId) {
+            await supabase
+              .from('market_skills_benchmarks')
+              .update({
+                metadata: {
+                  total_skills: skills.length,
+                  generated_by: 'gpt-4o',
+                  timestamp: new Date().toISOString(),
+                  insights: insights
+                }
+              })
+              .eq('id', benchmarkId)
+          }
+        }
+      } catch (insightsError) {
+        console.error('Error generating insights:', insightsError)
+        // Continue without insights if generation fails
+      }
     }
 
     // Track usage
@@ -216,10 +335,16 @@ Example format:
         success: true
       })
 
+    const currentDate = new Date().toISOString()
+    const expiryDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+
     return new Response(
       JSON.stringify({ 
         skills: skills,
-        cached: false 
+        insights: insights,
+        cached: false,
+        generated_at: currentDate,
+        expires_at: expiryDate
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

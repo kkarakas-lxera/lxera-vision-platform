@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
+import { Brain, HelpCircle, AlertCircle, TrendingUp, CheckCircle2, RefreshCw, Clock, ChevronDown, ChevronUp, Sparkles, Target, DollarSign, Zap } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface MarketSkill {
   skill_name: string;
@@ -20,8 +21,17 @@ interface MarketSkill {
   market_demand?: 'high' | 'medium' | 'low';
 }
 
+interface MarketInsights {
+  summary: string;
+  key_findings: string[];
+  recommendations: string[];
+  business_impact: string;
+  action_items: string[];
+}
+
 interface MarketGapBarsProps {
   skills: MarketSkill[];
+  insights?: MarketInsights;
   industry?: string;
   role?: string;
   showSource?: boolean;
@@ -33,6 +43,7 @@ interface MarketGapBarsProps {
 
 export default function MarketGapBars({ 
   skills, 
+  insights,
   industry, 
   role, 
   showSource = false,
@@ -41,6 +52,8 @@ export default function MarketGapBars({
   onRefresh,
   isRefreshing = false
 }: MarketGapBarsProps) {
+  const [showAllMissing, setShowAllMissing] = useState(false);
+  const [showAllEmerging, setShowAllEmerging] = useState(false);
   // Group skills by match percentage
   const missingSkills = skills.filter(s => s.match_percentage <= 40);
   const emergingSkills = skills.filter(s => s.match_percentage > 40 && s.match_percentage <= 80);
@@ -178,68 +191,161 @@ export default function MarketGapBars({
       </div>
       
       {skills.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Missing Skills Column */}
-          {missingSkills.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <h4 className="text-sm font-medium text-gray-900">
-                  Missing Skills ({missingSkills.length})
-                </h4>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Skills List Column */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Missing Skills Section */}
+            {missingSkills.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Missing Skills ({missingSkills.length})
+                    </h4>
+                  </div>
+                  {missingSkills.length > 5 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllMissing(!showAllMissing)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      {showAllMissing ? (
+                        <>Show less <ChevronUp className="h-3 w-3 ml-1" /></>
+                      ) : (
+                        <>Show all <ChevronDown className="h-3 w-3 ml-1" /></>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {(showAllMissing ? missingSkills : missingSkills.slice(0, 5)).map((skill, index) => (
+                    <SkillRow key={`missing-${index}`} skill={skill} />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                {missingSkills.slice(0, 5).map((skill, index) => (
-                  <SkillRow key={`missing-${index}`} skill={skill} />
-                ))}
-                {missingSkills.length > 5 && (
-                  <p className="text-xs text-gray-500 pl-4">
-                    +{missingSkills.length - 5} more missing skills
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Emerging/Partially Covered Column */}
-          {emergingSkills.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-orange-500" />
-                <h4 className="text-sm font-medium text-gray-900">
-                  Emerging Skills ({emergingSkills.length})
-                </h4>
+            {/* Emerging Skills Section */}
+            {emergingSkills.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Emerging Skills ({emergingSkills.length})
+                    </h4>
+                  </div>
+                  {emergingSkills.length > 5 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllEmerging(!showAllEmerging)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      {showAllEmerging ? (
+                        <>Show less <ChevronUp className="h-3 w-3 ml-1" /></>
+                      ) : (
+                        <>Show all <ChevronDown className="h-3 w-3 ml-1" /></>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {(showAllEmerging ? emergingSkills : emergingSkills.slice(0, 5)).map((skill, index) => (
+                    <SkillRow key={`emerging-${index}`} skill={skill} />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                {emergingSkills.slice(0, 5).map((skill, index) => (
-                  <SkillRow key={`emerging-${index}`} skill={skill} />
-                ))}
-                {emergingSkills.length > 5 && (
-                  <p className="text-xs text-gray-500 pl-4">
-                    +{emergingSkills.length - 5} more emerging skills
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Show covered skills if no other categories exist */}
-          {missingSkills.length === 0 && emergingSkills.length === 0 && coveredSkills.length > 0 && (
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <h4 className="text-sm font-medium text-gray-900">
-                  Covered Skills ({coveredSkills.length})
-                </h4>
+            {/* Covered Skills Section */}
+            {coveredSkills.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <h4 className="text-sm font-medium text-gray-900">
+                    Covered Skills ({coveredSkills.length})
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {coveredSkills.slice(0, 6).map((skill, index) => (
+                    <div key={`covered-${index}`} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                      <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                      <span className="text-xs text-gray-700 truncate">{skill.skill_name}</span>
+                    </div>
+                  ))}
+                  {coveredSkills.length > 6 && (
+                    <p className="text-xs text-gray-500 col-span-2">
+                      +{coveredSkills.length - 6} more covered skills
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {coveredSkills.slice(0, 10).map((skill, index) => (
-                  <SkillRow key={`covered-${index}`} skill={skill} />
-                ))}
-              </div>
+            )}
+          </div>
+
+          {/* AI Insights Column */}
+          {insights && (
+            <div className="lg:col-span-1">
+              <Card className="p-4 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-900">AI Analysis</h3>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700 leading-relaxed">{insights.summary}</p>
+                  </div>
+
+                  {/* Key Findings */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-blue-600" />
+                      <h4 className="text-sm font-medium text-gray-900">Key Findings</h4>
+                    </div>
+                    <ul className="space-y-1">
+                      {insights.key_findings.map((finding, index) => (
+                        <li key={index} className="text-xs text-gray-600 flex items-start gap-1.5">
+                          <span className="text-blue-500 mt-0.5">•</span>
+                          <span>{finding}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Business Impact */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <h4 className="text-sm font-medium text-gray-900">Business Impact</h4>
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed">{insights.business_impact}</p>
+                  </div>
+
+                  {/* Action Items */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-orange-600" />
+                      <h4 className="text-sm font-medium text-gray-900">Next Steps</h4>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {insights.action_items.map((item, index) => (
+                        <li key={index} className="text-xs text-gray-700 flex items-start gap-1.5">
+                          <CheckCircle2 className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </Card>
             </div>
-          )}
-        </div>
+          )}</div>
       ) : (
         <div className="text-center py-8 text-gray-500">
           <Brain className="h-8 w-8 mx-auto mb-2 text-gray-300" />

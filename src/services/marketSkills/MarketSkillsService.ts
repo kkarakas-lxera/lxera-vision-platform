@@ -1,8 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { MarketSkillData, DepartmentMarketGap } from '@/types/marketSkills';
 
+interface MarketInsights {
+  summary: string;
+  key_findings: string[];
+  recommendations: string[];
+  business_impact: string;
+  action_items: string[];
+}
+
 interface MarketBenchmarkResponse {
   skills: MarketSkillData[];
+  insights?: MarketInsights;
   cached: boolean;
   generated_at?: string;
   expires_at?: string;
@@ -22,7 +31,9 @@ export class MarketSkillsService {
     role: string,
     industry?: string,
     department?: string,
-    forceRefresh = false
+    forceRefresh = false,
+    includeInsights = false,
+    companyContext?: any
   ): Promise<MarketBenchmarkResponse> {
     try {
       const { data, error } = await supabase.functions.invoke('generate-market-benchmarks', {
@@ -30,7 +41,9 @@ export class MarketSkillsService {
           role, 
           industry, 
           department, 
-          force_refresh: forceRefresh 
+          force_refresh: forceRefresh,
+          include_insights: includeInsights,
+          company_context: companyContext
         }
       });
 
@@ -131,10 +144,23 @@ export class MarketSkillsService {
   async getDepartmentMarketGaps(
     department: string,
     industry?: string,
-    employeeSkills: InternalSkill[]
+    employeeSkills: InternalSkill[],
+    companyContext?: {
+      employees_count?: number;
+      analyzed_count?: number;
+      critical_gaps?: number;
+      moderate_gaps?: number;
+    }
   ): Promise<DepartmentMarketGap> {
     // Use department name as a proxy for role
-    const benchmarks = await this.fetchMarketBenchmarks(department, industry, department);
+    const benchmarks = await this.fetchMarketBenchmarks(
+      department, 
+      industry, 
+      department, 
+      false,
+      true, // Include insights
+      companyContext
+    );
     
     // Compare with aggregated employee skills
     const comparedSkills = this.compareWithInternal(benchmarks.skills, employeeSkills);
@@ -148,6 +174,7 @@ export class MarketSkillsService {
       department,
       industry: industry || 'General',
       skills: comparedSkills,
+      insights: benchmarks.insights,
       last_updated: lastUpdated
     };
   }

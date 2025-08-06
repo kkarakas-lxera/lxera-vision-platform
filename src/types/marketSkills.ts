@@ -6,10 +6,19 @@ export interface MarketSkillData {
   category?: 'critical' | 'emerging' | 'foundational';
 }
 
+export interface MarketInsights {
+  summary: string;
+  key_findings: string[];
+  recommendations: string[];
+  business_impact: string;
+  action_items: string[];
+}
+
 export interface DepartmentMarketGap {
   department: string;
   industry: string;
   skills: MarketSkillData[];
+  insights?: MarketInsights;
   last_updated?: Date;
 }
 
