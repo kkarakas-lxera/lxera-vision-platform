@@ -263,7 +263,9 @@ export default function EmployeeProfile() {
           proficiency_level: skill.proficiency, // Already 0-3
           is_from_cv: skill.source === 'cv',
           is_from_position: skill.source === 'position_requirement',
-          verification_score: assessment?.context?.verification_score || skill.confidence || 1.0,
+          verification_score: assessment?.context?.verification_score !== undefined 
+            ? assessment.context.verification_score 
+            : (skill.confidence !== undefined ? skill.confidence : 1.0),
           questions_asked: assessment?.questions || [],
           responses: assessment?.responses || [],
           time_taken: assessment?.time_taken,
