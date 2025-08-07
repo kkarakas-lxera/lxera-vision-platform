@@ -466,8 +466,8 @@ export default function SkillsOverview() {
           // Get market gaps
           const marketGap = await marketSkillsService.getDepartmentMarketGaps(
             dept.department,
-            companyIndustry,
-            allSkills
+            allSkills,  // employeeSkills parameter
+            companyIndustry  // industry parameter (optional)
           );
 
           return marketGap;

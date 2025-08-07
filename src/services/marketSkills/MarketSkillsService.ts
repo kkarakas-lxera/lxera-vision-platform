@@ -215,6 +215,16 @@ export class MarketSkillsService {
     marketSkills: MarketSkillData[],
     internalSkills: InternalSkill[]
   ): MarketSkillData[] {
+    // Ensure parameters are arrays
+    if (!Array.isArray(marketSkills)) {
+      console.warn('compareWithInternal: marketSkills is not an array', marketSkills);
+      return [];
+    }
+    if (!Array.isArray(internalSkills)) {
+      console.warn('compareWithInternal: internalSkills is not an array', internalSkills);
+      return marketSkills; // Return market skills unchanged if no internal skills to compare
+    }
+    
     // Create a map of internal skills for quick lookup
     const internalSkillsMap = new Map<string, InternalSkill>();
     internalSkills.forEach(skill => {
