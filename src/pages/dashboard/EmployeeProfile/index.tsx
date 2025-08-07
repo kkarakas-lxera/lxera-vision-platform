@@ -330,18 +330,23 @@ export default function EmployeeProfile() {
       const totalSections = Math.max(mainProfileSections.length, 7); // At least 7 for the standard profile
 
 
-      // Calculate verified skills stats from validation table
-      const verifiedSkillsList = verifiedSkills?.filter((s: any) => {
+      // Calculate assessed and verified skills stats
+      const assessedSkills = verifiedSkills || [];
+      const assessedWithScore = assessedSkills.filter((s: any) => {
         const score = s.verification_score as number | string | null;
         return score !== null && score !== undefined && Number(score) > 0;
-      }) || [];
+      });
+      const verifiedSkillsList = assessedSkills.filter((s: any) => {
+        const score = s.verification_score as number | string | null;
+        return score !== null && score !== undefined && Number(score) >= 0.8; // 80% or higher
+      });
       
-      // Find strongest and weakest skills
+      // Find strongest and weakest skills (from those with scores > 0)
       let strongestSkill = null;
       let weakestSkill = null;
       
-      if (verifiedSkillsList.length > 0) {
-        const sortedByScore = [...verifiedSkillsList].sort((a: any, b: any) => 
+      if (assessedWithScore.length > 0) {
+        const sortedByScore = [...assessedWithScore].sort((a: any, b: any) => 
           Number(b.verification_score) - Number(a.verification_score)
         );
         strongestSkill = {
@@ -355,11 +360,13 @@ export default function EmployeeProfile() {
       }
       
       const verifiedSkillsStats = {
-        count: verifiedSkillsList.length,
-        total: verifiedSkills?.length || 0,
-        avgScore: verifiedSkillsList.length > 0 
-          ? Math.round(verifiedSkillsList.reduce((acc: number, s: any) => 
-              acc + (Number(s.verification_score) * 100), 0) / verifiedSkillsList.length)
+        assessed: assessedSkills.length,  // Total assessed (including 0 scores)
+        withScore: assessedWithScore.length, // Assessed with score > 0
+        verified: verifiedSkillsList.length, // Verified (score >= 80%)
+        total: assessedSkills.length,
+        avgScore: assessedWithScore.length > 0 
+          ? Math.round(assessedWithScore.reduce((acc: number, s: any) => 
+              acc + (Number(s.verification_score) * 100), 0) / assessedWithScore.length)
           : 0,
         strongest: strongestSkill,
         weakest: weakestSkill

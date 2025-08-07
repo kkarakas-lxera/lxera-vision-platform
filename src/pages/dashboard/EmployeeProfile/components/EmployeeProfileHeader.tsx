@@ -222,15 +222,15 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
           </CardContent>
         </Card>
 
-        {/* Skills Verified Card */}
+        {/* Skills Assessment Card */}
         <Card>
           <CardContent className="p-6">
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Skills Verified</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Skills Assessment</h3>
               <div className="space-y-2">
                 <div className="flex items-baseline justify-between">
                   <span className="text-3xl font-bold text-yellow-600">
-                    {employee.verifiedSkills?.count || 0}/{employee.verifiedSkills?.total || 0}
+                    {employee.verifiedSkills?.withScore || 0}/{employee.verifiedSkills?.assessed || 0}
                   </span>
                   <Button variant="link" size="sm" className="h-auto p-0">
                     View Detail
@@ -238,6 +238,9 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
                 </div>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <div>Avg Score: {employee.verifiedSkills?.avgScore || 0}%</div>
+                  <div className="text-xs text-green-600">
+                    Verified (≥80%): {employee.verifiedSkills?.verified || 0} skills
+                  </div>
                   {employee.verifiedSkills?.strongest && (
                     <div className="text-xs">
                       <span className="text-green-600">Strongest:</span> {employee.verifiedSkills.strongest.name} ({employee.verifiedSkills.strongest.score}%)

@@ -291,9 +291,10 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   // Calculate metrics
   const extractedSkillsCount = cvSkills.length;
   const roleRequirementsCount = positionRequirements.length;
-  const verifiedSkillsCount = allSkills.filter(s => s.verification_data !== null && s.verification_data !== undefined).length;
+  const assessedSkillsCount = allSkills.filter(s => s.verification_data !== null && s.verification_data !== undefined).length;
+  const verifiedSkillsCount = allSkills.filter(s => s.verification_data !== null && s.verification_data !== undefined && s.verified_percentage >= 80).length;
   
-  const summary = `${extractedSkillsCount} extracted from CV | ${roleRequirementsCount} role requirements | ${verifiedSkillsCount} verified`;
+  const summary = `${extractedSkillsCount} extracted from CV | ${roleRequirementsCount} role requirements | ${assessedSkillsCount} assessed | ${verifiedSkillsCount} verified`;
 
   // Filter pill options
   const filterOptions = [
@@ -345,8 +346,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Verified Skills</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{verifiedSkillsCount}</p>
+                  <p className="text-sm font-medium text-gray-600">Assessed Skills</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{assessedSkillsCount}</p>
                   <p className="text-xs text-gray-500 mt-1">Skills with completed assessments</p>
                 </div>
                 <div className="p-2 bg-gray-100 rounded-lg">
