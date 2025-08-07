@@ -250,7 +250,7 @@ export default function DepartmentSkillsDetail() {
 
       const employeeIds = employeesInDept.map(emp => emp.id);
 
-      // Fetch employees with skills from unified structure
+      // Fetch all employees with their skills (analyzed or not)
       const { data: employeesWithSkills, error: skillsError } = await supabase
         .from('employees')
         .select(`
@@ -264,8 +264,7 @@ export default function DepartmentSkillsDetail() {
             confidence
           )
         `)
-        .in('id', employeeIds)
-        .not('skills_last_analyzed', 'is', null);
+        .in('id', employeeIds);
 
       if (skillsError) {
         console.error('Error fetching skills profiles:', skillsError);
@@ -291,11 +290,15 @@ export default function DepartmentSkillsDetail() {
         }
       }
 
-      // Combine the data
+      // Combine the data - only include employees with skills
       const employeesData = employeesInDept
         .map(emp => {
           const employeeWithSkills = employeesWithSkills?.find(ews => ews.id === emp.id);
           if (!employeeWithSkills) return null;
+          
+          // Check if employee has any skills
+          const hasSkills = employeeWithSkills.employee_skills && employeeWithSkills.employee_skills.length > 0;
+          if (!hasSkills) return null;
 
           // Transform employee_skills to match old format
           const technicalSkills = (employeeWithSkills.employee_skills || []).map(skill => ({
