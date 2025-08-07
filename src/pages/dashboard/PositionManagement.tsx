@@ -94,9 +94,7 @@ export default function PositionManagement() {
           current_position_id,
           profile_complete,
           user_id,
-          st_employee_skills_profile (
-            skills_match_score
-          ),
+          cv_analysis_data,
           profile_invitations (
             sent_at,
             viewed_at,
@@ -156,20 +154,17 @@ export default function PositionManagement() {
               }
             }
 
-            // Check if employee has skills profile
-            // Handle both array and object response formats
-            const profile = Array.isArray(employee.st_employee_skills_profile) 
-              ? employee.st_employee_skills_profile?.[0]
-              : employee.st_employee_skills_profile;
+            // Check if employee has skills match score from cv_analysis_data
+            const skillsMatchScore = employee.cv_analysis_data?.skills_match_score;
             
-            if (profile?.skills_match_score !== null && profile?.skills_match_score !== undefined) {
-              metrics.total_score += profile.skills_match_score;
+            if (skillsMatchScore !== null && skillsMatchScore !== undefined) {
+              metrics.total_score += skillsMatchScore;
               metrics.scored_employees++;
-              totalMatchScore += profile.skills_match_score;
+              totalMatchScore += skillsMatchScore;
               employeesWithScores++;
 
               // Count as having gap if score is below 80%
-              if (profile.skills_match_score < 80) {
+              if (skillsMatchScore < 80) {
                 metrics.employees_with_gaps++;
               }
             }

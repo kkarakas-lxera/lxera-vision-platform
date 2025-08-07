@@ -250,17 +250,22 @@ export default function DepartmentSkillsDetail() {
 
       const employeeIds = employeesInDept.map(emp => emp.id);
 
-      // Fetch skills profiles for these employees
-      const { data: skillsData, error: skillsError } = await supabase
-        .from('st_employee_skills_profile')
+      // Fetch employees with skills from unified structure
+      const { data: employeesWithSkills, error: skillsError } = await supabase
+        .from('employees')
         .select(`
-          employee_id,
-          skills_match_score,
-          analyzed_at,
-          extracted_skills
+          id,
+          cv_analysis_data,
+          skills_last_analyzed,
+          employee_skills(
+            skill_name,
+            proficiency,
+            source,
+            confidence
+          )
         `)
-        .in('employee_id', employeeIds)
-        .not('analyzed_at', 'is', null);
+        .in('id', employeeIds)
+        .not('skills_last_analyzed', 'is', null);
 
       if (skillsError) {
         console.error('Error fetching skills profiles:', skillsError);
@@ -289,23 +294,23 @@ export default function DepartmentSkillsDetail() {
       // Combine the data
       const employeesData = employeesInDept
         .map(emp => {
-          const skillsProfile = skillsData?.find(sp => sp.employee_id === emp.id);
-          if (!skillsProfile) return null;
+          const employeeWithSkills = employeesWithSkills?.find(ews => ews.id === emp.id);
+          if (!employeeWithSkills) return null;
 
-          // Extract all skills using safe parsing
-          const allSkills = parseJsonSkills(skillsProfile.extracted_skills);
-          
-          // For now, don't filter by category since it may not be set
-          // We'll display all skills together
-          const technicalSkills = allSkills;
-          const softSkills = [];
+          // Transform employee_skills to match old format
+          const technicalSkills = (employeeWithSkills.employee_skills || []).map(skill => ({
+            skill_name: skill.skill_name,
+            proficiency_level: skill.proficiency, // 0-3 scale
+            confidence: skill.confidence || 0,
+            source: skill.source
+          }));
 
           return {
             employee_id: emp.id,
-            skills_match_score: skillsProfile.skills_match_score || 0,
-            analyzed_at: skillsProfile.analyzed_at,
+            skills_match_score: employeeWithSkills.cv_analysis_data?.skills_match_score || 0,
+            analyzed_at: employeeWithSkills.skills_last_analyzed,
             technical_skills: technicalSkills,
-            soft_skills: softSkills,
+            soft_skills: [],
             employees: {
               id: emp.id,
               department: emp.department,
@@ -350,11 +355,12 @@ export default function DepartmentSkillsDetail() {
       const skillMap = new Map<string, { total: number; proficiencies: number[]; type: 'technical' | 'soft' }>();
 
       formattedEmployees.forEach(employee => {
-        // Process technical skills
+        // Process technical skills (convert 0-3 scale to 1-5 for display)
         if (Array.isArray(employee.technical_skills)) {
           employee.technical_skills.forEach(skill => {
             const skillName = skill.skill_name;
-            const proficiency = skill.proficiency_level || 3;
+            // Convert 0-3 to 1-5 scale for display compatibility
+            const proficiency = Math.max(1, Math.min(5, Math.round((skill.proficiency_level / 3) * 4) + 1));
             
             if (skillName) {
               if (!skillMap.has(skillName)) {

@@ -84,9 +84,11 @@ serve(async (req) => {
           continue
         }
 
-        // Determine required level
+        // Determine required level (0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert)
         const requiredLevel = skill.required_level 
-          ? (skill.required_level === 1 ? 'basic' : skill.required_level === 2 ? 'intermediate' : 'advanced')
+          ? (skill.required_level === 0 ? 'basic' : // None defaults to basic questions
+             skill.required_level === 1 ? 'basic' : 
+             skill.required_level === 2 ? 'intermediate' : 'advanced')
           : 'intermediate'
 
         // Generate questions using OpenAI

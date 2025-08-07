@@ -33,15 +33,17 @@ serve(async (req) => {
       .from('employees')
       .select(`
         *,
-        st_company_positions!employees_current_position_id_fkey (
+        positions:current_position_id (
           position_title,
           department,
           required_skills,
           nice_to_have_skills
         ),
-        st_employee_skills_profile (
-          extracted_skills,
-          skills_match_score
+        employee_skills (
+          skill_name,
+          proficiency,
+          source,
+          years_experience
         )
       `)
       .eq('id', employee_id)
@@ -62,11 +64,11 @@ serve(async (req) => {
     
     const workExperience = sections?.find(s => s.section_name === 'work_experience')?.data || {}
     const education = sections?.find(s => s.section_name === 'education')?.data || {}
-    const skills = employee.st_employee_skills_profile?.extracted_skills || []
+    const skills = employee.employee_skills || []
 
     console.log('Context for AI:', {
-      position: employee.st_company_positions?.position_title || employee.position || 'Unknown',
-      department: employee.st_company_positions?.department || employee.department || 'Unknown',
+      position: employee.positions?.position_title || employee.position || 'Unknown',
+      department: employee.positions?.department || employee.department || 'Unknown',
       currentProjects: step_data?.currentProjects || [],
       teamSize: step_data?.teamSize || 'Unknown',
       roleInTeam: step_data?.roleInTeam || 'Unknown',
@@ -74,13 +76,13 @@ serve(async (req) => {
       education: education.education || [],
       skills: skills.map((s: any) => s.skill_name).slice(0, 20), // Top 20 skills
       yearsOfExperience: calculateYearsOfExperience(workExperience),
-      skillsMatchScore: employee.st_employee_skills_profile?.skills_match_score || 0
+      skillsMatchScore: employee.cv_analysis_data?.skills_match_score || 0
     })
     
     // Prepare context for AI
     const context = {
-      position: employee.st_company_positions?.position_title || employee.position || 'Unknown',
-      department: employee.st_company_positions?.department || employee.department || 'Unknown',
+      position: employee.positions?.position_title || employee.position || 'Unknown',
+      department: employee.positions?.department || employee.department || 'Unknown',
       currentProjects: step_data?.currentProjects || [],
       teamSize: step_data?.teamSize || 'Unknown',
       roleInTeam: step_data?.roleInTeam || 'Unknown',
@@ -88,7 +90,7 @@ serve(async (req) => {
       education: education.education || [],
       skills: skills.map((s: any) => s.skill_name).slice(0, 20), // Top 20 skills
       yearsOfExperience: calculateYearsOfExperience(workExperience),
-      skillsMatchScore: employee.st_employee_skills_profile?.skills_match_score || 0
+      skillsMatchScore: employee.cv_analysis_data?.skills_match_score || 0
     }
 
     // Generate suggestions using OpenAI

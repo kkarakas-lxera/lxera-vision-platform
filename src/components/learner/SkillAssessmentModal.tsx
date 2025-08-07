@@ -200,16 +200,17 @@ export default function SkillAssessmentModal({
         positionContext.id
       );
 
-      // Update skill profile
+      // Update employee record to mark gap analysis completion
       const { error: profileError } = await supabase
-        .from('st_employee_skills_profile')
+        .from('employees')
         .update({
-          gap_analysis_completed_at: new Date().toISOString()
+          skills_validation_completed: true,
+          skills_last_analyzed: new Date().toISOString()
         })
-        .eq('employee_id', employeeId);
+        .eq('id', employeeId);
 
       if (profileError) {
-        console.error('Error updating skill profile:', profileError);
+        console.error('Error updating employee record:', profileError);
       }
 
       toast.success(`Assessment completed for ${skill.skill_name}`);

@@ -25,26 +25,27 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get validated skills
-    const { data: validatedSkills, error: skillsError } = await supabase
-      .from('employee_skills_validation')
+    // Get employee skills (verified ones)
+    const { data: employeeSkills, error: skillsError } = await supabase
+      .from('employee_skills')
       .select('*')
       .eq('employee_id', employee_id)
-      .gt('proficiency_level', 0) // Only skills they have
+      .eq('source', 'verified') // Only verified skills
+      .gt('proficiency', 0) // Only skills they have
 
     if (skillsError) throw skillsError
 
-    // Transform validated skills to profile format
-    const extractedSkills = validatedSkills.map(skill => ({
+    // Transform to expected format
+    const extractedSkills = employeeSkills.map(skill => ({
       skill_id: skill.skill_id,
       skill_name: skill.skill_name,
-      category: skill.is_from_position ? 'technical' : 'soft',
-      proficiency_level: skill.proficiency_level,
-      years_experience: null, // Could be enhanced later
-      evidence: skill.is_from_cv ? 'Found in CV' : 'Self-reported',
-      context: skill.is_from_position ? 'Required for position' : 'Additional skill',
+      category: 'technical', // Can be enhanced with categorization
+      proficiency_level: skill.proficiency, // Already 0-3
+      years_experience: skill.years_experience,
+      evidence: 'User verified',
+      context: 'Profile completion',
       confidence: 1.0, // 100% confidence since user validated
-      source: 'employee_validation'
+      source: 'verified'
     }))
 
     // Get employee position for gap calculation
@@ -52,7 +53,7 @@ serve(async (req) => {
       .from('employees')
       .select(`
         current_position_id,
-        st_company_positions!employees_current_position_id_fkey (
+        positions:current_position_id (
           required_skills
         )
       `)
@@ -61,12 +62,12 @@ serve(async (req) => {
 
     // Calculate skills match score
     let matchScore = null
-    if (employee?.st_company_positions?.required_skills) {
-      const requiredSkills = employee.st_company_positions.required_skills
+    if (employee?.positions?.required_skills) {
+      const requiredSkills = employee.positions.required_skills
       const matchedSkills = requiredSkills.filter((reqSkill: any) => 
-        validatedSkills.some(valSkill => 
-          valSkill.skill_name === reqSkill.skill_name && 
-          valSkill.proficiency_level >= 2 // At least "Using" level
+        employeeSkills.some(skill => 
+          skill.skill_name === reqSkill.skill_name && 
+          skill.proficiency >= 2 // At least "Using" level
         )
       )
       
@@ -75,26 +76,25 @@ serve(async (req) => {
         : null
     }
 
-    // Update skills profile
+    // Update employee record with skills match score and validation status
     const { error: profileError } = await supabase
-      .from('st_employee_skills_profile')
-      .upsert({
-        employee_id,
-        extracted_skills: extractedSkills,
-        skills_match_score: matchScore,
-        skills_validation_completed: true,
-        analyzed_at: new Date().toISOString(),
-        skills_analysis_version: 3, // Version 3 = validated data
-        validation_metadata: {
-          total_validated: validatedSkills.length,
-          skills_with_proficiency: validatedSkills.filter(s => s.proficiency_level > 0).length,
-          validation_date: new Date().toISOString()
+      .from('employees')
+      .update({
+        cv_analysis_data: {
+          ...employee?.cv_analysis_data,
+          skills_match_score: matchScore,
+          extracted_skills: extractedSkills,
+          validation_completed: true,
+          validation_date: new Date().toISOString(),
+          total_validated: employeeSkills.length,
+          skills_with_proficiency: employeeSkills.filter(s => s.proficiency > 0).length
         }
-      }, { onConflict: 'employee_id' })
+      })
+      .eq('id', employee_id)
 
     if (profileError) throw profileError
 
-    // Update employee record
+    // Update employee record with final validation status
     await supabase
       .from('employees')
       .update({
@@ -103,13 +103,17 @@ serve(async (req) => {
       })
       .eq('id', employee_id)
 
-    // Trigger gap calculation
-    await supabase.rpc('calculate_employee_skills_gap', { p_employee_id: employee_id })
+    // Clear any cached gaps to trigger recalculation on next access
+    await supabase
+      .from('skills_gap_cache')
+      .delete()
+      .eq('entity_id', employee_id)
+      .eq('entity_type', 'employee')
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        skills_validated: validatedSkills.length,
+        skills_validated: employeeSkills.length,
         match_score: matchScore
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

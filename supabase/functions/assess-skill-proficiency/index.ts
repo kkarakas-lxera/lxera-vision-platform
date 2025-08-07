@@ -142,12 +142,21 @@ serve(async (req) => {
     }
 
     // Enhanced question configuration with more questions for better accuracy
+    // Map text levels to 0-3 scale for internal use
+    const levelMap = {
+      'none': 0,
+      'basic': 1,
+      'intermediate': 2,
+      'advanced': 3,
+      'expert': 3
+    }
+    
     const questionConfig = {
       basic: { count: 4, maxDifficulty: 2, timePerQuestion: 60 },
       intermediate: { count: 5, maxDifficulty: 3, timePerQuestion: 75 },
       advanced: { count: 5, maxDifficulty: 3, timePerQuestion: 90 }
     }
-    const config = questionConfig[required_level]
+    const config = questionConfig[required_level] || questionConfig.intermediate
 
     // Build context for AI
     const hasProjects = employee_context.current_projects && employee_context.current_projects.length > 0

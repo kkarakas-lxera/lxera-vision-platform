@@ -12,6 +12,8 @@ import {
 import { ArrowRight, Target, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CriticalSkillsGap } from '@/types/common';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 
 interface CriticalSkillsPanelProps {
   criticalGaps: CriticalSkillsGap[];
@@ -50,10 +52,10 @@ export default function CriticalSkillsPanel({ criticalGaps, className }: Critica
                     training or hiring.
                   </p>
                   <p className="text-sm mt-2">
-                    <span className="font-medium">Severity levels:</span><br/>
-                    • <span className="text-red-600">Critical:</span> &lt;40% proficiency<br/>
-                    • <span className="text-orange-600">Moderate:</span> 40-70% proficiency<br/>
-                    • <span className="text-green-600">Minor:</span> &gt;70% proficiency
+                    <span className="font-medium">Severity levels (0-3 scale):</span><br/>
+                    • <span className="text-red-600">Critical:</span> Gap ≥2 levels or &gt;50% affected<br/>
+                    • <span className="text-orange-600">Important:</span> Gap = 1 level or &gt;33% affected<br/>
+                    • <span className="text-yellow-600">Minor:</span> Gap &lt;1 level or &lt;33% affected
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -75,7 +77,14 @@ export default function CriticalSkillsPanel({ criticalGaps, className }: Critica
           <div key={index} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-sm">{gap.skill_name}</h4>
+                <SkillBadge 
+                  skill={{
+                    skill_name: gap.skill_name,
+                    proficiency_level: UnifiedSkillsService.convertToStandard(gap.required_level || 3)
+                  }}
+                  showProficiency={true}
+                  size="sm"
+                />
                 <Badge variant="outline" className={`text-xs ${getSeverityColor(gap.gap_severity)}`}>
                   {gap.gap_severity}
                 </Badge>

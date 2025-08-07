@@ -862,7 +862,7 @@ ${JSON.stringify(analysisResult, null, 2)}
 
 For each skill, provide:
 1. skill_name: The name of the skill
-2. proficiency_level: A number from 1-5 (1=Beginner, 2=Basic, 3=Intermediate, 4=Advanced, 5=Expert)
+2. proficiency_level: A number from 0-3 (0=None, 1=Learning/Beginner, 2=Using/Intermediate, 3=Expert/Advanced)
 3. years_of_experience: Estimated years (can be decimal)
 4. context: Where/how this skill was used
 
@@ -871,6 +871,12 @@ Consider:
 - Skills implied by work experience
 - Skills from certifications
 - Tools and technologies used
+
+Proficiency Guidelines (0-3 scale):
+- 0: No experience (don't include these)
+- 1: Learning/Beginner (0-2 years, basic projects, training)
+- 2: Using/Intermediate (2-5 years, production work, regular use)
+- 3: Expert/Advanced (5+ years, leadership, architecture, teaching)
 
 Return as JSON with a "skills" array.
 
@@ -1007,27 +1013,44 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
       console.log('Successfully assigned position to employee')
     }
 
-    // Create or update skills profile record
-    const { error: skillsProfileError } = await supabase
-      .from('st_employee_skills_profile')
-      .upsert({
+    // Store skills in the employee_skills table (0-3 scale)
+    if (skillsData.skills && skillsData.skills.length > 0) {
+      // First, delete existing CV-sourced skills for this employee
+      await supabase
+        .from('employee_skills')
+        .delete()
+        .eq('employee_id', employee_id)
+        .eq('source', 'cv')
+      
+      // Convert proficiency to 0-3 scale and insert skills
+      const skillsToInsert = skillsData.skills.map((skill: any) => ({
         employee_id,
-        extracted_skills: skillsData.skills?.map((skill: any) => ({
-          skill_name: skill.skill_name,
-          proficiency: skill.proficiency_level || 0,
-          years_experience: skill.years_experience || 0
-        })) || [],
-        gap_analysis_completed_at: new Date().toISOString(),
-        analyzed_at: new Date().toISOString()
-      }, { 
-        onConflict: 'employee_id' 
-      })
-
-    if (skillsProfileError) {
-      console.error('Failed to create skills profile:', skillsProfileError)
-      // This is now critical since we've ensured position assignment
-      throw new Error(`Failed to create skills profile: ${skillsProfileError.message}`)
+        skill_name: skill.skill_name,
+        proficiency: Math.min(3, Math.max(0, skill.proficiency_level || 0)), // Ensure 0-3 range
+        source: 'cv' as const,
+        years_experience: skill.years_experience || null,
+        updated_at: new Date().toISOString()
+      }))
+      
+      const { error: skillsInsertError } = await supabase
+        .from('employee_skills')
+        .insert(skillsToInsert)
+      
+      if (skillsInsertError) {
+        console.error('Failed to insert skills:', skillsInsertError)
+        // Non-critical - continue with analysis
+      } else {
+        console.log(`Inserted ${skillsToInsert.length} skills for employee ${employee_id}`)
+      }
     }
+    
+    // Update employee's skills_last_analyzed timestamp
+    await supabase
+      .from('employees')
+      .update({ 
+        skills_last_analyzed: new Date().toISOString() 
+      })
+      .eq('id', employee_id)
 
     // Update final status
     await updateStatus('completed', 100, 'Analysis completed successfully')

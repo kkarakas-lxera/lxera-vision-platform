@@ -140,45 +140,64 @@ Return only valid JSON.
     // Match skills to NESTA taxonomy
     const matchedSkills = await matchSkillsToTaxonomy(supabase, analysisResult.extracted_skills)
 
-    // Save analysis results
-    const { data: profileData, error: profileError } = await supabase
-      .from('st_employee_skills_profile')
-      .upsert({
-        employee_id: employeeId,
-        cv_file_path: filePath,
-        cv_summary: analysisResult.summary,
-        extracted_skills: matchedSkills,
-        current_position_id: currentPosition,
-        target_position_id: targetPosition,
-        analyzed_at: new Date().toISOString()
-      })
-      .select()
-      .single()
+    // Save skills to employee_skills table
+    if (matchedSkills.length > 0) {
+      // First, delete existing CV-extracted skills
+      await supabase
+        .from('employee_skills')
+        .delete()
+        .eq('employee_id', employeeId)
+        .eq('source', 'cv')
 
-    if (profileError) {
-      throw new Error(`Failed to save profile: ${profileError.message}`)
+      // Insert new skills
+      const skillsToInsert = matchedSkills.map(skill => ({
+        employee_id: employeeId,
+        skill_id: skill.skill_id,
+        skill_name: skill.skill_name,
+        proficiency: skill.proficiency_level, // Already converted to 0-3
+        source: 'cv',
+        years_experience: skill.years_experience,
+        confidence: skill.confidence,
+        evidence: skill.evidence
+      }))
+
+      const { error: skillsError } = await supabase
+        .from('employee_skills')
+        .insert(skillsToInsert)
+
+      if (skillsError) {
+        throw new Error(`Failed to save skills: ${skillsError.message}`)
+      }
     }
 
-    // Update employee record
-    await supabase
+    // Update employee record with analysis data
+    const { error: updateError } = await supabase
       .from('employees')
       .update({
         cv_file_path: filePath,
-        cv_extracted_data: {
+        cv_analysis_data: {
+          summary: analysisResult.summary,
           work_experience: analysisResult.work_experience,
           education: analysisResult.education,
           certifications: analysisResult.certifications,
           languages: analysisResult.languages,
-          total_experience_years: analysisResult.total_experience_years
+          total_experience_years: analysisResult.total_experience_years,
+          extracted_skills: matchedSkills,
+          analyzed_at: new Date().toISOString()
         },
-        skills_last_analyzed: new Date().toISOString()
+        skills_last_analyzed: new Date().toISOString(),
+        cv_uploaded_at: new Date().toISOString()
       })
       .eq('id', employeeId)
+
+    if (updateError) {
+      throw new Error(`Failed to update employee record: ${updateError.message}`)
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        profileId: profileData.id,
+        employeeId: employeeId,
         summary: analysisResult.summary,
         skillsCount: matchedSkills.length,
         experienceYears: analysisResult.total_experience_years
@@ -241,14 +260,13 @@ async function matchSkillsToTaxonomy(
   return matchedSkills
 }
 
-// Helper function to determine proficiency level based on experience
+// Helper function to determine proficiency level based on experience (0-3 scale)
 function determineProficiencyLevel(yearsExperience?: number): number {
-  if (!yearsExperience) return 3 // Default to intermediate
-  if (yearsExperience < 1) return 1 // Beginner
-  if (yearsExperience < 3) return 2 // Basic
-  if (yearsExperience < 5) return 3 // Intermediate
-  if (yearsExperience < 8) return 4 // Advanced
-  return 5 // Expert
+  if (!yearsExperience) return 1 // Default to Learning
+  if (yearsExperience < 1) return 1 // Learning
+  if (yearsExperience < 3) return 2 // Using
+  if (yearsExperience >= 3) return 3 // Expert
+  return 2 // Default to Using
 }
 
 // Placeholder for PDF text extraction

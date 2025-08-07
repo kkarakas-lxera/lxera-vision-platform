@@ -59,48 +59,44 @@ export default function AnalyzedEmployees() {
         setPositions(positionsData.map(p => ({ id: p.id, title: p.position_title })));
       }
 
-      // Get analyzed employees with their skills profiles
+      // Get analyzed employees with their skills from new structure
       const { data: skillsProfiles } = await supabase
-        .from('st_employee_skills_profile')
+        .from('employees')
         .select(`
-          employee_id,
-          skills_match_score,
-          analyzed_at,
-          extracted_skills,
-          employees!inner(
-            id,
-            current_position_id,
-            company_id,
-            users!inner(
-              full_name
-            )
+          id,
+          current_position_id,
+          cv_analysis_data,
+          skills_last_analyzed,
+          users!inner(
+            full_name
+          ),
+          employee_skills (
+            skill_name,
+            proficiency,
+            source
           )
         `)
-        .eq('employees.company_id', userProfile.company_id)
-        .not('analyzed_at', 'is', null)
-        .order('analyzed_at', { ascending: false });
+        .eq('company_id', userProfile.company_id)
+        .not('skills_last_analyzed', 'is', null)
+        .order('skills_last_analyzed', { ascending: false });
 
       if (skillsProfiles) {
-        const analyzedEmployees = skillsProfiles.map(profile => {
-          const position = positionsData?.find(p => p.id === (profile.employees as any).current_position_id);
+        const analyzedEmployees = skillsProfiles.map(employee => {
+          const position = positionsData?.find(p => p.id === employee.current_position_id);
           
-          // Extract skills array
+          // Extract skills array from employee_skills
           let skills: string[] = [];
-          if (Array.isArray(profile.extracted_skills)) {
-            skills = profile.extracted_skills.map(skill => {
-              if (typeof skill === 'string') return skill;
-              if ((skill as any)?.skill_name) return (skill as any).skill_name;
-              return '';
-            }).filter(s => s);
+          if (Array.isArray(employee.employee_skills)) {
+            skills = employee.employee_skills.map(skill => skill.skill_name).filter(s => s);
           }
 
           return {
-            employee_id: profile.employee_id,
-            employee_name: (profile.employees as any).users.full_name,
-            position_id: (profile.employees as any).current_position_id || '',
+            employee_id: employee.id,
+            employee_name: employee.users.full_name,
+            position_id: employee.current_position_id || '',
             position_title: position?.position_title || 'Not Assigned',
-            skills_match_score: profile.skills_match_score || 0,
-            analyzed_at: profile.analyzed_at,
+            skills_match_score: employee.cv_analysis_data?.skills_match_score || 0,
+            analyzed_at: employee.skills_last_analyzed,
             skills: skills.slice(0, 5) // Show top 5 skills
           };
         });

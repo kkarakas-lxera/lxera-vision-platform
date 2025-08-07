@@ -38,7 +38,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert in workforce skills and competencies. Provide practical, relevant skill suggestions based on current industry standards.'
+            content: 'You are an expert in workforce skills and competencies. Provide practical, relevant skill suggestions based on current industry standards. Use ONLY the 0-3 proficiency scale: 0=None, 1=Learning, 2=Using, 3=Expert.'
           },
           {
             role: 'user',
@@ -54,8 +54,10 @@ Include:
 For each skill, provide:
 1. skill_name: The skill name
 2. category: "essential", "important", or "nice-to-have"
-3. proficiency_level: "basic", "intermediate", "advanced", or "expert"
+3. proficiency_level: A number from 1-3 (1=Learning, 2=Using, 3=Expert - never use 0 for required skills)
 4. description: Brief description (1 sentence)
+
+IMPORTANT: Use proficiency scale 1-3 for position requirements (0 not applicable for job requirements).
 
 Return as JSON object with a "skills" array.`
           }
@@ -77,6 +79,12 @@ Return as JSON object with a "skills" array.`
     try {
       const parsed = JSON.parse(content)
       skills = parsed.skills || []
+      
+      // Ensure proficiency levels are properly bounded (1-3 for requirements)
+      skills = skills.map((skill: any) => ({
+        ...skill,
+        proficiency_level: Math.max(1, Math.min(3, skill.proficiency_level || 2))
+      }))
     } catch (e) {
       console.error('Failed to parse OpenAI response:', e)
       skills = []
@@ -96,20 +104,15 @@ Return as JSON object with a "skills" array.`
       functionName: 'suggest-position-skills'
     })
     
-    // Return fallback skills on error
-    const fallbackSkills = [
-      { skill_name: 'Communication', category: 'essential', proficiency_level: 'advanced', description: 'Clear verbal and written communication' },
-      { skill_name: 'Problem Solving', category: 'essential', proficiency_level: 'advanced', description: 'Analytical thinking and solution development' },
-      { skill_name: 'Team Collaboration', category: 'important', proficiency_level: 'intermediate', description: 'Working effectively in teams' },
-      { skill_name: 'Time Management', category: 'important', proficiency_level: 'intermediate', description: 'Prioritizing and managing tasks efficiently' },
-      { skill_name: 'Adaptability', category: 'nice-to-have', proficiency_level: 'intermediate', description: 'Flexibility in changing environments' }
-    ]
-    
+    // Fail properly - no fallback data
     return new Response(
-      JSON.stringify({ skills: fallbackSkills, error: 'Service temporarily unavailable' }),
+      JSON.stringify({ 
+        error: error.message || 'Failed to generate skill suggestions',
+        details: 'OpenAI service error - please check API key and retry'
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        status: 500 
       }
     )
   }

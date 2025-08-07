@@ -8,7 +8,7 @@ const corsHeaders = {
 interface SkillSuggestion {
   skill_name: string;
   category: 'essential' | 'important' | 'nice-to-have';
-  proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
+  proficiency_level: number; // 0-3 scale (0=None, 1=Learning, 2=Using, 3=Expert)
   description: string;
   reason?: string;
   skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
@@ -52,7 +52,7 @@ For each skill, create a section with this exact format:
 
 ### [Skill Name]
 - **Category:** essential/important
-- **Proficiency:** basic/intermediate/advanced/expert
+- **Proficiency:** 1/2/3 (1=Learning, 2=Using, 3=Expert)
 - **Market Demand:** high/medium/low
 - **Skill Group:** technical/soft/leadership/tools/industry
 - **Description:** [One sentence explaining how this skill applies to the role]
@@ -124,7 +124,7 @@ At the end, add a section:
         const skill: SkillSuggestion = {
           skill_name: skillName,
           category: 'important' as any,
-          proficiency_level: 'intermediate' as any,
+          proficiency_level: 2, // Using level as default
           description: '',
           skill_group: 'industry' as any,
           market_demand: 'medium' as any
@@ -139,9 +139,10 @@ At the end, add a section:
               skill.category = value as any
             }
           } else if (trimmedLine.startsWith('- **Proficiency:**')) {
-            const value = trimmedLine.replace('- **Proficiency:**', '').trim().toLowerCase()
-            if (['basic', 'intermediate', 'advanced', 'expert'].includes(value)) {
-              skill.proficiency_level = value as any
+            const value = trimmedLine.replace('- **Proficiency:**', '').trim()
+            const numValue = parseInt(value)
+            if (!isNaN(numValue) && numValue >= 1 && numValue <= 3) {
+              skill.proficiency_level = numValue
             }
           } else if (trimmedLine.startsWith('- **Market Demand:**')) {
             const value = trimmedLine.replace('- **Market Demand:**', '').trim().toLowerCase()

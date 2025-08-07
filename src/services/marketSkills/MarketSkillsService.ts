@@ -35,7 +35,8 @@ interface MarketBenchmarkResponse {
 
 interface InternalSkill {
   skill_name: string;
-  proficiency_level?: number;
+  proficiency_level?: number; // Legacy field name for compatibility
+  proficiency?: number;       // New field name from employee_skills table
   source?: 'ai' | 'cv' | 'verified';
 }
 
@@ -238,9 +239,9 @@ export class MarketSkillsService {
       const internalMatch = this.findMatchingSkill(marketSkill.skill_name, internalSkillsMap);
       
       if (internalMatch) {
-        // Calculate actual match percentage based on proficiency
-        const proficiencyScore = internalMatch.proficiency_level || 0;
-        const actualMatch = Math.round((proficiencyScore / 5) * 100); // Assuming 5-level scale
+        // Calculate actual match percentage based on proficiency (0-3 scale)
+        const proficiencyScore = internalMatch.proficiency_level ?? internalMatch.proficiency ?? 0;
+        const actualMatch = Math.round((proficiencyScore / 3) * 100); // Using standard 0-3 scale
         
         return {
           ...marketSkill,
@@ -531,24 +532,34 @@ export class MarketSkillsService {
         };
       }
 
-      // Get aggregated skills data
-      const { data: skillsData, error: skillsError } = await supabase
-        .from('st_employee_skills_profile')
+      // Get aggregated skills data from employees and their skills
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
         .select(`
-          extracted_skills,
-          skills_match_score,
-          employee:employees!inner(
-            department,
-            current_position:st_company_positions!employees_current_position_id_fkey(position_title),
-            company_id
-          )
+          id,
+          department,
+          cv_analysis_data,
+          current_position:st_company_positions!employees_current_position_id_fkey(position_title),
+          employee_skills(skill_name, proficiency, source)
         `)
-        .eq('employee.company_id', companyId);
-
-      if (skillsError) {
-        console.error('Error fetching skills data:', skillsError);
-        throw skillsError;
+        .eq('company_id', companyId);
+      
+      if (employeesError) {
+        console.error('Error fetching employees data:', employeesError);
+        throw employeesError;
       }
+
+      // Transform to match expected structure
+      const skillsData = employeesData?.map(emp => ({
+        extracted_skills: emp.employee_skills || [],
+        skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
+        employee: {
+          department: emp.department,
+          current_position: emp.current_position,
+          company_id: companyId
+        }
+      }));
+
 
       // Calculate market coverage and alignment based on skills match scores
       let totalMatchScore = 0;
@@ -577,10 +588,12 @@ export class MarketSkillsService {
           let employeeSkillCount = 0;
           
           (profile.extracted_skills as unknown as ExtractedSkill[]).forEach((skill: ExtractedSkill) => {
-            if (skill.skill_name && typeof skill.proficiency_level === 'number') {
-              // Calculate coverage based on proficiency levels (0-5 scale)
-              totalProficiencySum += skill.proficiency_level;
-              employeeSkillSum += skill.proficiency_level;
+            // Support both old and new field names for proficiency
+            const proficiency = skill.proficiency_level ?? skill.proficiency;
+            if (skill.skill_name && typeof proficiency === 'number') {
+              // Calculate coverage based on proficiency levels (0-3 scale)
+              totalProficiencySum += proficiency;
+              employeeSkillSum += proficiency;
               skillCount++;
               employeeSkillCount++;
             }
@@ -935,28 +948,34 @@ export class MarketSkillsService {
 
       console.log('Fetching employee benchmark data for company:', companyId);
 
-      // Get employees with skills profiles using explicit filter
-      console.log('About to query st_employee_skills_profile with company_id:', companyId);
+      // Get employees with skills data
+      console.log('About to query employees with company_id:', companyId);
       
-      const { data: employeesData, error } = await supabase
-        .from('st_employee_skills_profile')
+      const { data: employeesRaw, error } = await supabase
+        .from('employees')
         .select(`
-          employee_id,
-          skills_match_score,
-          extracted_skills,
-          gap_analysis_completed_at,
-          employees!inner(
-            id,
-            department,
-            user_id,
-            current_position_id,
-            company_id,
-            users(email, full_name),
-            st_company_positions!employees_current_position_id_fkey(position_title)
-          )
+          id,
+          department,
+          user_id,
+          current_position_id,
+          company_id,
+          cv_analysis_data,
+          skills_last_analyzed,
+          users(email, full_name),
+          st_company_positions!employees_current_position_id_fkey(position_title),
+          employee_skills(skill_name, proficiency, source)
         `)
-        .eq('employees.company_id', companyId)
-        .not('skills_match_score', 'is', null);
+        .eq('company_id', companyId)
+        .not('cv_analysis_data', 'is', null);
+      
+      // Transform to match expected structure
+      const employeesData = employeesRaw?.map(emp => ({
+        employee_id: emp.id,
+        skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
+        extracted_skills: emp.employee_skills || [],
+        gap_analysis_completed_at: emp.skills_last_analyzed,
+        employees: emp
+      }));
 
       console.log('Supabase query response:', { data: employeesData, error });
       
@@ -1000,7 +1019,8 @@ export class MarketSkillsService {
             }
 
             // Check for gaps (missing or low proficiency skills)
-            if (!skill.proficiency_level || skill.proficiency_level < 2) {
+            const skillProficiency = skill.proficiency_level ?? skill.proficiency ?? 0;
+            if (!skillProficiency || skillProficiency < 2) {
               const category = skill.market_importance > 8 ? 'critical' as const :
                              skill.market_importance > 5 ? 'emerging' as const :
                              'foundational' as const;

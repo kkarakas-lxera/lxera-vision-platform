@@ -490,13 +490,23 @@ export default function PositionCreate() {
   const fetchSkills = async () => {
     setLoadingSkills(true);
     try {
+      // Fetch unique skills from employee_skills table instead of obsolete taxonomy
       const { data, error } = await supabase
-        .from('st_skills_taxonomy')
-        .select('skill_id, skill_name, description')
+        .from('employee_skills')
+        .select('skill_name')
         .order('skill_name');
 
       if (error) throw error;
-      setAvailableSkills(data || []);
+      
+      // Transform to match expected format and remove duplicates
+      const uniqueSkills = Array.from(new Set(data?.map(s => s.skill_name) || []));
+      const formattedSkills = uniqueSkills.map(skill_name => ({
+        skill_id: crypto.randomUUID(), // Generate temporary ID since we don't use taxonomy anymore
+        skill_name,
+        description: '' // No description in employee_skills table
+      }));
+      
+      setAvailableSkills(formattedSkills);
     } catch (error) {
       console.error('Error fetching skills:', error);
       toast.error('Failed to load skills database');

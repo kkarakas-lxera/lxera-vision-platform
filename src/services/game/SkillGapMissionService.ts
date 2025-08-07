@@ -78,25 +78,25 @@ export class SkillGapMissionService {
       ];
 
 
-      // Get employee's current skill levels from extracted skills
-      const { data: skillProfile } = await supabase
-        .from('st_employee_skills_profile')
-        .select('extracted_skills')
-        .eq('employee_id', employeeId)
-        .single();
+      // Get employee's current skill levels from unified structure
+      const { data: employeeSkills } = await supabase
+        .from('employee_skills')
+        .select('skill_name, proficiency, source')
+        .eq('employee_id', employeeId);
 
-      const extractedSkills = skillProfile?.extracted_skills || [];
+      const skillsList = employeeSkills || [];
       
-      // Create a map of current skills by name (since skill_id might not be populated)
+      // Create a map of current skills by name
       const skillsMap = new Map();
       
-      for (const skill of extractedSkills) {
+      for (const skill of skillsList) {
         const skillName = skill.skill_name?.toLowerCase().trim();
         if (skillName) {
           skillsMap.set(skillName, {
-            current_level: skill.proficiency_level || 1,
+            current_level: skill.proficiency || 1, // 0-3 scale
             skill_name: skill.skill_name,
-            skill_type: skill.category || 'general'
+            skill_type: 'general', // No category in new structure
+            source: skill.source
           });
         }
       }

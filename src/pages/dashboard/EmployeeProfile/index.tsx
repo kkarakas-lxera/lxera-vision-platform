@@ -177,12 +177,24 @@ export default function EmployeeProfile() {
 
       if (employeeError) throw employeeError;
 
-      // Fetch skills profile separately
-      const { data: skillsProfile } = await supabase
-        .from('st_employee_skills_profile')
+      // Fetch skills data from unified employee_skills table
+      const { data: employeeSkills } = await supabase
+        .from('employee_skills')
         .select('*')
-        .eq('employee_id', employeeId)
-        .single();
+        .eq('employee_id', employeeId);
+
+      // Create skills profile compatible structure
+      const skillsProfile = {
+        employee_id: employeeId,
+        extracted_skills: employeeSkills?.map(skill => ({
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency, // Already 0-3
+          source: skill.source,
+          confidence: skill.confidence || 1.0
+        })) || [],
+        skills_match_score: employee?.cv_analysis_data?.skills_match_score || 0,
+        career_readiness_score: employee?.cv_analysis_data?.career_readiness_score || 0
+      };
 
       // Fetch profile sections - try multiple approaches
       let profileSections = null;
@@ -224,28 +236,23 @@ export default function EmployeeProfile() {
         return acc;
       }, {});
 
-      // Fetch skills verification data with explicit columns
-      const { data: verifiedSkills, error: skillsValidationError } = await supabase
-        .from('employee_skills_validation')
-        .select(`
-          id,
-          employee_id,
-          skill_name,
-          skill_id,
-          proficiency_level,
-          is_from_cv,
-          is_from_position,
-          verification_score,
-          questions_asked,
-          responses,
-          verified_at,
-          created_at
-        `)
-        .eq('employee_id', employeeId);
+      // Use the same employee skills data for verification info
+      const verifiedSkills = employeeSkills?.map(skill => ({
+        id: skill.id,
+        employee_id: skill.employee_id,
+        skill_name: skill.skill_name,
+        skill_id: skill.skill_id,
+        proficiency_level: skill.proficiency, // Already 0-3
+        is_from_cv: skill.source === 'cv',
+        is_from_position: skill.source === 'position_requirement',
+        verification_score: skill.confidence || 1.0,
+        questions_asked: skill.assessment_data?.questions || [],
+        responses: skill.assessment_data?.responses || [],
+        verified_at: skill.source === 'verified' ? skill.updated_at : null,
+        created_at: skill.created_at
+      })) || [];
       
-      if (skillsValidationError) {
-        console.error('Skills validation query error:', skillsValidationError);
-      }
+      const skillsValidationError = null; // No error since we're using the same data
 
 
       // Fetch course assignments

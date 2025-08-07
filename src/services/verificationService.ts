@@ -79,54 +79,45 @@ export class VerificationService {
 
       if (historyError) throw historyError;
 
-      // Update or insert into employee_skills_validation
+      // Update or insert into employee_skills table (unified structure)
       const { data: existingSkill } = await supabase
-        .from('employee_skills_validation')
+        .from('employee_skills')
         .select('id')
         .eq('employee_id', employeeId)
         .eq('skill_name', skillName)
         .single();
 
+      const skillData = {
+        employee_id: employeeId,
+        skill_name: skillName,
+        proficiency: assessment.calculated_level, // 0-3 scale
+        source: 'verified', // Mark as verified through assessment
+        confidence: assessment.verification_score,
+        evidence: `AI Assessment: ${assessment.score}% (${assessment.questions.length} questions)`,
+        assessment_data: {
+          score: assessment.score,
+          questions_count: assessment.questions.length,
+          time_taken: assessment.time_taken,
+          questions: assessment.questions,
+          responses: assessment.responses,
+          verified_at: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      };
+
       if (existingSkill) {
         // Update existing record
         const { error: updateError } = await supabase
-          .from('employee_skills_validation')
-          .update({
-            proficiency_level: assessment.calculated_level,
-            assessment_type: 'ai_verified',
-            assessment_data: {
-              score: assessment.score,
-              questions_count: assessment.questions.length,
-              time_taken: assessment.time_taken
-            },
-            verified_at: new Date().toISOString(),
-            verification_score: assessment.verification_score,
-            questions_asked: assessment.questions,
-            responses: assessment.responses
-          })
+          .from('employee_skills')
+          .update(skillData)
           .eq('id', existingSkill.id);
 
         if (updateError) throw updateError;
       } else {
         // Insert new record
         const { error: insertError } = await supabase
-          .from('employee_skills_validation')
-          .insert({
-            employee_id: employeeId,
-            skill_name: skillName,
-            proficiency_level: assessment.calculated_level,
-            assessment_type: 'ai_verified',
-            assessment_data: {
-              score: assessment.score,
-              questions_count: assessment.questions.length,
-              time_taken: assessment.time_taken
-            },
-            verified_at: new Date().toISOString(),
-            verification_score: assessment.verification_score,
-            questions_asked: assessment.questions,
-            responses: assessment.responses,
-            is_from_position: assessment.skill_name.includes('position') // Simple heuristic
-          });
+          .from('employee_skills')
+          .insert(skillData);
 
         if (insertError) throw insertError;
       }
@@ -222,13 +213,13 @@ export class VerificationService {
     // 7. Determine proficiency level with new thresholds
     let level = 0;
     if (finalScore >= 90 && totalQuestions >= 4) {
-      level = 3; // Expert - High score with good sample size
+      level = 3; // Expert (0-3 scale) - High score with good sample size
     } else if (finalScore >= 75) {
-      level = 2; // Using - Solid understanding
+      level = 2; // Using (0-3 scale) - Solid understanding
     } else if (finalScore >= 55) {
-      level = 1; // Learning - Basic understanding
+      level = 1; // Learning (0-3 scale) - Basic understanding
     } else {
-      level = 0; // None - Needs significant improvement
+      level = 0; // None (0-3 scale) - Needs significant improvement
     }
 
     // 8. Apply conservative adjustments for edge cases
@@ -300,12 +291,12 @@ export class VerificationService {
         }
       }
 
-      // Get employee's claimed skills
+      // Get employee's claimed skills from unified employee_skills table
       const { data: claimedSkills, error: claimedError } = await supabase
-        .from('employee_skills_validation')
-        .select('skill_name, skill_id, is_from_cv, assessment_type')
+        .from('employee_skills')
+        .select('skill_name, skill_id, source, assessment_data')
         .eq('employee_id', employeeId)
-        .is('assessment_type', null); // Only unverified skills
+        .neq('source', 'verified'); // Only unverified skills (cv, manual, etc.)
 
       console.log('[VerificationService] Claimed skills query result:', { 
         claimedSkills, 
@@ -321,7 +312,7 @@ export class VerificationService {
             skillsToVerify.push({
               skill_name: skill.skill_name,
               skill_id: skill.skill_id,
-              source: skill.is_from_cv ? 'cv' : 'manual'
+              source: skill.source === 'cv' ? 'cv' : 'manual'
             });
           }
         });
@@ -363,15 +354,14 @@ export class VerificationService {
 
       const verificationStatus = status[0];
 
-      // Get skills breakdown
+      // Get skills breakdown from unified employee_skills table
       const { data: skills } = await supabase
-        .from('employee_skills_validation')
+        .from('employee_skills')
         .select(`
           skill_name,
-          proficiency_level,
-          assessment_type,
-          is_from_position,
-          is_from_cv
+          proficiency,
+          source,
+          assessment_data
         `)
         .eq('employee_id', employeeId);
 
@@ -398,10 +388,10 @@ export class VerificationService {
 
         return {
           skill_name: skill.skill_name,
-          verified_level: skill.proficiency_level || 0,
+          verified_level: skill.proficiency || 0, // Already 0-3 scale
           required_level: requiredLevel,
-          gap: requiredLevel ? requiredLevel - (skill.proficiency_level || 0) : undefined,
-          source: skill.is_from_position ? 'position' : skill.is_from_cv ? 'cv' : 'manual'
+          gap: requiredLevel ? requiredLevel - (skill.proficiency || 0) : undefined,
+          source: skill.source // 'cv', 'verified', 'manual', etc.
         };
       }) || [];
 
@@ -438,19 +428,23 @@ export class VerificationService {
    * Helper: Map proficiency text to number
    */
   private static mapProficiencyToNumber(proficiency: string | number): number {
-    // If already a number, return it
+    // If already a number, ensure it's in 0-3 range
     if (typeof proficiency === 'number') {
-      return proficiency;
+      return Math.max(0, Math.min(3, Math.round(proficiency)));
     }
     
-    // Otherwise map string to number
+    // Map string to 0-3 scale (0=None, 1=Learning, 2=Using, 3=Expert)
     const mapping: Record<string, number> = {
+      'none': 0,
       'basic': 1,
+      'learning': 1,
+      'beginner': 1,
       'intermediate': 2,
+      'using': 2,
       'advanced': 3,
       'expert': 3
     };
-    return mapping[proficiency.toLowerCase()] || 1;
+    return mapping[proficiency.toLowerCase()] || 0;
   }
 
   /**
@@ -532,8 +526,11 @@ export class VerificationService {
           }
           
           // Generate questions using assess-skill-proficiency
+          // Convert numeric level to text for edge function (0-3 scale)
           const requiredLevel = skill.required_level 
-            ? (skill.required_level === 1 ? 'basic' : skill.required_level === 2 ? 'intermediate' : 'advanced')
+            ? (skill.required_level === 0 ? 'none' : 
+               skill.required_level === 1 ? 'basic' : 
+               skill.required_level === 2 ? 'intermediate' : 'advanced')
             : 'intermediate';
             
           const { data, error } = await supabase.functions.invoke('assess-skill-proficiency', {

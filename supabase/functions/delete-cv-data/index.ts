@@ -37,24 +37,25 @@ serve(async (req) => {
       console.error('Error deleting cv_analysis_results:', cvResultsError)
     }
 
-    // 2. Delete from st_employee_skills_profile
-    const { error: skillsProfileError } = await supabase
-      .from('st_employee_skills_profile')
+    // 2. Delete from employee_skills table (new unified table)
+    const { error: employeeSkillsError } = await supabase
+      .from('employee_skills')
       .delete()
       .eq('employee_id', employee_id)
     
-    if (skillsProfileError) {
-      console.error('Error deleting skills profile:', skillsProfileError)
+    if (employeeSkillsError) {
+      console.error('Error deleting employee skills:', employeeSkillsError)
     }
 
-    // 3. Delete from employee_skills_validation
-    const { error: skillsValidationError } = await supabase
-      .from('employee_skills_validation')
+    // 3. Clear skills_gap_cache for this employee
+    const { error: cacheError } = await supabase
+      .from('skills_gap_cache')
       .delete()
-      .eq('employee_id', employee_id)
+      .eq('entity_id', employee_id)
+      .eq('entity_type', 'employee')
     
-    if (skillsValidationError) {
-      console.error('Error deleting skills validation:', skillsValidationError)
+    if (cacheError) {
+      console.error('Error clearing skills gap cache:', cacheError)
     }
 
     // 4. Delete CV file from storage

@@ -70,49 +70,58 @@ export function CVAnalysis() {
     try {
       setLoading(true);
 
-      // Fetch analyses with employee data
-      const { data: analysesData, error: analysesError } = await supabase
-        .from('st_employee_skills_profile')
+      // Fetch employee analysis data from unified structure
+      const { data: employeesData, error: analysesError } = await supabase
+        .from('employees')
         .select(`
-          *,
-          employees!inner(
-            id, 
-            user_id, 
-            position, 
-            department, 
-            company_id,
-            users!inner(full_name, email)
-          )
+          id,
+          user_id,
+          position,
+          department,
+          company_id,
+          cv_analysis_data,
+          cv_file_path,
+          skills_last_analyzed,
+          users!inner(full_name, email),
+          employee_skills(skill_name, proficiency, source, confidence)
         `)
-        .eq('employees.company_id', userProfile.company_id)
-        .order('analyzed_at', { ascending: false });
+        .eq('company_id', userProfile.company_id)
+        .not('skills_last_analyzed', 'is', null)
+        .order('skills_last_analyzed', { ascending: false });
 
       if (analysesError) throw analysesError;
 
       // Transform the data to match our interface
-      const transformedAnalyses: AnalysisResult[] = (analysesData || []).map(item => ({
-        id: item.id,
-        employee_id: item.employee_id,
-        cv_file_path: item.cv_file_path,
-        cv_summary: item.cv_summary,
-        extracted_skills: Array.isArray(item.extracted_skills) 
-          ? item.extracted_skills.map((skill: any) => ({
+      const transformedAnalyses: AnalysisResult[] = (employeesData || []).map(employee => ({
+        id: employee.id, // Use employee ID as analysis ID
+        employee_id: employee.id,
+        cv_file_path: employee.cv_file_path,
+        cv_summary: employee.cv_analysis_data?.summary || '',
+        extracted_skills: Array.isArray(employee.employee_skills) 
+          ? employee.employee_skills.map((skill: any) => ({
               skill_id: skill.skill_id || '',
               skill_name: skill.skill_name || '',
               confidence: skill.confidence || 0,
               evidence: skill.evidence || '',
               years_experience: skill.years_experience,
-              proficiency_level: skill.proficiency_level || 0,
-              skill_path: skill.skill_path,
-              is_custom: skill.is_custom || false
+              proficiency_level: skill.proficiency || 0, // Already 0-3
+              skill_path: null, // Not available in new structure
+              is_custom: skill.source === 'manual'
             }))
           : [],
-        skills_match_score: item.skills_match_score || 0,
-        career_readiness_score: item.career_readiness_score || 0,
-        current_position_id: item.current_position_id,
-        target_position_id: item.target_position_id,
-        analyzed_at: item.analyzed_at,
-        employee: item.employees
+        skills_match_score: employee.cv_analysis_data?.skills_match_score || 0,
+        career_readiness_score: employee.cv_analysis_data?.career_readiness_score || 0,
+        current_position_id: employee.current_position_id,
+        target_position_id: employee.target_position_id,
+        analyzed_at: employee.skills_last_analyzed,
+        employee: {
+          id: employee.id,
+          user_id: employee.user_id,
+          position: employee.position,
+          department: employee.department,
+          company_id: employee.company_id,
+          users: employee.users
+        }
       }));
 
       setAnalyses(transformedAnalyses);

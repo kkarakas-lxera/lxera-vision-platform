@@ -141,14 +141,23 @@ serve(async (req) => {
       positionData = position
     }
 
-    // Get skills profile data separately
-    let skillsProfileData = null
-    const { data: skillsProfile } = await supabase
-      .from('st_employee_skills_profile')
-      .select('extracted_skills, skills_match_score, gap_analysis_data')
+    // Get employee skills from new table
+    const { data: employeeSkills } = await supabase
+      .from('employee_skills')
+      .select('skill_name, proficiency, source, years_experience')
       .eq('employee_id', employee_id)
-      .single()
-    skillsProfileData = skillsProfile
+
+    // Transform to match expected structure
+    const skillsProfileData = {
+      extracted_skills: employeeSkills?.map(skill => ({
+        skill_name: skill.skill_name,
+        proficiency_level: skill.proficiency, // Already 0-3
+        years_experience: skill.years_experience,
+        source: skill.source
+      })) || [],
+      skills_match_score: employee.cv_analysis_data?.skills_match_score || 0,
+      gap_analysis_data: [] // Will be calculated if needed
+    }
 
     // Combine the data
     employee.st_company_positions = positionData

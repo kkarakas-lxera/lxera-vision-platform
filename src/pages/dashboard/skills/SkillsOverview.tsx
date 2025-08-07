@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Tooltip,
@@ -42,6 +43,7 @@ import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/MarketBenchmarkVerticalLoader';
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 import { RegenerateAnalysisButton } from '@/components/dashboard/skills/RegenerateAnalysisButton';
 import { Code, LayoutGrid, Grid3x3 } from 'lucide-react';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
@@ -261,6 +263,13 @@ export default function SkillsOverview() {
       const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
       console.log('Comprehensive benchmark data received:', comprehensiveData);
       
+      // Also get organization-wide gaps using UnifiedSkillsService
+      const organizationGaps = await UnifiedSkillsService.getGaps(
+        userProfile.company_id,
+        'organization',
+        isRefresh // Force refresh if user clicked regenerate
+      );
+      
       // Check if this is the first time (never generated)
       if ((comprehensiveData as any).never_generated) {
         console.log('No benchmark data has been generated yet');
@@ -271,7 +280,12 @@ export default function SkillsOverview() {
         setLastBenchmarkUpdate(null);
       } else {
         // We have data, update the state
-        setOrganizationBenchmark(comprehensiveData.organization);
+        // Enhance organization data with unified gaps
+        const enhancedOrgData = {
+          ...comprehensiveData.organization,
+          unifiedGaps: organizationGaps
+        };
+        setOrganizationBenchmark(enhancedOrgData);
         setDepartmentsBenchmark(comprehensiveData.departments);
         setEmployeesBenchmark(comprehensiveData.employees);
         setLastBenchmarkUpdate(comprehensiveData.generated_at);
@@ -340,11 +354,7 @@ export default function SkillsOverview() {
         .select(`
           id,
           skills_last_analyzed,
-          st_employee_skills_profile!left(
-            id,
-            analyzed_at,
-            gap_analysis_completed_at
-          )
+          skills_validation_completed
         `)
         .eq('company_id', userProfile.company_id);
 
@@ -354,12 +364,9 @@ export default function SkillsOverview() {
         setAnalyzedEmployeesCount(0);
       } else {
         const empCount = employeesData?.length || 0;
-        // Check if employee has skills profile (analyzed_at or gap_analysis_completed_at)
+        // Check if employee has been analyzed (has skills or completed validation)
         const analyzedCount = employeesData?.filter(emp => {
-          const hasSkillsProfile = emp.st_employee_skills_profile && 
-            (emp.st_employee_skills_profile.analyzed_at || 
-             emp.st_employee_skills_profile.gap_analysis_completed_at);
-          return hasSkillsProfile || emp.skills_last_analyzed;
+          return emp.skills_last_analyzed || emp.skills_validation_completed;
         }).length || 0;
         console.log('Employees count:', empCount, 'Analyzed:', analyzedCount);
         setEmployeesCount(empCount);
@@ -467,23 +474,29 @@ export default function SkillsOverview() {
       // Fetch market gaps for each department
       const gaps = await Promise.all(
         departmentSummaries.map(async (dept) => {
-          // Get all employees' skills for this department
-          const { data: employeeSkills } = await supabase
-            .from('st_employee_skills_profile')
+          // Get all employees' skills for this department from unified structure
+          const { data: employeesWithSkills } = await supabase
+            .from('employees')
             .select(`
-              extracted_skills,
-              employees!inner(
-                company_id,
-                department
+              id,
+              department,
+              employee_skills(
+                skill_name,
+                proficiency,
+                source
               )
             `)
-            .eq('employees.company_id', userProfile.company_id)
-            .eq('employees.department', dept.department)
-            .not('extracted_skills', 'is', null);
+            .eq('company_id', userProfile.company_id)
+            .eq('department', dept.department)
+            .not('employee_skills', 'is', null);
 
           // Aggregate all skills from employees
-          const allSkills = employeeSkills?.flatMap(profile => 
-            parseSkillsArray(profile.extracted_skills)
+          const allSkills = employeesWithSkills?.flatMap(emp => 
+            emp.employee_skills?.map(skill => ({
+              skill_name: skill.skill_name,
+              proficiency_level: skill.proficiency, // Already 0-3
+              source: skill.source
+            })) || []
           ) || [];
 
           // Get market gaps
@@ -539,8 +552,10 @@ export default function SkillsOverview() {
             full_name,
             email
           ),
-          st_employee_skills_profile!left(
-            extracted_skills
+          employee_skills(
+            skill_name,
+            proficiency,
+            source
           )
         `)
         .eq('company_id', userProfile.company_id)
@@ -567,7 +582,7 @@ export default function SkillsOverview() {
         if (!positionName) return;
 
         const positionSkills = skillsMap.get(positionName)!;
-        const skills = employee.st_employee_skills_profile?.extracted_skills || [];
+        const skills = employee.employee_skills || [];
         
         skills.forEach((skill: any) => {
           allSkills.add(skill.skill_name);
@@ -577,11 +592,11 @@ export default function SkillsOverview() {
           }
           
           const current = positionSkills.get(skill.skill_name)!;
-          current.total += skill.proficiency_level || 0;
+          current.total += skill.proficiency || 0; // proficiency is 0-3 in new structure
           current.count += 1;
           current.employees.push({
             name: employee.users?.full_name || employee.users?.email || 'Unknown',
-            proficiency: skill.proficiency_level || 0
+            proficiency: skill.proficiency || 0 // proficiency is 0-3 in new structure
           });
         });
       });

@@ -73,27 +73,27 @@ export default function PositionRequirements() {
         .select('id, current_position_id')
         .eq('company_id', userProfile.company_id);
 
-      // Get analyzed employees with their skills
-      const { data: skillsProfiles } = await supabase
-        .from('st_employee_skills_profile')
+      // Get analyzed employees with their skills from unified structure
+      const { data: employeesWithSkills } = await supabase
+        .from('employees')
         .select(`
-          employee_id,
-          extracted_skills,
-          employees!inner(
-            id,
-            current_position_id,
-            company_id
+          id,
+          current_position_id,
+          employee_skills(
+            skill_name,
+            proficiency,
+            source
           )
         `)
-        .eq('employees.company_id', userProfile.company_id)
-        .not('analyzed_at', 'is', null);
+        .eq('company_id', userProfile.company_id)
+        .not('skills_last_analyzed', 'is', null);
 
       // Process each position
       const positionRequirements = positionsData.map(position => {
         // Get employees in this position
         const positionEmployees = employees?.filter(e => e.current_position_id === position.id) || [];
-        const analyzedInPosition = skillsProfiles?.filter(
-          sp => sp.employees.current_position_id === position.id
+        const analyzedInPosition = employeesWithSkills?.filter(
+          emp => emp.current_position_id === position.id
         ) || [];
 
         // Extract required skills using type guard
@@ -104,12 +104,9 @@ export default function PositionRequirements() {
           const skillName = reqSkill.skill_name;
           
           // Count how many analyzed employees have this skill
-          const employeesWithSkill = analyzedInPosition.filter(profile => {
-            const skills = profile.extracted_skills || [];
+          const employeesWithSkill = analyzedInPosition.filter(employee => {
+            const skills = employee.employee_skills || [];
             return skills.some((skill: any) => {
-              if (typeof skill === 'string') {
-                return skill.toLowerCase() === skillName.toLowerCase();
-              }
               return skill?.skill_name?.toLowerCase() === skillName.toLowerCase();
             });
           }).length;

@@ -141,7 +141,7 @@ export default function CompanyDashboard() {
           {
             event: '*',
             schema: 'public',
-            table: 'st_employee_skills_profile'
+            table: 'employee_skills'
           },
           () => {
             fetchDashboardData();
@@ -223,9 +223,9 @@ export default function CompanyDashboard() {
         hasInvitations = invitationCount && invitationCount > 0;
       }
 
-      // Check if gap analysis results exist by joining with employees table
+      // Check if gap analysis results exist by checking employees with skills
       const { count: gapCount } = await supabase
-        .from('st_employee_skills_profile')
+        .from('employee_skills')
         .select(`
           *,
           employees!inner(company_id)
@@ -303,11 +303,19 @@ export default function CompanyDashboard() {
       // Get employee IDs for skills profile query
       const employeeIds = employees?.map(e => e.id) || [];
       
-      // Fetch skills profiles separately to bypass RLS
-      const { data: skillsProfiles } = await supabase
-        .from('st_employee_skills_profile')
-        .select('employee_id, skills_match_score, career_readiness_score, analyzed_at')
-        .in('employee_id', employeeIds);
+      // Fetch employee skills data from unified structure
+      const { data: employeesWithData } = await supabase
+        .from('employees')
+        .select('id, cv_analysis_data, skills_last_analyzed')
+        .in('id', employeeIds);
+
+      // Transform to match expected format
+      const skillsProfiles = employeesWithData?.map(emp => ({
+        employee_id: emp.id,
+        skills_match_score: emp.cv_analysis_data?.skills_match_score || 0,
+        career_readiness_score: emp.cv_analysis_data?.career_readiness_score || 0,
+        analyzed_at: emp.skills_last_analyzed
+      })) || [];
 
       // Count analyzed CVs (employees with skills profiles)
       const analyzedCVs = skillsProfiles?.length || 0;
@@ -473,13 +481,30 @@ export default function CompanyDashboard() {
       const userMap = new Map();
       users?.forEach(user => userMap.set(user.id, user.full_name));
 
-      // Fetch recent skills profiles for gap discoveries
-      const { data: recentProfiles } = await supabase
-        .from('st_employee_skills_profile')
-        .select('employee_id, skills_match_score, analyzed_at, extracted_skills')
-        .in('employee_id', employeeIds)
-        .order('analyzed_at', { ascending: false })
+      // Fetch recent employee data for gap discoveries
+      const { data: recentEmployees } = await supabase
+        .from('employees')
+        .select(`
+          id,
+          cv_analysis_data,
+          skills_last_analyzed,
+          employee_skills(skill_name, proficiency, source)
+        `)
+        .in('id', employeeIds)
+        .not('skills_last_analyzed', 'is', null)
+        .order('skills_last_analyzed', { ascending: false })
         .limit(5);
+
+      // Transform to match expected format
+      const recentProfiles = recentEmployees?.map(emp => ({
+        employee_id: emp.id,
+        skills_match_score: emp.cv_analysis_data?.skills_match_score || 0,
+        analyzed_at: emp.skills_last_analyzed,
+        extracted_skills: emp.employee_skills?.map(skill => ({
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency
+        })) || []
+      })) || [];
 
       // Map employee IDs to names
       const employeeNameMap = new Map();
@@ -558,11 +583,17 @@ export default function CompanyDashboard() {
       // Get employee IDs
       const employeeIds = employees?.map(e => e.id) || [];
 
-      // Fetch skills profiles
-      const { data: skillsProfiles } = await supabase
-        .from('st_employee_skills_profile')
-        .select('employee_id, skills_match_score')
-        .in('employee_id', employeeIds);
+      // Fetch skills data from employees
+      const { data: employeesData } = await supabase
+        .from('employees')
+        .select('id, cv_analysis_data')
+        .in('id', employeeIds);
+
+      // Transform to match expected format
+      const skillsProfiles = employeesData?.map(emp => ({
+        employee_id: emp.id,
+        skills_match_score: emp.cv_analysis_data?.skills_match_score || 0
+      })) || [];
 
       if (positions && employees) {
         // Create a map of skills profiles

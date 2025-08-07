@@ -52,12 +52,12 @@ export default function ProfileVerification({
       console.log('[ProfileVerification] Skills loaded:', skills);
       setSkillsToVerify(skills);
       
-      // Check which skills are already verified
+      // Check which skills are already verified from unified employee_skills
       const { data: verifiedData } = await supabase
-        .from('employee_skills_validation')
+        .from('employee_skills')
         .select('skill_name')
         .eq('employee_id', employeeId)
-        .not('assessment_type', 'is', null);
+        .eq('source', 'verified'); // Only verified skills
       
       if (verifiedData) {
         // Only count verified skills that are in the current skills to verify list

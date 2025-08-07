@@ -26,14 +26,16 @@ export function SkillBadge({
   className
 }: SkillBadgeProps) {
   const getProficiencyColor = (level: number) => {
-    if (level >= 4) return 'bg-green-500';
-    if (level >= 3) return 'bg-blue-500';
-    if (level >= 2) return 'bg-yellow-500';
-    return 'bg-gray-500';
+    // Standard 0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert
+    if (level === 3) return 'bg-blue-500';   // Expert
+    if (level === 2) return 'bg-green-500';  // Using
+    if (level === 1) return 'bg-yellow-500'; // Learning
+    return 'bg-gray-500';                     // None (0)
   };
 
   const getProficiencyLabel = (level: number) => {
-    const labels = ['None', 'Beginner', 'Basic', 'Intermediate', 'Advanced', 'Expert'];
+    // Standard 0-3 scale labels
+    const labels = ['None', 'Learning', 'Using', 'Expert'];
     return labels[level] || 'Unknown';
   };
 

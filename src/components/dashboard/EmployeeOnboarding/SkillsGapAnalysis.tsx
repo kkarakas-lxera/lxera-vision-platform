@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart3, Target, TrendingUp, AlertTriangle, CheckCircle, User, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +13,7 @@ import { MobileSkillsGapCard } from '@/components/mobile/company/MobileSkillsGap
 import { MobilePositionSkillsCarousel } from '@/components/mobile/company/MobilePositionSkillsCarousel';
 import { MobileEmptyState } from '@/components/mobile/company/MobileEmptyState';
 import { cn } from '@/lib/utils';
+import { UnifiedSkillsService, type SkillGap as UnifiedSkillGap } from '@/services/UnifiedSkillsService';
 
 interface RequiredSkill {
   skill_name: string;
@@ -36,11 +38,13 @@ interface EmployeeStatus {
 
 interface SkillGap {
   skill_name: string;
-  skill_type: string;
-  required_level: string;
-  current_level: string | null;
-  gap_severity: 'critical' | 'important' | 'minor';
+  skill_type?: string;
+  required_level: number;  // Changed to number (0-3 scale)
+  current_level: number;   // Changed to number (0-3 scale)
+  gap: number;            // Gap size
+  gap_severity: 'critical' | 'important' | 'minor' | 'none';
   employees_affected: number;
+  total_employees?: number;
 }
 
 interface PositionAnalysis {
@@ -88,6 +92,13 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
 
     setLoading(true);
     try {
+      // Use UnifiedSkillsService to get organization-wide gaps (backend calculation)
+      const organizationGaps = await UnifiedSkillsService.getGaps(
+        userProfile.company_id,
+        'organization',
+        false // Use cache if available
+      );
+
       // Get company positions with requirements
       const { data: positions, error: positionsError } = await supabase
         .from('st_company_positions')
@@ -96,22 +107,39 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
 
       if (positionsError) throw positionsError;
 
-      // Get employee skills profiles with extracted skills
-      const { data: skillProfiles, error: profilesError } = await supabase
-        .from('st_employee_skills_profile')
+      // Get employees with skills and analysis data
+      const { data: employeesWithSkills, error: profilesError } = await supabase
+        .from('employees')
         .select(`
-          employee_id,
-          skills_match_score,
-          extracted_skills,
-          current_position_id
+          id,
+          current_position_id,
+          cv_analysis_data,
+          employee_skills (
+            skill_name,
+            proficiency,
+            source,
+            years_experience
+          )
         `)
-        .in('employee_id', employees.map(e => e.id));
+        .eq('company_id', userProfile.company_id)
+        .in('id', employees.map(e => e.id));
 
       if (profilesError) throw profilesError;
 
       // Create a map of employee profiles for quick lookup
       const profileMap = new Map(
-        skillProfiles?.map(p => [p.employee_id, p]) || []
+        employeesWithSkills?.map(emp => [
+          emp.id, 
+          {
+            employee_id: emp.id,
+            skills_match_score: emp.cv_analysis_data?.skills_match_score || 0,
+            extracted_skills: emp.employee_skills?.map((skill: any) => ({
+              skill_name: skill.skill_name,
+              proficiency_level: skill.proficiency // Already 0-3
+            })) || [],
+            current_position_id: emp.current_position_id
+          }
+        ]) || []
       );
 
       // Get actual employee data with position mapping
@@ -187,9 +215,9 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                          reqSkillName.includes(skillName);
                 });
                 
-                // Check if skill level meets requirement
+                // Check if skill level meets requirement (0-3 scale)
                 const skillLevel = (matchingSkill as any)?.proficiency_level || 0;
-                const requiredLevel = reqSkill.proficiency_level || 3;
+                const requiredLevel = UnifiedSkillsService.convertToStandard(reqSkill.proficiency_level) || 3;
                 
                 if (skillLevel >= requiredLevel) {
                   employeesWithSkill++;
@@ -203,16 +231,26 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
           });
           
           if (employeesMissingSkill > 0 && totalEmployeesWithProfiles > 0) {
+            // Calculate levels using 0-3 scale
+            const standardRequiredLevel = UnifiedSkillsService.convertToStandard(reqSkill.proficiency_level) || 3;
+            const avgCurrentLevel = employeesWithSkill > 0 ? 
+              Math.round((employeesWithSkill * standardRequiredLevel) / (employeesWithSkill + employeesMissingSkill)) : 0;
+            
+            const gap = standardRequiredLevel - avgCurrentLevel;
+            
+            // Use backend logic for severity calculation
             const severity = employeesMissingSkill > totalEmployeesWithProfiles / 2 ? 'critical' : 
                            employeesMissingSkill > totalEmployeesWithProfiles / 3 ? 'important' : 'minor';
             
             skillGapMap.set(reqSkill.skill_name, {
               skill_name: reqSkill.skill_name,
               skill_type: reqSkill.skill_type || 'technical',
-              required_level: `Level ${reqSkill.proficiency_level || 3}`,
-              current_level: null,
+              required_level: standardRequiredLevel,
+              current_level: avgCurrentLevel,
+              gap: gap,
               gap_severity: severity,
-              employees_affected: employeesMissingSkill
+              employees_affected: employeesMissingSkill,
+              total_employees: totalEmployeesWithProfiles
             });
           }
         });
@@ -242,19 +280,19 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         };
       });
 
-      // Calculate organization-wide top skill gaps
-      const allGaps = analyses.flatMap(a => a.top_gaps);
-      const gapsBySkill = allGaps.reduce((acc, gap) => {
-        const key = gap.skill_name;
-        if (!acc[key]) {
-          acc[key] = { ...gap, employees_affected: 0 };
-        }
-        acc[key].employees_affected += gap.employees_affected;
-        return acc;
-      }, {} as Record<string, SkillGap>);
-
-      const topGaps = Object.values(gapsBySkill)
-        .sort((a, b) => b.employees_affected - a.employees_affected)
+      // Use the pre-calculated organization gaps from UnifiedSkillsService
+      const topGaps = organizationGaps
+        .filter(gap => gap.severity !== 'none')
+        .map(gap => ({
+          skill_name: gap.skill_name,
+          skill_type: 'technical', // Default, could be enhanced
+          required_level: gap.required_level,
+          current_level: gap.current_level,
+          gap: gap.gap,
+          gap_severity: gap.severity,
+          employees_affected: gap.employees_affected || 0,
+          total_employees: gap.total_employees
+        }))
         .slice(0, 10);
 
       setPositionAnalyses(analyses);
@@ -266,23 +304,20 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
     }
   };
 
-  const getProficiencyLevel = (level: string): number => {
-    const levels: Record<string, number> = {
-      'basic': 1,
-      'intermediate': 2,
-      'advanced': 3,
-      'expert': 4
-    };
-    return levels[level.toLowerCase()] || 0;
+  // These functions are no longer needed - UnifiedSkillsService handles conversion
+  // Keeping for backward compatibility if needed elsewhere
+  const getProficiencyLevel = (level: string | number): number => {
+    return UnifiedSkillsService.convertToStandard(level);
   };
 
-  const determineGapSeverity = (requiredLevel: string, affected: number, total: number): 'critical' | 'important' | 'minor' => {
+  const determineGapSeverity = (gap: number, affected: number, total: number): 'critical' | 'important' | 'minor' | 'none' => {
     const percentageAffected = (affected / total) * 100;
-    const requiredProficiency = getProficiencyLevel(requiredLevel);
     
-    if (requiredProficiency >= 3 && percentageAffected > 50) return 'critical';
-    if (requiredProficiency >= 2 && percentageAffected > 30) return 'important';
-    return 'minor';
+    // Use backend logic: >50% critical, >33% important, else minor
+    if (percentageAffected > 50) return 'critical';
+    if (percentageAffected > 33) return 'important';
+    if (percentageAffected > 0) return 'minor';
+    return 'none';
   };
 
   const getGapSeverityColor = (severity: string) => {
@@ -648,12 +683,15 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                       {analysis.top_gaps.slice(0, 4).map((gap, index) => (
                         <div key={index} className="flex items-center justify-between p-1.5 border rounded text-xs">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-foreground truncate">{gap.skill_name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {gap.required_level}
-                            </div>
-                          </div>
+                          <SkillBadge
+                            skill={{
+                              skill_name: gap.skill_name,
+                              proficiency_level: gap.current_level
+                            }}
+                            size="sm"
+                            showProficiency={true}
+                            className="flex-1 min-w-0"
+                          />
                           <div className="flex items-center gap-1 ml-2">
                             <Badge className={`text-xs px-1 py-0 ${getGapSeverityColor(gap.gap_severity)}`}>
                               {gap.gap_severity}
@@ -693,12 +731,15 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                   <div key={index} className="flex items-center justify-between p-2 border rounded">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div className="text-sm font-semibold text-muted-foreground w-6">#{index + 1}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-foreground truncate">{gap.skill_name}</div>
-                        <div className="text-xs text-muted-foreground capitalize">
-                          {gap.skill_type.replace('_', ' ')}
-                        </div>
-                      </div>
+                      <SkillBadge
+                        skill={{
+                          skill_name: gap.skill_name,
+                          proficiency_level: gap.current_level
+                        }}
+                        size="md"
+                        showProficiency={true}
+                        className="flex-1 min-w-0"
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">

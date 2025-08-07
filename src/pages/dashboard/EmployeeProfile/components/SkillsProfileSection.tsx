@@ -23,6 +23,8 @@ import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService
 import { supabase } from '@/integrations/supabase/client';
 import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import type { MarketSkillData } from '@/types/marketSkills';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 
 interface Skill {
   skill_id: string;
@@ -443,7 +445,15 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
                         <div className="flex items-center justify-between">
                           {/* Left side: Skill name and badges */}
                           <div className="flex items-center gap-2 flex-1">
-                            <span className="font-semibold text-gray-900">{skill.skill_name}</span>
+                            <SkillBadge 
+                              skill={{
+                                skill_name: skill.skill_name,
+                                proficiency_level: UnifiedSkillsService.convertToStandard(skill.required_level),
+                                is_mandatory: skill.is_mandatory
+                              }}
+                              showProficiency={true}
+                              size="md"
+                            />
                             {skill.is_mandatory && (
                               <Badge variant="destructive" className="h-5 px-2 text-xs">
                                 Mandatory
@@ -458,9 +468,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
                           
                           {/* Right side: Required level and verified % */}
                           <div className="flex items-center gap-6">
-                            <div className="text-sm text-gray-600">
-                              Required: <span className="font-medium text-gray-900">Level {skill.required_level}</span>
-                            </div>
+                            {/* Required level now shown in SkillBadge */}
                             
                             <div className="flex items-center gap-3 min-w-[200px]">
                               <span className="text-sm text-gray-600">Verified:</span>

@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Plus, X } from 'lucide-react';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 
 interface Skill {
   name: string;
-  level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  level: number; // 0-3 scale (0=None, 1=Learning, 2=Using, 3=Expert)
   yearsExperience?: number;
 }
 
@@ -19,10 +21,9 @@ interface SkillsSectionProps {
 }
 
 const SKILL_LEVELS = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
-  { value: 'expert', label: 'Expert' }
+  { value: 1, label: 'Learning' },
+  { value: 2, label: 'Using' },
+  { value: 3, label: 'Expert' }
 ];
 
 const SUGGESTED_SKILLS = [
@@ -36,7 +37,7 @@ export default function SkillsSection({ data, onSave, saving }: SkillsSectionPro
     Array.isArray(data) ? data : []
   );
   const [currentSkill, setCurrentSkill] = useState('');
-  const [currentLevel, setCurrentLevel] = useState<Skill['level']>('intermediate');
+  const [currentLevel, setCurrentLevel] = useState<Skill['level']>(2); // Default to 'Using'
   const [currentYears, setCurrentYears] = useState<number | ''>('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -48,7 +49,7 @@ export default function SkillsSection({ data, onSave, saving }: SkillsSectionPro
         yearsExperience: currentYears ? Number(currentYears) : undefined
       }]);
       setCurrentSkill('');
-      setCurrentLevel('intermediate');
+      setCurrentLevel(2); // Reset to 'Using'
       setCurrentYears('');
     }
   };
@@ -66,16 +67,17 @@ export default function SkillsSection({ data, onSave, saving }: SkillsSectionPro
 
   const handleSave = () => {
     const isComplete = skills.length >= 3; // At least 3 skills
+    // Skills are already in 0-3 format, just save them
     onSave(skills, isComplete);
   };
 
-  const getLevelColor = (level: string) => {
+  const getLevelColor = (level: number) => {
+    // This is now handled by SkillBadge component
     switch (level) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-blue-100 text-blue-800';
-      case 'advanced': return 'bg-purple-100 text-purple-800';
-      case 'expert': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 1: return 'bg-yellow-100 text-yellow-800'; // Learning
+      case 2: return 'bg-green-100 text-green-800';   // Using
+      case 3: return 'bg-blue-100 text-blue-800';     // Expert
+      default: return 'bg-gray-100 text-gray-800';    // None (0)
     }
   };
 
@@ -119,15 +121,15 @@ export default function SkillsSection({ data, onSave, saving }: SkillsSectionPro
             <div>
               <Label htmlFor="level">Proficiency Level *</Label>
               <Select
-                value={currentLevel}
-                onValueChange={(value) => setCurrentLevel(value as Skill['level'])}
+                value={currentLevel.toString()}
+                onValueChange={(value) => setCurrentLevel(Number(value) as Skill['level'])}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {SKILL_LEVELS.map(level => (
-                    <SelectItem key={level.value} value={level.value}>
+                    <SelectItem key={level.value} value={level.value.toString()}>
                       {level.label}
                     </SelectItem>
                   ))}
@@ -166,13 +168,19 @@ export default function SkillsSection({ data, onSave, saving }: SkillsSectionPro
             <div className="flex flex-wrap gap-2">
               {skills.map((skill) => (
                 <div key={skill.name} className="flex items-center gap-2">
-                  <Badge className={`${getLevelColor(skill.level)} px-3 py-1`}>
-                    {skill.name}
-                    <span className="ml-2 text-xs opacity-75">
-                      {skill.level}
-                      {skill.yearsExperience && ` • ${skill.yearsExperience}y`}
+                  <SkillBadge 
+                    skill={{
+                      skill_name: skill.name,
+                      proficiency_level: skill.level
+                    }}
+                    showProficiency={true}
+                    size="md"
+                  />
+                  {skill.yearsExperience && (
+                    <span className="text-xs text-gray-500">
+                      {skill.yearsExperience}y exp
                     </span>
-                  </Badge>
+                  )}
                   <button
                     onClick={() => handleRemoveSkill(skill.name)}
                     className="text-gray-400 hover:text-gray-600"

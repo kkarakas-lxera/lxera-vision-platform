@@ -32,7 +32,7 @@ export interface CompanyPosition {
 export interface SkillRequirement {
   skill_id: string;
   skill_name: string;
-  proficiency_level: number; // 1-5 scale
+  proficiency_level: number; // 0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert
   is_mandatory: boolean;
 }
 
@@ -53,9 +53,12 @@ export interface EmployeeSkillsProfile {
 export interface ExtractedSkill {
   skill_id: string;
   skill_name: string;
-  proficiency_level: number; // 1-5 scale
+  proficiency_level: number; // 0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert (legacy field)
+  proficiency?: number; // 0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert (new unified structure)
   years_experience: number | null;
   evidence: string | null; // Text from CV supporting this skill
+  source?: string; // Source of skill data (cv, manual, verified)
+  confidence?: number; // Confidence score for AI-extracted skills
 }
 
 export interface ImportSession {
@@ -102,8 +105,8 @@ export interface ImportSessionItem {
 export interface SkillGap {
   skill_id: string;
   skill_name: string;
-  current_proficiency: number;
-  required_proficiency: number;
+  current_proficiency: number; // 0-3 scale
+  required_proficiency: number; // 0-3 scale
   gap_size: number; // required - current
   priority: 'critical' | 'high' | 'medium' | 'low';
   estimated_time_to_close: number; // in weeks

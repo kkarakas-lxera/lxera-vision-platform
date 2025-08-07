@@ -430,11 +430,18 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         proficiency_level: null // Will be determined during verification
       }));
 
-      // Insert skills into validation table (upsert to avoid duplicates)
+      // Insert skills into employee_skills table for verification
       for (const skill of skillsToValidate) {
         const { error } = await supabase
-          .from('employee_skills_validation')
-          .upsert(skill, {
+          .from('employee_skills')
+          .upsert({
+            employee_id: skill.employee_id,
+            skill_name: skill.skill_name,
+            proficiency: 0, // Will be determined during verification
+            source: skill.is_from_cv ? 'cv' : skill.is_from_position ? 'position' : 'manual',
+            confidence: 0.5, // Default confidence
+            needs_verification: true
+          }, {
             onConflict: 'employee_id,skill_name'
           });
 

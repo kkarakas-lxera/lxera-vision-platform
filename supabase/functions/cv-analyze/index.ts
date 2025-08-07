@@ -53,28 +53,31 @@ serve(async (req) => {
       case 'get': {
         // Get analysis results
         let query = supabase
-          .from('st_employee_skills_profile')
+          .from('employees')
           .select(`
-            *,
-            employees!inner(
-              id,
-              first_name,
-              last_name,
-              email,
-              cv_extracted_data,
-              users!inner(company_id)
+            id,
+            full_name,
+            email,
+            cv_analysis_data,
+            skills_last_analyzed,
+            skills_validation_completed,
+            company_id,
+            employee_skills (
+              skill_name,
+              proficiency,
+              source,
+              years_experience,
+              skill_id
             )
           `)
 
-        if (profileId) {
-          query = query.eq('id', profileId)
-        } else if (employeeId) {
-          query = query.eq('employee_id', employeeId)
+        if (employeeId) {
+          query = query.eq('id', employeeId)
         } else {
-          throw new Error('Either employeeId or profileId is required')
+          throw new Error('employeeId is required')
         }
 
-        const { data: profile, error } = await query.single()
+        const { data: employee, error } = await query.single()
 
         if (error) {
           throw error
@@ -82,21 +85,38 @@ serve(async (req) => {
 
         // Check access permissions
         const userCompanyId = userData.user.user_metadata.company_id
-        const employeeCompanyId = profile.employees.users.company_id
+        const employeeCompanyId = employee.company_id
 
         if (userCompanyId !== employeeCompanyId && userData.user.user_metadata.role !== 'super_admin') {
           throw new Error('Access denied')
         }
 
+        // Transform employee_skills to legacy format for compatibility
+        const extractedSkills = employee.employee_skills?.map((skill: any) => ({
+          skill_id: skill.skill_id,
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency, // Already 0-3
+          years_experience: skill.years_experience,
+          source: skill.source,
+          confidence: 1.0 // Validated data has high confidence
+        })) || []
+
         // Enrich skills with taxonomy data
-        const enrichedSkills = await enrichSkillsWithTaxonomy(supabase, profile.extracted_skills || [])
+        const enrichedSkills = await enrichSkillsWithTaxonomy(supabase, extractedSkills)
 
         return new Response(
           JSON.stringify({
             success: true,
             profile: {
-              ...profile,
-              extracted_skills: enrichedSkills
+              id: employee.id,
+              employee_id: employee.id,
+              full_name: employee.full_name,
+              email: employee.email,
+              extracted_skills: enrichedSkills,
+              skills_match_score: employee.cv_analysis_data?.skills_match_score || 0,
+              career_readiness_score: employee.cv_analysis_data?.career_readiness_score || 0,
+              skills_validation_completed: employee.skills_validation_completed,
+              analyzed_at: employee.skills_last_analyzed
             }
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,44 +125,69 @@ serve(async (req) => {
 
       case 'update': {
         // Update entire skills profile
-        if (!profileId || !skillData) {
-          throw new Error('profileId and skillData are required for update')
+        if (!employeeId || !skillData) {
+          throw new Error('employeeId and skillData are required for update')
         }
 
-        const { data, error } = await supabase
-          .from('st_employee_skills_profile')
+        // Update employee record
+        const { error: employeeError } = await supabase
+          .from('employees')
           .update({
-            extracted_skills: skillData.extracted_skills,
-            skills_match_score: skillData.skills_match_score,
-            career_readiness_score: skillData.career_readiness_score,
-            updated_at: new Date().toISOString()
+            cv_analysis_data: {
+              skills_match_score: skillData.skills_match_score,
+              career_readiness_score: skillData.career_readiness_score,
+              extracted_skills: skillData.extracted_skills,
+              updated_at: new Date().toISOString()
+            }
           })
-          .eq('id', profileId)
-          .select()
-          .single()
+          .eq('id', employeeId)
 
-        if (error) throw error
+        if (employeeError) throw employeeError
+
+        // Update employee_skills table
+        if (skillData.extracted_skills && Array.isArray(skillData.extracted_skills)) {
+          // Delete existing skills
+          await supabase
+            .from('employee_skills')
+            .delete()
+            .eq('employee_id', employeeId)
+
+          // Insert updated skills
+          const skillsToInsert = skillData.extracted_skills.map((skill: any) => ({
+            employee_id: employeeId,
+            skill_id: skill.skill_id || null,
+            skill_name: skill.skill_name,
+            proficiency: skill.proficiency_level || 0,
+            source: skill.source || 'verified',
+            years_experience: skill.years_experience
+          }))
+
+          if (skillsToInsert.length > 0) {
+            const { error: skillsError } = await supabase
+              .from('employee_skills')
+              .insert(skillsToInsert)
+
+            if (skillsError) throw skillsError
+          }
+        }
 
         return new Response(
-          JSON.stringify({ success: true, profile: data }),
+          JSON.stringify({ success: true, message: 'Skills profile updated successfully' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       case 'add-skill': {
         // Add a single skill
-        if (!profileId || !skillData) {
-          throw new Error('profileId and skillData are required')
+        if (!employeeId || !skillData) {
+          throw new Error('employeeId and skillData are required')
         }
 
-        // Get current skills
-        const { data: currentProfile } = await supabase
-          .from('st_employee_skills_profile')
-          .select('extracted_skills')
-          .eq('id', profileId)
-          .single()
-
-        const currentSkills = currentProfile?.extracted_skills || []
+        // Get current skills from employee_skills table
+        const { data: currentSkills } = await supabase
+          .from('employee_skills')
+          .select('*')
+          .eq('employee_id', employeeId)
         
         // Search for skill in taxonomy
         const { data: taxonomyMatches } = await supabase
@@ -151,69 +196,55 @@ serve(async (req) => {
             limit_count: 1 
           })
 
-        const newSkill = {
-          skill_id: taxonomyMatches?.[0]?.skill_id || null,
-          skill_name: skillData.skill_name,
-          confidence: skillData.confidence || 0.8,
-          evidence: skillData.evidence || 'Manually added',
-          years_experience: skillData.years_experience,
-          proficiency_level: skillData.proficiency_level || 3,
-          is_manual: true,
-          added_at: new Date().toISOString()
+        // Check if skill already exists
+        const existingSkill = currentSkills?.find(
+          (skill: any) => skill.skill_name.toLowerCase() === skillData.skill_name.toLowerCase()
+        )
+
+        if (existingSkill) {
+          throw new Error('Skill already exists')
         }
 
-        const updatedSkills = [...currentSkills, newSkill]
+        const newSkillData = {
+          employee_id: employeeId,
+          skill_id: taxonomyMatches?.[0]?.skill_id || null,
+          skill_name: skillData.skill_name,
+          proficiency: skillData.proficiency_level || 3, // 0-3 scale
+          source: 'manual',
+          years_experience: skillData.years_experience,
+          created_at: new Date().toISOString()
+        }
 
-        const { data, error } = await supabase
-          .from('st_employee_skills_profile')
-          .update({ 
-            extracted_skills: updatedSkills,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', profileId)
+        const { data: insertedSkill, error } = await supabase
+          .from('employee_skills')
+          .insert(newSkillData)
           .select()
           .single()
 
         if (error) throw error
 
         return new Response(
-          JSON.stringify({ success: true, skill: newSkill, profile: data }),
+          JSON.stringify({ success: true, skill: insertedSkill }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       case 'remove-skill': {
         // Remove a skill
-        if (!profileId || !skillData?.skill_name) {
-          throw new Error('profileId and skill_name are required')
+        if (!employeeId || !skillData?.skill_name) {
+          throw new Error('employeeId and skill_name are required')
         }
 
-        // Get current skills
-        const { data: currentProfile } = await supabase
-          .from('st_employee_skills_profile')
-          .select('extracted_skills')
-          .eq('id', profileId)
-          .single()
-
-        const currentSkills = currentProfile?.extracted_skills || []
-        const updatedSkills = currentSkills.filter(
-          (skill: any) => skill.skill_name !== skillData.skill_name
-        )
-
-        const { data, error } = await supabase
-          .from('st_employee_skills_profile')
-          .update({ 
-            extracted_skills: updatedSkills,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', profileId)
-          .select()
-          .single()
+        const { error } = await supabase
+          .from('employee_skills')
+          .delete()
+          .eq('employee_id', employeeId)
+          .eq('skill_name', skillData.skill_name)
 
         if (error) throw error
 
         return new Response(
-          JSON.stringify({ success: true, profile: data }),
+          JSON.stringify({ success: true, message: 'Skill removed successfully' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }

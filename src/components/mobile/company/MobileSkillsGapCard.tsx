@@ -13,12 +13,14 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 
 interface SkillGap {
   skill_name: string;
-  skill_type: string;
-  required_level: string;
-  current_level: string | null;
+  skill_type?: string;
+  required_level: number | string;  // Accept both for compatibility
+  current_level: number | string | null;
   gap_severity: 'critical' | 'important' | 'minor';
   employees_affected: number;
   proficiency_gap?: number;
@@ -111,9 +113,15 @@ export const MobileSkillsGapCard: React.FC<MobileSkillsGapCardProps> = ({
                 </span>
               )}
               <div className="flex-1">
-                <h4 className="font-medium text-base leading-tight">
-                  {gap.skill_name}
-                </h4>
+                <SkillBadge 
+                  skill={{
+                    skill_name: gap.skill_name,
+                    proficiency_level: UnifiedSkillsService.convertToStandard(gap.required_level)
+                  }}
+                  showProficiency={true}
+                  size="md"
+                  className="mb-1"
+                />
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className="text-xs">
                     {skillTypeLabel}
