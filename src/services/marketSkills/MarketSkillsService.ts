@@ -1140,6 +1140,15 @@ export class MarketSkillsService {
     
     console.log('✨ Fresh benchmark data generated!');
     
+    // Take a snapshot for historical tracking
+    try {
+      await supabase.rpc('take_benchmark_snapshot');
+      console.log('📸 Snapshot taken for historical tracking');
+    } catch (error) {
+      console.error('Failed to take snapshot:', error);
+      // Don't fail the whole operation if snapshot fails
+    }
+    
     return {
       organization,
       departments,
