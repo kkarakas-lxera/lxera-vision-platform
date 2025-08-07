@@ -1046,33 +1046,58 @@ export class MarketSkillsService {
   }
 
   /**
-   * Get comprehensive benchmark data - PURE ON-DEMAND GENERATION
-   * No caching! Always generates fresh data.
+   * Get comprehensive benchmark data
+   * Checks if we have previously generated data, returns empty if not
+   * Use regenerate button to generate/update data
    */
   async getComprehensiveBenchmark(): Promise<ComprehensiveBenchmarkData> {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
 
-      console.log('🎆 Generating on-demand benchmark data...');
+      // Get company to check last generation time
+      const { data: company } = await supabase
+        .from('companies')
+        .select('benchmark_last_regenerated_at')
+        .or(`id.eq.${userData.user.id},id.in.(select company_id from users where id='${userData.user.id}'),id.in.(select company_id from employees where user_id='${userData.user.id}')`)
+        .single();
+
+      // If never generated, return empty data
+      if (!company?.benchmark_last_regenerated_at) {
+        console.log('📊 No benchmark data generated yet. Use regenerate button to generate.');
+        return {
+          organization: {
+            market_coverage_rate: 0,
+            industry_alignment_index: 0,
+            top_missing_skills: [],
+            critical_skills_count: 0,
+            moderate_skills_count: 0,
+            minor_skills_count: 0,
+            total_employees: 0,
+            analyzed_employees: 0,
+            departments_count: 0
+          },
+          departments: [],
+          employees: [],
+          generated_at: null,
+          never_generated: true
+        } as any;
+      }
+
+      // We have generated before - fetch the current data
+      console.log('📊 Fetching existing benchmark data...');
       
-      // Fetch all benchmark data in parallel - ALWAYS FRESH!
       const [organization, departments, employees] = await Promise.all([
         this.getOrganizationBenchmark(),
         this.getDepartmentsBenchmark(),
         this.getEmployeesBenchmark()
       ]);
       
-      console.log('✨ Fresh benchmark data generated:');
-      console.log('- Organization data:', organization);
-      console.log('- Departments count:', departments?.length);
-      console.log('- Employees count:', employees?.length);
-
       return {
         organization,
         departments,
         employees,
-        generated_at: new Date()
+        generated_at: new Date(company.benchmark_last_regenerated_at)
       };
     } catch (error) {
       console.error('Error getting comprehensive benchmark:', error);
@@ -1096,7 +1121,32 @@ export class MarketSkillsService {
     }
   }
 
-  // REMOVED: All cache-related methods - we're pure on-demand now!
+  /**
+   * Force regenerate benchmark data (consumes a regeneration)
+   * This should only be called from the regenerate button
+   */
+  async forceRegenerate(): Promise<ComprehensiveBenchmarkData> {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw new Error('Not authenticated');
+
+    console.log('🔄 Force regenerating benchmark data...');
+    
+    // Generate fresh data
+    const [organization, departments, employees] = await Promise.all([
+      this.getOrganizationBenchmark(),
+      this.getDepartmentsBenchmark(),
+      this.getEmployeesBenchmark()
+    ]);
+    
+    console.log('✨ Fresh benchmark data generated!');
+    
+    return {
+      organization,
+      departments,
+      employees,
+      generated_at: new Date()
+    };
+  }
   
   /**
    * Utility method to check if benchmarks need refresh

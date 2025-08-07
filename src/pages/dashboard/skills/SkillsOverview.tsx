@@ -237,16 +237,25 @@ export default function SkillsOverview() {
       const industry = companyData?.settings?.industry as string || 'industry';
       setCompanyIndustry(industry);
       
-      // Get benchmark data (cache is handled automatically)
+      // Get benchmark data (only returns data if previously generated)
       const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
       console.log('Comprehensive benchmark data received:', comprehensiveData);
-      console.log('Employees data:', comprehensiveData.employees);
-      console.log('Employees data length:', comprehensiveData.employees?.length);
       
-      setOrganizationBenchmark(comprehensiveData.organization);
-      setDepartmentsBenchmark(comprehensiveData.departments);
-      setEmployeesBenchmark(comprehensiveData.employees);
-      setLastBenchmarkUpdate(comprehensiveData.generated_at);
+      // Check if this is the first time (never generated)
+      if ((comprehensiveData as any).never_generated) {
+        console.log('No benchmark data has been generated yet');
+        // Clear any existing data
+        setOrganizationBenchmark(null);
+        setDepartmentsBenchmark([]);
+        setEmployeesBenchmark([]);
+        setLastBenchmarkUpdate(null);
+      } else {
+        // We have data, update the state
+        setOrganizationBenchmark(comprehensiveData.organization);
+        setDepartmentsBenchmark(comprehensiveData.departments);
+        setEmployeesBenchmark(comprehensiveData.employees);
+        setLastBenchmarkUpdate(comprehensiveData.generated_at);
+      }
       
       // Update audit log if debug mode is enabled
       if (showDebugPanel) {
@@ -646,6 +655,36 @@ export default function SkillsOverview() {
               onRefresh={handleRefreshBenchmark}
             />
             
+            {/* Empty State - Never Generated */}
+            {!benchmarkLoading && !benchmarkRefreshing && !organizationBenchmark && (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <Brain className="h-12 w-12 text-gray-400" />
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">No Market Benchmark Data</h3>
+                    <p className="text-sm text-gray-600 max-w-md">
+                      Generate your first market benchmark analysis to see how your organization's skills compare to industry standards.
+                    </p>
+                  </div>
+                  <RegenerateAnalysisButton 
+                    onRegenerate={async () => {
+                      setBenchmarkRefreshing(true);
+                      try {
+                        const freshData = await marketSkillsService.forceRegenerate();
+                        setOrganizationBenchmark(freshData.organization);
+                        setDepartmentsBenchmark(freshData.departments);
+                        setEmployeesBenchmark(freshData.employees);
+                        setLastBenchmarkUpdate(freshData.generated_at);
+                      } finally {
+                        setBenchmarkRefreshing(false);
+                      }
+                    }}
+                    isLoading={benchmarkRefreshing}
+                  />
+                </div>
+              </Card>
+            )}
+            
             {/* Main Content */}
             {!benchmarkLoading && !benchmarkRefreshing && organizationBenchmark && (
             <div className="space-y-6">
@@ -681,9 +720,12 @@ export default function SkillsOverview() {
                         onRegenerate={async () => {
                           setBenchmarkRefreshing(true);
                           try {
-                            // The button already cleared cache via RPC
-                            // Just fetch fresh data
-                            await fetchBenchmarkData(true);
+                            // Force regenerate (button handles the count)
+                            const freshData = await marketSkillsService.forceRegenerate();
+                            setOrganizationBenchmark(freshData.organization);
+                            setDepartmentsBenchmark(freshData.departments);
+                            setEmployeesBenchmark(freshData.employees);
+                            setLastBenchmarkUpdate(freshData.generated_at);
                           } finally {
                             setBenchmarkRefreshing(false);
                           }
