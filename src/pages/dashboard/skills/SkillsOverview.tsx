@@ -43,10 +43,13 @@ import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/Mar
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 import { RegenerateAnalysisButton } from '@/components/dashboard/skills/RegenerateAnalysisButton';
-import { Code } from 'lucide-react';
+import { Code, LayoutGrid, Grid3x3 } from 'lucide-react';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
 import DepartmentAnalysisPanel from '@/components/dashboard/skills/DepartmentAnalysisPanel';
 import CriticalSkillsPanel from '@/components/dashboard/skills/CriticalSkillsPanel';
+import SkillsHeatmapView from '@/components/dashboard/skills/SkillsHeatmapView';
+import SkillsTrendsView from '@/components/dashboard/skills/SkillsTrendsView';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface DepartmentSummary {
   department: string;
@@ -136,6 +139,12 @@ export default function SkillsOverview() {
   const [activeTab, setActiveTab] = useState('internal');
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [auditLog, setAuditLog] = useState<Array<{ timestamp: Date; step: string; data: any }>>([]);
+  
+  // Internal Readiness view state
+  const [internalView, setInternalView] = useState<'cards' | 'heatmap' | 'trends'>('cards');
+  const [positionSkillsMatrix, setPositionSkillsMatrix] = useState<any>({ data: [], positions: [], skills: [] });
+  const [historicalSnapshots, setHistoricalSnapshots] = useState<any[]>([]);
+  const [skillsMomentum, setSkillsMomentum] = useState<any[]>([]);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -173,6 +182,17 @@ export default function SkillsOverview() {
       checkCachedData();
     }
   }, [activeTab]);
+
+  // Fetch data for different internal views
+  useEffect(() => {
+    if (activeTab === 'internal' && userProfile?.company_id) {
+      if (internalView === 'heatmap' && positionSkillsMatrix.data.length === 0) {
+        fetchPositionSkillsMatrix();
+      } else if (internalView === 'trends' && historicalSnapshots.length === 0) {
+        fetchHistoricalSnapshots();
+      }
+    }
+  }, [activeTab, internalView, userProfile?.company_id]);
 
   const checkCachedData = async () => {
     if (!userProfile?.company_id) return;
@@ -496,6 +516,130 @@ export default function SkillsOverview() {
     return 'bg-red-500';
   };
 
+  // Fetch data for heatmap view
+  const fetchPositionSkillsMatrix = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      // Fetch positions with their employees and skills
+      const { data: positions, error: posError } = await supabase
+        .from('st_company_positions')
+        .select(`
+          id,
+          name,
+          employees!inner(
+            id,
+            st_employee_skills_profile!inner(
+              extracted_skills
+            )
+          )
+        `)
+        .eq('company_id', userProfile.company_id);
+
+      if (posError) throw posError;
+
+      // Build the matrix
+      const skillsMap = new Map<string, Map<string, { total: number; count: number; employees: any[] }>>();
+      const positionNames: string[] = [];
+      const allSkills = new Set<string>();
+
+      positions?.forEach(position => {
+        positionNames.push(position.name);
+        const positionSkills = new Map<string, { total: number; count: number; employees: any[] }>();
+
+        position.employees?.forEach((employee: any) => {
+          const skills = employee.st_employee_skills_profile?.extracted_skills || [];
+          skills.forEach((skill: any) => {
+            allSkills.add(skill.skill_name);
+            
+            if (!positionSkills.has(skill.skill_name)) {
+              positionSkills.set(skill.skill_name, { total: 0, count: 0, employees: [] });
+            }
+            
+            const current = positionSkills.get(skill.skill_name)!;
+            current.total += skill.proficiency_level || 0;
+            current.count += 1;
+            current.employees.push({
+              name: employee.name || 'Unknown',
+              proficiency: skill.proficiency_level || 0
+            });
+          });
+        });
+
+        skillsMap.set(position.name, positionSkills);
+      });
+
+      // Convert to matrix format
+      const skillsList = Array.from(allSkills).sort();
+      const matrixData = positionNames.map(position => {
+        return skillsList.map(skill => {
+          const posSkills = skillsMap.get(position);
+          const skillData = posSkills?.get(skill);
+          
+          return {
+            position,
+            skill,
+            avgProficiency: skillData ? skillData.total / skillData.count : 0,
+            employeeCount: skillData?.count || 0,
+            employees: skillData?.employees || []
+          };
+        });
+      });
+
+      setPositionSkillsMatrix({
+        data: matrixData,
+        positions: positionNames,
+        skills: skillsList
+      });
+    } catch (error) {
+      console.error('Error fetching position skills matrix:', error);
+    }
+  };
+
+  // Fetch historical snapshots for trends
+  const fetchHistoricalSnapshots = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      const { data: snapshots, error } = await supabase
+        .from('market_benchmark_snapshots')
+        .select('*')
+        .eq('company_id', userProfile.company_id)
+        .order('snapshot_date', { ascending: true })
+        .limit(12); // Last 12 snapshots
+
+      if (error) throw error;
+
+      // Transform data for the chart
+      const formattedSnapshots = snapshots?.map(snapshot => ({
+        date: snapshot.snapshot_date,
+        organization: snapshot.metrics?.average_match || 0,
+        departments: snapshot.metrics?.department_scores || {},
+        positions: snapshot.metrics?.position_scores || {},
+        critical_gaps: snapshot.metrics?.critical_gaps || 0,
+        moderate_gaps: snapshot.metrics?.moderate_gaps || 0
+      })) || [];
+
+      setHistoricalSnapshots(formattedSnapshots);
+
+      // Calculate momentum (compare last 2 snapshots)
+      if (formattedSnapshots.length >= 2) {
+        const current = formattedSnapshots[formattedSnapshots.length - 1];
+        const previous = formattedSnapshots[formattedSnapshots.length - 2];
+        
+        // This would need more detailed skill-level data
+        // For now, using mock data
+        setSkillsMomentum([
+          { skill: 'React', currentAvg: 2.8, previousAvg: 2.5, change: 0.3, changePercent: 12, direction: 'up', affectedEmployees: 8 },
+          { skill: 'Python', currentAvg: 3.2, previousAvg: 3.0, change: 0.2, changePercent: 7, direction: 'up', affectedEmployees: 12 },
+          { skill: 'AWS', currentAvg: 2.1, previousAvg: 2.3, change: -0.2, changePercent: -9, direction: 'down', affectedEmployees: 5 }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching historical snapshots:', error);
+    }
+  };
+
 
   const getSkillSourceInfo = (skillName: string) => {
     // In a real implementation, this would check the actual data source
@@ -602,45 +746,83 @@ export default function SkillsOverview() {
         </TabsList>
 
         <TabsContent value="internal" className="space-y-6 mt-6">
-
-      {/* Main Content with Conditional Blur */}
-      <div className="relative">
-        <div className={cn(
-          "space-y-6 transition-all duration-500",
-          emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
-        )}>
-          {/* Organization Skills Health */}
-          <OrgSkillsHealth
-            overallStats={overallStats}
-            departmentSummaries={departmentSummaries}
-            getDepartmentHealthStatus={getDepartmentHealthStatus}
-          />
-
-
-          {/* Department Analysis & Critical Gaps */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Department Analysis */}
-            <DepartmentAnalysisPanel
-              departmentSummaries={departmentSummaries}
-              getDepartmentHealthStatus={getDepartmentHealthStatus}
-            />
-
-            {/* Critical Skills Gaps */}
-            <CriticalSkillsPanel criticalGaps={criticalGaps} />
+          {/* View Toggle */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Internal Skills Readiness</h2>
+            <ToggleGroup type="single" value={internalView} onValueChange={(value) => value && setInternalView(value as any)}>
+              <ToggleGroupItem value="cards" size="sm">
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Overview
+              </ToggleGroupItem>
+              <ToggleGroupItem value="heatmap" size="sm">
+                <Grid3x3 className="h-4 w-4 mr-2" />
+                Heatmap
+              </ToggleGroupItem>
+              <ToggleGroupItem value="trends" size="sm">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Trends
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
-        </div>
 
-        {/* Empty State Overlay */}
-        {emptyStateConfig.shouldBlur && (
-          <EmptyStateOverlay
-            icon={emptyStateConfig.icon}
-            title={emptyStateConfig.title}
-            description={emptyStateConfig.description}
-            ctaText={emptyStateConfig.ctaText}
-            ctaLink={emptyStateConfig.ctaLink}
-          />
-        )}
-      </div>
+          {/* View: Cards (Original) */}
+          {internalView === 'cards' && (
+            <div className="relative">
+              <div className={cn(
+                "space-y-6 transition-all duration-500",
+                emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
+              )}>
+                {/* Organization Skills Health */}
+                <OrgSkillsHealth
+                  overallStats={overallStats}
+                  departmentSummaries={departmentSummaries}
+                  getDepartmentHealthStatus={getDepartmentHealthStatus}
+                />
+
+                {/* Department Analysis & Critical Gaps */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Department Analysis */}
+                  <DepartmentAnalysisPanel
+                    departmentSummaries={departmentSummaries}
+                    getDepartmentHealthStatus={getDepartmentHealthStatus}
+                  />
+
+                  {/* Critical Skills Gaps */}
+                  <CriticalSkillsPanel criticalGaps={criticalGaps} />
+                </div>
+              </div>
+
+              {/* Empty State Overlay */}
+              {emptyStateConfig.shouldBlur && (
+                <EmptyStateOverlay
+                  icon={emptyStateConfig.icon}
+                  title={emptyStateConfig.title}
+                  description={emptyStateConfig.description}
+                  ctaText={emptyStateConfig.ctaText}
+                  ctaLink={emptyStateConfig.ctaLink}
+                />
+              )}
+            </div>
+          )}
+
+          {/* View: Heatmap */}
+          {internalView === 'heatmap' && (
+            <SkillsHeatmapView
+              positionSkillsData={positionSkillsMatrix.data}
+              positions={positionSkillsMatrix.positions}
+              skills={positionSkillsMatrix.skills}
+              isLoading={false}
+            />
+          )}
+
+          {/* View: Trends */}
+          {internalView === 'trends' && (
+            <SkillsTrendsView
+              historicalData={historicalSnapshots}
+              skillsMomentum={skillsMomentum}
+              isLoading={false}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="market" className="space-y-6 mt-6">
