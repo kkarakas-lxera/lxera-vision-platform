@@ -103,11 +103,13 @@ export default function PositionRequirements() {
         const skillCoverage = requiredSkills.map(reqSkill => {
           const skillName = reqSkill.skill_name;
           
-          // Count how many analyzed employees have this skill
+          // Count how many analyzed employees have this skill with adequate proficiency
           const employeesWithSkill = analyzedInPosition.filter(employee => {
             const skills = employee.employee_skills || [];
             return skills.some((skill: any) => {
-              return skill?.skill_name?.toLowerCase() === skillName.toLowerCase();
+              // Check if skill name matches AND proficiency is at least 1 (not 0)
+              return skill?.skill_name?.toLowerCase() === skillName.toLowerCase() && 
+                     skill?.proficiency > 0;
             });
           }).length;
 
