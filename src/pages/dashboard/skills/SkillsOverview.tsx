@@ -534,8 +534,11 @@ export default function SkillsOverview() {
         .from('employees')
         .select(`
           id,
-          name,
+          email,
           current_position_id,
+          users!left(
+            full_name
+          ),
           st_employee_skills_profile!left(
             extracted_skills
           )
@@ -577,7 +580,7 @@ export default function SkillsOverview() {
           current.total += skill.proficiency_level || 0;
           current.count += 1;
           current.employees.push({
-            name: employee.name || 'Unknown',
+            name: employee.users?.full_name || employee.email || 'Unknown',
             proficiency: skill.proficiency_level || 0
           });
         });
