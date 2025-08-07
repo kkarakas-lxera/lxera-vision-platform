@@ -49,7 +49,6 @@ import DepartmentAnalysisPanel from '@/components/dashboard/skills/DepartmentAna
 import CriticalSkillsPanel from '@/components/dashboard/skills/CriticalSkillsPanel';
 import SkillsHeatmapView from '@/components/dashboard/skills/SkillsHeatmapView';
 import SkillsTrendsView from '@/components/dashboard/skills/SkillsTrendsView';
-import SkillsMetricCards from '@/components/dashboard/skills/SkillsMetricCards';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface DepartmentSummary {
@@ -793,16 +792,6 @@ export default function SkillsOverview() {
         </TabsList>
 
         <TabsContent value="internal" className="space-y-6 mt-6">
-          {/* Hero Metric Cards */}
-          <SkillsMetricCards
-            averageMatch={Math.round(overallStats.avgSkillsMatch)}
-            criticalGaps={overallStats.totalCriticalGaps}
-            topGap={criticalGaps[0]?.skill_name || null}
-            fastestGrowing={skillsMomentum.find(s => s.direction === 'up')?.skill || null}
-            previousMatch={historicalSnapshots.length > 1 ? historicalSnapshots[historicalSnapshots.length - 2].organization : undefined}
-            previousGaps={historicalSnapshots.length > 1 ? historicalSnapshots[historicalSnapshots.length - 2].critical_gaps : undefined}
-          />
-          
           {/* View Toggle */}
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Internal Skills Readiness</h2>
