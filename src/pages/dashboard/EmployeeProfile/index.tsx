@@ -237,20 +237,41 @@ export default function EmployeeProfile() {
       }, {});
 
       // Use the same employee skills data for verification info
-      const verifiedSkills = employeeSkills?.map(skill => ({
-        id: skill.id,
-        employee_id: skill.employee_id,
-        skill_name: skill.skill_name,
-        skill_id: skill.skill_id,
-        proficiency_level: skill.proficiency, // Already 0-3
-        is_from_cv: skill.source === 'cv',
-        is_from_position: skill.source === 'position_requirement',
-        verification_score: skill.confidence || 1.0,
-        questions_asked: skill.assessment_data?.questions || [],
-        responses: skill.assessment_data?.responses || [],
-        verified_at: skill.source === 'verified' ? skill.updated_at : null,
-        created_at: skill.created_at
-      })) || [];
+      // Fetch skill assessment history for detailed assessment data
+      const { data: assessmentHistory } = await supabase
+        .from('skill_assessment_history')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .order('assessment_date', { ascending: false });
+
+      // Create a map of skill assessments for easy lookup
+      const assessmentMap = new Map();
+      assessmentHistory?.forEach(assessment => {
+        const key = assessment.skill_name.toLowerCase();
+        if (!assessmentMap.has(key) || new Date(assessment.assessment_date) > new Date(assessmentMap.get(key).assessment_date)) {
+          assessmentMap.set(key, assessment);
+        }
+      });
+
+      const verifiedSkills = employeeSkills?.map(skill => {
+        const assessment = assessmentMap.get(skill.skill_name.toLowerCase());
+        return {
+          id: skill.id,
+          employee_id: skill.employee_id,
+          skill_name: skill.skill_name,
+          skill_id: skill.skill_id,
+          proficiency_level: skill.proficiency, // Already 0-3
+          is_from_cv: skill.source === 'cv',
+          is_from_position: skill.source === 'position_requirement',
+          verification_score: assessment?.context?.verification_score || skill.confidence || 1.0,
+          questions_asked: assessment?.questions || [],
+          responses: assessment?.responses || [],
+          time_taken: assessment?.time_taken,
+          assessment_date: assessment?.assessment_date,
+          verified_at: skill.source === 'verified' ? skill.updated_at : assessment?.assessment_date || null,
+          created_at: skill.created_at
+        };
+      }) || [];
       
       const skillsValidationError = null; // No error since we're using the same data
 
