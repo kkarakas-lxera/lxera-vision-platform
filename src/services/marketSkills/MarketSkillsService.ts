@@ -1046,136 +1046,34 @@ export class MarketSkillsService {
   }
 
   /**
-   * Get comprehensive benchmark data - simplified version
-   * Cache is handled automatically, use regenerate button for fresh data
+   * Get comprehensive benchmark data - PURE ON-DEMAND GENERATION
+   * No caching! Always generates fresh data.
    */
   async getComprehensiveBenchmark(): Promise<ComprehensiveBenchmarkData> {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
 
-      // Determine company ID
-      let companyId: string | null = null;
-      const { data: userDetails } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', userData.user.id)
-        .single();
+      console.log('🎆 Generating on-demand benchmark data...');
       
-      companyId = userDetails?.company_id;
-      if (!companyId) {
-        // Check if user ID is itself a company (admin case)
-        const { data: companyCheck } = await supabase
-          .from('companies')
-          .select('id')
-          .eq('id', userData.user.id)
-          .single();
-        
-        if (companyCheck) {
-          companyId = userData.user.id;
-        } else {
-          // Check if user is an employee
-          const { data: employeeCheck } = await supabase
-            .from('employees')
-            .select('company_id')
-            .eq('user_id', userData.user.id)
-            .single();
-          
-          companyId = employeeCheck?.company_id;
-        }
-      }
-
-      if (!companyId) {
-        throw new Error('Could not determine company ID');
-      }
-
-      // Always check cache first - regeneration is handled by the button
-      {
-        // @ts-ignore - market_benchmark_cache table not in generated types
-        const { data: cachedData } = await supabase
-          .from('market_benchmark_cache')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('cache_key', 'comprehensive')
-          .gt('expires_at', new Date().toISOString())
-          .single();
-
-        if (cachedData) {
-          const employeesData = cachedData.employees_data as unknown as EmployeeBenchmarkData[] | null;
-
-          // If the cached row has ZERO employee benchmarks, treat it as stale and generate fresh data.
-          if (Array.isArray(employeesData) && employeesData.length === 0) {
-            console.log(
-              '⚠️ Cached benchmark data has no employee entries – bypassing cache and regenerating benchmarks…'
-            );
-            // fall through → let the code below generate fresh benchmarks and recache
-          } else {
-            console.log('✅ Returning cached benchmark data (expires:', new Date(cachedData.expires_at).toLocaleString(), ')');
-            return {
-              organization: cachedData.organization_data as unknown as OrganizationBenchmarkData & {
-                executive_summary?: string;
-              },
-              departments: cachedData.departments_data as unknown as DepartmentBenchmarkData[],
-              employees: employeesData || [],
-              generated_at: new Date(cachedData.generated_at)
-            };
-          }
-        }
-      }
-
-      console.log('🚀 Generating fresh benchmark data...');
-      
-      // Fetch all benchmark data in parallel
+      // Fetch all benchmark data in parallel - ALWAYS FRESH!
       const [organization, departments, employees] = await Promise.all([
         this.getOrganizationBenchmark(),
         this.getDepartmentsBenchmark(),
         this.getEmployeesBenchmark()
       ]);
       
-      console.log('📊 Fresh benchmark data fetched:');
+      console.log('✨ Fresh benchmark data generated:');
       console.log('- Organization data:', organization);
       console.log('- Departments count:', departments?.length);
       console.log('- Employees count:', employees?.length);
-      console.log('- Employees data:', employees);
 
-      const comprehensiveData = {
+      return {
         organization,
         departments,
         employees,
         generated_at: new Date()
       };
-
-      // Save to cache
-      console.log('💾 Saving fresh benchmark data to cache...');
-      // @ts-ignore - market_benchmark_cache table not in generated types
-      const { error: cacheError } = await supabase
-        .from('market_benchmark_cache')
-        .upsert({
-          company_id: companyId,
-          cache_key: 'comprehensive',
-          organization_data: organization,
-          departments_data: departments,
-          employees_data: employees,
-          metadata: {
-            total_employees: organization.total_employees,
-            analyzed_employees: organization.analyzed_employees,
-            departments_count: departments.length,
-            generated_by: 'MarketSkillsService',
-            force_refresh: false
-          },
-          generated_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-        }, {
-          onConflict: 'company_id,cache_key'
-        });
-
-      if (cacheError) {
-        console.warn('❌ Failed to cache benchmark data:', cacheError);
-      } else {
-        console.log('✅ Benchmark data cached successfully (expires in 7 days)');
-      }
-
-      return comprehensiveData;
     } catch (error) {
       console.error('Error getting comprehensive benchmark:', error);
       // Return empty data structure on error
@@ -1198,52 +1096,7 @@ export class MarketSkillsService {
     }
   }
 
-  /**
-   * Clear cache for a specific company
-   */
-  async invalidateCache(companyId: string, reason?: string): Promise<void> {
-    try {
-      console.log(`Invalidating cache for company ${companyId}. Reason: ${reason || 'Manual invalidation'}`);
-      
-      // @ts-ignore - market_benchmark_cache table not in generated types
-      const { error } = await supabase
-        .from('market_benchmark_cache')
-        .delete()
-        .eq('company_id', companyId);
-      
-      if (error) {
-        console.error('Error invalidating cache:', error);
-        throw error;
-      }
-      
-      console.log('Cache invalidated successfully');
-    } catch (error) {
-      console.error('Failed to invalidate cache:', error);
-    }
-  }
-  
-  /**
-   * Invalidate cache when underlying data changes
-   */
-  async invalidateCacheOnDataChange(companyId: string, changeType: 'employee' | 'skills' | 'position'): Promise<void> {
-    const reasons = {
-      employee: 'Employee data changed',
-      skills: 'Skills profile updated',
-      position: 'Position requirements changed'
-    };
-    
-    await this.invalidateCache(companyId, reasons[changeType]);
-  }
-  
-  /**
-   * Check if cache is stale
-   */
-  isCacheStale(generatedAt: Date | string, maxAgeMinutes: number = 60): boolean {
-    const generated = typeof generatedAt === 'string' ? new Date(generatedAt) : generatedAt;
-    const now = new Date();
-    const diffMinutes = (now.getTime() - generated.getTime()) / (1000 * 60);
-    return diffMinutes > maxAgeMinutes;
-  }
+  // REMOVED: All cache-related methods - we're pure on-demand now!
   
   /**
    * Utility method to check if benchmarks need refresh

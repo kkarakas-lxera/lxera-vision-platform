@@ -1,18 +1,7 @@
 // Market Benchmark Types - Manual definitions for RPC functions and tables
 // These are not auto-generated due to Supabase type generation limitations
 
-export interface MarketBenchmarkCache {
-  company_id: string;
-  cache_key: string;
-  organization_data: any;
-  departments_data: any;
-  employees_data: any;
-  metadata: any;
-  generated_at: string;
-  expires_at: string;
-  created_at: string;
-  updated_at: string;
-}
+// MarketBenchmarkCache interface removed - no more caching!
 
 export interface MarketSkillsBenchmark {
   id: string;
@@ -98,12 +87,7 @@ declare module './types' {
         };
       };
       Tables: Database['public']['Tables'] & {
-        market_benchmark_cache: {
-          Row: MarketBenchmarkCache;
-          Insert: Partial<MarketBenchmarkCache>;
-          Update: Partial<MarketBenchmarkCache>;
-          Relationships: [];
-        };
+        // market_benchmark_cache removed - pure on-demand now!
         market_skills_benchmarks: {
           Row: MarketSkillsBenchmark;
           Insert: Partial<MarketSkillsBenchmark>;
