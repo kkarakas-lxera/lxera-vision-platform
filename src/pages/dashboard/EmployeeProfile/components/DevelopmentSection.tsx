@@ -14,6 +14,12 @@ interface DevelopmentSectionProps {
         opportunity: string;
         category?: string;
       }>;
+      daily_tasks?: {
+        selected?: string[];
+      };
+      tools_technologies?: {
+        selected?: string[];
+      };
     };
     courses?: Array<{
       id: string;
@@ -26,8 +32,11 @@ interface DevelopmentSectionProps {
 }
 
 export function DevelopmentSection({ employee }: DevelopmentSectionProps) {
-  const challenges = employee.profile_data?.professional_challenges || [];
-  const opportunities = employee.profile_data?.growth_opportunities || [];
+  // Support both old field names and new field names
+  const challenges = employee.profile_data?.professional_challenges || 
+    (employee.profile_data?.daily_tasks?.selected?.map(task => ({ challenge: task }))) || [];
+  const opportunities = employee.profile_data?.growth_opportunities || 
+    (employee.profile_data?.tools_technologies?.selected?.map(tech => ({ opportunity: tech }))) || [];
   const activeCourses = employee.courses?.filter(c => c.status === 'in_progress') || [];
   const completedCourses = employee.courses?.filter(c => c.status === 'completed') || [];
 

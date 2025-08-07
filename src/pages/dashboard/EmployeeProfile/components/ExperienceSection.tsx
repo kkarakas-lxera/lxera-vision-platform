@@ -7,22 +7,26 @@ interface ExperienceSectionProps {
   employee: {
     profile_data?: {
       work_experience?: Array<{
-        position: string;
+        position?: string;
+        title?: string; // Support both field names
         company: string;
         location?: string;
-        start_date: string;
+        start_date?: string;
         end_date?: string;
-        is_current: boolean;
+        duration?: string; // Support duration field
+        is_current?: boolean;
         description?: string;
         technologies?: string[];
       }>;
       current_work?: {
-        projects?: Array<{
+        projects?: Array<string> | Array<{
           name: string;
           description?: string;
           role?: string;
           technologies?: string[];
         }>;
+        teamSize?: string;
+        roleInTeam?: string;
       };
     };
   };
@@ -55,7 +59,7 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
   };
 
   const summary = workExperience.length > 0 
-    ? `${workExperience.length} positions • ${workExperience[0]?.company} (${workExperience[0]?.is_current ? 'Current' : 'Previous'})`
+    ? `${workExperience.length} positions • ${workExperience[0]?.company} (${workExperience[0]?.duration?.includes('Current') ? 'Current' : 'Previous'})`
     : 'No work experience data available';
 
   return (
@@ -86,7 +90,7 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div>
-                            <h4 className="font-semibold">{exp.position}</h4>
+                            <h4 className="font-semibold">{exp.position || exp.title}</h4>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Building className="h-3 w-3" />
                               <span>{exp.company}</span>
@@ -104,12 +108,16 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               <span>
-                                {formatDate(exp.start_date)} - {exp.is_current ? 'Present' : formatDate(exp.end_date || '')}
+                                {exp.duration || (exp.start_date ? 
+                                  `${formatDate(exp.start_date)} - ${exp.is_current ? 'Present' : formatDate(exp.end_date || '')}` 
+                                  : 'Duration not specified')}
                               </span>
                             </div>
-                            <div className="text-xs">
-                              {calculateDuration(exp.start_date, exp.is_current ? undefined : exp.end_date)}
-                            </div>
+                            {exp.start_date && (
+                              <div className="text-xs">
+                                {calculateDuration(exp.start_date, exp.is_current ? undefined : exp.end_date)}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -138,30 +146,38 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Current Projects</h4>
                 <div className="grid gap-3">
-                  {currentProjects.map((project, index) => (
-                    <div key={index} className="p-3 border rounded-lg space-y-2">
-                      <div className="flex items-start justify-between">
-                        <h5 className="font-medium">{project.name}</h5>
-                        {project.role && (
-                          <Badge variant="outline" className="text-xs">
-                            {project.role}
-                          </Badge>
+                  {currentProjects.map((project, index) => {
+                    // Handle both string and object formats
+                    const projectName = typeof project === 'string' ? project : project.name;
+                    const projectRole = typeof project === 'object' ? project.role : undefined;
+                    const projectDescription = typeof project === 'object' ? project.description : undefined;
+                    const projectTechnologies = typeof project === 'object' ? project.technologies : undefined;
+                    
+                    return (
+                      <div key={index} className="p-3 border rounded-lg space-y-2">
+                        <div className="flex items-start justify-between">
+                          <h5 className="font-medium">{projectName}</h5>
+                          {projectRole && (
+                            <Badge variant="outline" className="text-xs">
+                              {projectRole}
+                            </Badge>
+                          )}
+                        </div>
+                        {projectDescription && (
+                          <p className="text-sm text-muted-foreground">{projectDescription}</p>
+                        )}
+                        {projectTechnologies && projectTechnologies.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {projectTechnologies.map((tech: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {tech}
+                              </Badge>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      {project.description && (
-                        <p className="text-sm text-muted-foreground">{project.description}</p>
-                      )}
-                      {project.technologies && project.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {project.technologies.map((tech, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {tech}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

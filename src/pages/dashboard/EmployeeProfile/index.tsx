@@ -231,8 +231,8 @@ export default function EmployeeProfile() {
 
       // Fetch profile data from sections (not from employees.profile_data which is null)
       const profileDataFromSections = profileSections?.reduce((acc: any, section: any) => {
-        if (section.section_data) {
-          acc[section.section_name] = section.section_data;
+        if (section.data) {
+          acc[section.section_name] = section.data;
         }
         return acc;
       }, {});
