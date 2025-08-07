@@ -7,7 +7,7 @@
  * Standard Scale: 0=None, 1=Learning, 2=Using, 3=Expert
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface StandardSkill {
   skill_id?: string;
