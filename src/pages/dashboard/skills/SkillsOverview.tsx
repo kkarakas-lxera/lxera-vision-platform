@@ -524,7 +524,7 @@ export default function SkillsOverview() {
       // First fetch all positions
       const { data: positions, error: posError } = await supabase
         .from('st_company_positions')
-        .select('id, name')
+        .select('id, position_title')
         .eq('company_id', userProfile.company_id);
 
       if (posError) throw posError;
@@ -553,9 +553,9 @@ export default function SkillsOverview() {
 
       // Create position mapping
       positions?.forEach(position => {
-        positionNames.push(position.name);
-        positionIdMap.set(position.id, position.name);
-        skillsMap.set(position.name, new Map());
+        positionNames.push(position.position_title);
+        positionIdMap.set(position.id, position.position_title);
+        skillsMap.set(position.position_title, new Map());
       });
 
       // Process employees and their skills
