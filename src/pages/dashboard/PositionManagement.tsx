@@ -95,10 +95,16 @@ export default function PositionManagement() {
           profile_complete,
           user_id,
           cv_analysis_data,
+          skills_last_analyzed,
           profile_invitations (
             sent_at,
             viewed_at,
             completed_at
+          ),
+          employee_skills (
+            id,
+            skill_name,
+            proficiency
           )
         `)
         .eq('company_id', userProfile.company_id);
@@ -154,8 +160,18 @@ export default function PositionManagement() {
               }
             }
 
-            // Check if employee has skills match score from cv_analysis_data
-            const skillsMatchScore = employee.cv_analysis_data?.skills_match_score;
+            // Check if employee has skills - either from cv_analysis_data or employee_skills
+            let skillsMatchScore = employee.cv_analysis_data?.skills_match_score;
+            
+            // If no cv_analysis_data score but has employee_skills, calculate a basic score
+            if ((skillsMatchScore === null || skillsMatchScore === undefined) && 
+                employee.employee_skills && employee.employee_skills.length > 0) {
+              // Calculate a basic match score based on skills proficiency
+              // Average proficiency (0-3 scale) converted to percentage
+              const avgProficiency = employee.employee_skills.reduce((sum, skill) => 
+                sum + (skill.proficiency || 0), 0) / employee.employee_skills.length;
+              skillsMatchScore = Math.round((avgProficiency / 3) * 100);
+            }
             
             if (skillsMatchScore !== null && skillsMatchScore !== undefined) {
               metrics.total_score += skillsMatchScore;
