@@ -1,7 +1,7 @@
 import React from 'react';
 import { CollapsibleCard } from '@/components/ui/collapsible-card';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Calendar, Building, MapPin } from 'lucide-react';
+import { Briefcase, Calendar, Building, MapPin, ChevronRight } from 'lucide-react';
 
 interface ExperienceSectionProps {
   employee: {
@@ -68,70 +68,71 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
       icon={<Briefcase className="h-5 w-5" />}
       summary={summary}
     >
-      <div className="space-y-6">
+      <div className="space-y-3">
         {workExperience.length === 0 && currentProjects.length === 0 ? (
-          <p className="text-muted-foreground text-center py-4">
+          <p className="text-muted-foreground text-center py-6 text-sm">
             No work experience data available
           </p>
         ) : (
           <>
-            {/* Work Experience Timeline */}
+            {/* Work Experience - Compact Timeline */}
             {workExperience.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {workExperience.map((exp, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="group relative hover:bg-gray-50/50 rounded-lg transition-colors p-3 -mx-3">
+                    {/* Timeline connector */}
                     {index < workExperience.length - 1 && (
-                      <div className="absolute left-2 top-10 bottom-0 w-0.5 bg-border" />
+                      <div className="absolute left-[18px] top-[38px] bottom-[-8px] w-[1px] bg-gray-200" />
                     )}
                     
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-1" />
+                    <div className="flex gap-3">
+                      {/* Timeline dot */}
+                      <div className="flex-shrink-0 mt-1.5">
+                        <div className="w-2 h-2 rounded-full bg-gray-400 group-hover:bg-primary transition-colors" />
+                      </div>
                       
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div>
-                            <h4 className="font-semibold">{exp.position || exp.title}</h4>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Building className="h-3 w-3" />
-                              <span>{exp.company}</span>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Header row */}
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm leading-tight">{exp.position || exp.title}</h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                              <span className="font-medium">{exp.company}</span>
                               {exp.location && (
                                 <>
-                                  <span>•</span>
-                                  <MapPin className="h-3 w-3" />
+                                  <span className="text-gray-300">•</span>
                                   <span>{exp.location}</span>
                                 </>
                               )}
                             </div>
                           </div>
                           
-                          <div className="text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>
-                                {exp.duration || (exp.start_date ? 
-                                  `${formatDate(exp.start_date)} - ${exp.is_current ? 'Present' : formatDate(exp.end_date || '')}` 
-                                  : 'Duration not specified')}
-                              </span>
-                            </div>
-                            {exp.start_date && (
-                              <div className="text-xs">
-                                {calculateDuration(exp.start_date, exp.is_current ? undefined : exp.end_date)}
-                              </div>
-                            )}
+                          <div className="text-xs text-muted-foreground whitespace-nowrap">
+                            {exp.duration || (exp.start_date ? 
+                              `${formatDate(exp.start_date)} - ${exp.is_current ? 'Present' : formatDate(exp.end_date || '')}` 
+                              : 'Duration')}
                           </div>
                         </div>
                         
+                        {/* Description - more compact */}
                         {exp.description && (
-                          <p className="text-sm text-muted-foreground">{exp.description}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-1.5">
+                            {exp.description}
+                          </p>
                         )}
                         
+                        {/* Technologies - smaller badges */}
                         {exp.technologies && exp.technologies.length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {exp.technologies.map((tech, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
+                            {exp.technologies.slice(0, 5).map((tech, i) => (
+                              <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-gray-200">
                                 {tech}
                               </Badge>
                             ))}
+                            {exp.technologies.length > 5 && (
+                              <span className="text-[10px] text-muted-foreground px-1">+{exp.technologies.length - 5}</span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -141,11 +142,11 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
               </div>
             )}
 
-            {/* Current Projects */}
+            {/* Current Projects - Compact list */}
             {currentProjects.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground">Current Projects</h4>
-                <div className="grid gap-3">
+              <div className="border-t pt-3 mt-3">
+                <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Current Projects</h4>
+                <div className="space-y-1.5">
                   {currentProjects.map((project, index) => {
                     // Handle both string and object formats
                     const projectName = typeof project === 'string' ? project : project.name;
@@ -154,27 +155,21 @@ export function ExperienceSection({ employee }: ExperienceSectionProps) {
                     const projectTechnologies = typeof project === 'object' ? project.technologies : undefined;
                     
                     return (
-                      <div key={index} className="p-3 border rounded-lg space-y-2">
-                        <div className="flex items-start justify-between">
-                          <h5 className="font-medium">{projectName}</h5>
-                          {projectRole && (
-                            <Badge variant="outline" className="text-xs">
-                              {projectRole}
-                            </Badge>
+                      <div key={index} className="flex items-center gap-2 group">
+                        <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{projectName}</span>
+                            {projectRole && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-gray-200">
+                                {projectRole}
+                              </Badge>
+                            )}
+                          </div>
+                          {projectDescription && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{projectDescription}</p>
                           )}
                         </div>
-                        {projectDescription && (
-                          <p className="text-sm text-muted-foreground">{projectDescription}</p>
-                        )}
-                        {projectTechnologies && projectTechnologies.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {projectTechnologies.map((tech: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {tech}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     );
                   })}

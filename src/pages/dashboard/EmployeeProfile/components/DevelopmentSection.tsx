@@ -1,7 +1,8 @@
 import React from 'react';
 import { CollapsibleCard } from '@/components/ui/collapsible-card';
 import { Badge } from '@/components/ui/badge';
-import { Target, Zap, BookOpen, Award } from 'lucide-react';
+import { Target, Zap, BookOpen, Award, ChevronRight, TrendingUp, CheckCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface DevelopmentSectionProps {
   employee: {
@@ -42,55 +43,29 @@ export function DevelopmentSection({ employee }: DevelopmentSectionProps) {
 
   const summary = `${challenges.length} challenges • ${opportunities.length} growth areas • ${activeCourses.length} active courses`;
 
-  const getCategoryIcon = (category?: string) => {
-    switch (category?.toLowerCase()) {
-      case 'technical':
-        return <Zap className="h-3 w-3" />;
-      case 'leadership':
-        return <Target className="h-3 w-3" />;
-      case 'communication':
-        return <BookOpen className="h-3 w-3" />;
-      default:
-        return <Award className="h-3 w-3" />;
-    }
-  };
-
-  const getCategoryColor = (category?: string) => {
-    switch (category?.toLowerCase()) {
-      case 'technical':
-        return 'bg-blue-100 text-blue-700';
-      case 'leadership':
-        return 'bg-purple-100 text-purple-700';
-      case 'communication':
-        return 'bg-green-100 text-green-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
   return (
     <CollapsibleCard
       title="Development & Growth"
       icon={<Target className="h-5 w-5" />}
       summary={summary}
     >
-      <div className="space-y-6">
-        {/* Professional Challenges */}
+      <div className="space-y-4">
+        {/* Professional Challenges - Compact List */}
         {challenges.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Zap className="h-4 w-4" />
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="h-3 w-3" />
               Professional Challenges
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {challenges.map((challenge, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm">{challenge.challenge}</p>
-                  </div>
+                <div key={index} className="flex items-start gap-2 group">
+                  <ChevronRight className="h-3 w-3 text-gray-400 mt-0.5 group-hover:text-gray-600 transition-colors flex-shrink-0" />
+                  <p className="text-sm text-gray-700 leading-tight flex-1">
+                    {challenge.challenge}
+                  </p>
                   {challenge.category && (
-                    <Badge variant="secondary" className={`text-xs flex items-center gap-1 ${getCategoryColor(challenge.category)}`}>
-                      {getCategoryIcon(challenge.category)}
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-gray-200">
                       {challenge.category}
                     </Badge>
                   )}
@@ -100,22 +75,22 @@ export function DevelopmentSection({ employee }: DevelopmentSectionProps) {
           </div>
         )}
 
-        {/* Growth Opportunities */}
+        {/* Growth Opportunities - Compact List */}
         {opportunities.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Target className="h-4 w-4" />
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="h-3 w-3" />
               Growth Opportunities
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {opportunities.map((opp, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm">{opp.opportunity}</p>
-                  </div>
+                <div key={index} className="flex items-start gap-2 group">
+                  <ChevronRight className="h-3 w-3 text-gray-400 mt-0.5 group-hover:text-gray-600 transition-colors flex-shrink-0" />
+                  <p className="text-sm text-gray-700 leading-tight flex-1">
+                    {opp.opportunity}
+                  </p>
                   {opp.category && (
-                    <Badge variant="secondary" className={`text-xs flex items-center gap-1 ${getCategoryColor(opp.category)}`}>
-                      {getCategoryIcon(opp.category)}
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-gray-200">
                       {opp.category}
                     </Badge>
                   )}
@@ -125,47 +100,53 @@ export function DevelopmentSection({ employee }: DevelopmentSectionProps) {
           </div>
         )}
 
-        {/* Active Learning */}
+        {/* Active Learning - Compact Progress */}
         {activeCourses.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Active Learning ({activeCourses.length})
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <BookOpen className="h-3 w-3" />
+              Active Learning <span className="normal-case text-gray-500">({activeCourses.length})</span>
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {activeCourses.slice(0, 3).map((course) => (
-                <div key={course.id} className="flex items-center justify-between p-2 border rounded-lg">
-                  <span className="text-sm truncate flex-1">{course.course_title}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {course.progress_percentage}%
-                  </Badge>
+                <div key={course.id} className="group">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-sm text-gray-700 truncate flex-1 group-hover:text-gray-900 transition-colors">
+                      {course.course_title}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {course.progress_percentage}%
+                    </span>
+                  </div>
+                  <Progress value={course.progress_percentage} className="h-1" />
                 </div>
               ))}
               {activeCourses.length > 3 && (
-                <p className="text-xs text-muted-foreground text-center">
-                  +{activeCourses.length - 3} more courses
+                <p className="text-[10px] text-muted-foreground pt-1">
+                  +{activeCourses.length - 3} more courses in progress
                 </p>
               )}
             </div>
           </div>
         )}
 
-        {/* Recent Achievements */}
+        {/* Recent Achievements - Compact Badges */}
         {completedCourses.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              Recent Achievements
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="h-3 w-3" />
+              Completed Courses
             </h4>
-            <div className="flex flex-wrap gap-2">
-              {completedCourses.slice(0, 5).map((course) => (
-                <Badge key={course.id} variant="default" className="text-xs">
+            <div className="flex flex-wrap gap-1">
+              {completedCourses.slice(0, 4).map((course) => (
+                <Badge key={course.id} variant="secondary" className="text-[10px] px-2 py-0.5 h-5 bg-green-50 text-green-700 border-green-200">
+                  <CheckCircle className="h-2.5 w-2.5 mr-1" />
                   {course.course_title}
                 </Badge>
               ))}
-              {completedCourses.length > 5 && (
-                <Badge variant="outline" className="text-xs">
-                  +{completedCourses.length - 5} more
+              {completedCourses.length > 4 && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 border-gray-200">
+                  +{completedCourses.length - 4}
                 </Badge>
               )}
             </div>
@@ -174,9 +155,12 @@ export function DevelopmentSection({ employee }: DevelopmentSectionProps) {
 
         {/* Empty State */}
         {challenges.length === 0 && opportunities.length === 0 && activeCourses.length === 0 && (
-          <p className="text-muted-foreground text-center py-4">
-            No development data available
-          </p>
+          <div className="text-center py-6">
+            <Target className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <p className="text-sm text-muted-foreground">
+              No development data available
+            </p>
+          </div>
         )}
       </div>
     </CollapsibleCard>

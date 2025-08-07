@@ -26,11 +26,14 @@ interface PositionRequirement {
   position_id: string;
   position_title: string;
   position_code: string;
+  position_description?: string;
   total_employees: number;
   analyzed_employees: number;
   required_skills: Array<{
     skill_id?: string;
     skill_name: string;
+    skill_description?: string; // Future: companies can add skill-specific descriptions
+    proficiency_level?: number;
   }>;
   skill_coverage: Array<{
     skill_name: string;
@@ -39,50 +42,12 @@ interface PositionRequirement {
   }>;
 }
 
-// Skill descriptions for common financial and business skills
-const skillDescriptions: Record<string, string> = {
-  // Financial Skills
-  'Budgeting and Forecasting': 'Creating and managing financial plans, predicting future revenues and expenses based on historical data and market trends.',
-  'Data Analysis': 'Examining, cleaning, and modeling data to discover useful information, draw conclusions, and support decision-making.',
-  'Proficiency in Excel': 'Advanced knowledge of Microsoft Excel including formulas, pivot tables, macros, and data visualization tools.',
-  'Communication Skills': 'Effectively conveying information verbally and in writing, active listening, and adapting communication style to different audiences.',
-  'Attention to Detail': 'Thoroughness in accomplishing tasks with concern for all aspects involved, ensuring accuracy and quality.',
-  'Problem-Solving Abilities': 'Identifying complex problems, evaluating options, and implementing effective solutions systematically.',
-  'Collaboration and Teamwork': 'Working effectively with others, contributing to group efforts, and building positive working relationships.',
-  'Ethical Judgment': 'Making decisions based on moral principles, integrity, and professional standards of conduct.',
-  'Financial Modeling': 'Building abstract representations of financial situations to forecast business performance and support decision-making.',
-  
-  // Technical Skills
-  'Python': 'Programming language used for data analysis, automation, and software development.',
-  'SQL': 'Database query language for managing and analyzing structured data.',
-  'JavaScript': 'Programming language for web development and creating interactive applications.',
-  'React': 'JavaScript library for building user interfaces and web applications.',
-  'Cloud Computing': 'Using remote servers for data storage, processing, and service delivery.',
-  'Machine Learning': 'Developing algorithms and models that enable computers to learn from data.',
-  'API Development': 'Creating application programming interfaces for software integration.',
-  
-  // Management Skills
-  'Project Management': 'Planning, executing, and closing projects while managing resources, timelines, and stakeholders.',
-  'Strategic Planning': 'Defining long-term goals and determining actions to achieve organizational objectives.',
-  'Leadership': 'Guiding, motivating, and influencing others to achieve common goals.',
-  'Change Management': 'Preparing and supporting individuals and organizations through transitions.',
-  'Risk Assessment': 'Identifying, analyzing, and evaluating potential risks that could impact objectives.',
-  
-  // Soft Skills
-  'Critical Thinking': 'Analyzing facts objectively to form judgments and solve problems.',
-  'Time Management': 'Organizing and planning time effectively to maximize productivity.',
-  'Adaptability': 'Adjusting to new conditions and responding positively to change.',
-  'Creativity': 'Generating innovative ideas and novel solutions to challenges.',
-  'Emotional Intelligence': 'Understanding and managing emotions in oneself and others.'
-};
-
 export default function PositionRequirements() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [positions, setPositions] = useState<PositionRequirement[]>([]);
   const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
-  const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -166,6 +131,7 @@ export default function PositionRequirements() {
           position_id: position.id,
           position_title: position.position_title,
           position_code: position.position_code || position.position_title,
+          position_description: position.description,
           total_employees: positionEmployees.length,
           analyzed_employees: analyzedInPosition.length,
           required_skills: requiredSkills,
@@ -197,17 +163,6 @@ export default function PositionRequirements() {
       newExpanded.add(positionId);
     }
     setExpandedPositions(newExpanded);
-  };
-
-  const toggleSkillDescription = (skillKey: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newExpanded = new Set(expandedSkills);
-    if (newExpanded.has(skillKey)) {
-      newExpanded.delete(skillKey);
-    } else {
-      newExpanded.add(skillKey);
-    }
-    setExpandedSkills(newExpanded);
   };
 
   const getSkillCoverageBadgeVariant = (percentage: number) => {
@@ -378,65 +333,36 @@ export default function PositionRequirements() {
                         <div className="text-sm font-medium text-muted-foreground mb-3">
                           Skills Coverage ({position.analyzed_employees} employees):
                         </div>
-                        {position.skill_coverage.map((skill, index) => {
-                          const skillKey = `${position.position_id}-${skill.skill_name}`;
-                          const isSkillExpanded = expandedSkills.has(skillKey);
-                          const description = skillDescriptions[skill.skill_name];
-                          
-                          return (
-                            <div key={index} className="border-b border-border/30 pb-2 last:border-b-0">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between text-sm mb-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="font-medium">{skill.skill_name}</span>
-                                      {description && (
-                                        <button
-                                          onClick={(e) => toggleSkillDescription(skillKey, e)}
-                                          className="p-0.5 hover:bg-gray-100 rounded transition-colors"
-                                        >
-                                          {isSkillExpanded ? (
-                                            <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
-                                          ) : (
-                                            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-                                          )}
-                                        </button>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground">
-                                        {skill.employees_with_skill}/{position.analyzed_employees}
-                                      </span>
-                                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                                        skill.coverage_percentage >= 80 ? 'bg-green-100 text-green-700' :
-                                        skill.coverage_percentage >= 50 ? 'bg-orange-100 text-orange-700' :
-                                        'bg-red-100 text-red-700'
-                                      }`}>
-                                        {skill.coverage_percentage}%
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="h-1 bg-secondary rounded-full overflow-hidden">
-                                    <div 
-                                      className={`h-full transition-all duration-300 rounded-full ${
-                                        skill.coverage_percentage >= 80 ? 'bg-green-500' :
-                                        skill.coverage_percentage >= 50 ? 'bg-orange-500' : 'bg-red-500'
-                                      }`}
-                                      style={{ width: `${skill.coverage_percentage}%` }}
-                                    />
-                                  </div>
-                                  {isSkillExpanded && description && (
-                                    <div className="mt-2 px-3 py-2 bg-gray-50 rounded-md border border-gray-100">
-                                      <p className="text-xs text-gray-600 leading-relaxed">
-                                        {description}
-                                      </p>
-                                    </div>
-                                  )}
+                        {position.skill_coverage.map((skill, index) => (
+                          <div key={index} className="flex items-center justify-between border-b border-border/30 pb-2 last:border-b-0">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between text-sm mb-1">
+                                <span className="font-medium">{skill.skill_name}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {skill.employees_with_skill}/{position.analyzed_employees}
+                                  </span>
+                                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                                    skill.coverage_percentage >= 80 ? 'bg-green-100 text-green-700' :
+                                    skill.coverage_percentage >= 50 ? 'bg-orange-100 text-orange-700' :
+                                    'bg-red-100 text-red-700'
+                                  }`}>
+                                    {skill.coverage_percentage}%
+                                  </span>
                                 </div>
                               </div>
+                              <div className="h-1 bg-secondary rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full transition-all duration-300 rounded-full ${
+                                    skill.coverage_percentage >= 80 ? 'bg-green-500' :
+                                    skill.coverage_percentage >= 50 ? 'bg-orange-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${skill.coverage_percentage}%` }}
+                                />
+                              </div>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                         
                         {position.analyzed_employees < position.total_employees && (
                           <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
