@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { MarketSkillData, DepartmentMarketGap } from '@/types/marketSkills';
+import type { ExtractedSkill } from '@/types/skills';
+// Import market benchmark types for RPC functions
 
 interface SkillInsight {
   skill_name: string;
@@ -289,8 +291,8 @@ export class MarketSkillsService {
    */
   async getDepartmentMarketGaps(
     department: string,
-    industry?: string,
     employeeSkills: InternalSkill[],
+    industry?: string,
     companyContext?: {
       employees_count?: number;
       analyzed_count?: number;
@@ -352,29 +354,24 @@ export class MarketSkillsService {
    */
   async refreshStaleBenchmarks(): Promise<void> {
     try {
-      // Skip if refresh_stale_market_benchmarks doesn't exist
-      // TODO: Deploy the refresh_stale_market_benchmarks function if needed
-      console.log('Skipping stale benchmark refresh - function not deployed');
-      return;
-      
-      // Get benchmarks that need refreshing
-      const { data: staleConfigs, error } = await supabase
-        .rpc('refresh_stale_market_benchmarks');
-
-      if (error) {
-        console.error('Error fetching stale benchmarks:', error);
+      // Refresh stale market benchmarks via RPC
+      // @ts-ignore - RPC function exists but types not generated
+      const { data: staleConfigs, error: staleError } = await supabase.rpc('refresh_stale_market_benchmarks');
+      if (staleError) {
+        console.error('Error fetching stale benchmarks:', staleError);
         return;
       }
 
-      if (!staleConfigs || staleConfigs.length === 0) {
+      const configs = staleConfigs as any[];
+      if (!configs || configs.length === 0) {
         console.log('No stale benchmarks to refresh');
         return;
       }
 
-      console.log(`Found ${staleConfigs.length} stale benchmark configurations to refresh`);
+      console.log(`Found ${configs.length} stale benchmark configurations to refresh`);
 
       // Refresh each stale configuration
-      for (const config of staleConfigs) {
+      for (const config of configs) {
         try {
           await this.fetchMarketBenchmarks(
             config.role_name,
@@ -396,11 +393,7 @@ export class MarketSkillsService {
    * Get all active benchmark configurations with their refresh status
    */
   async getBenchmarkRefreshStatus(): Promise<any[]> {
-    // Skip if get_active_benchmark_configs doesn't exist
-    // TODO: Deploy the get_active_benchmark_configs function if needed
-    console.log('Skipping benchmark config fetch - function not deployed');
-    return [];
-    
+    // @ts-ignore - RPC function exists but types not generated
     const { data, error } = await supabase
       .rpc('get_active_benchmark_configs');
 
@@ -435,7 +428,7 @@ export class MarketSkillsService {
         const fourteenDays = 14 * 24 * 60 * 60 * 1000;
         
         if (cacheAge < fourteenDays) {
-          return cachedData.market_gap_data as MarketSkillData[];
+          return cachedData.market_gap_data as unknown as MarketSkillData[];
         }
       }
 
@@ -449,7 +442,7 @@ export class MarketSkillsService {
       await supabase
         .from('employees')
         .update({
-          market_gap_data: comparedSkills,
+          market_gap_data: comparedSkills as unknown as any,
           market_gap_updated_at: new Date().toISOString()
         })
         .eq('id', employeeId);
@@ -470,6 +463,7 @@ export class MarketSkillsService {
       if (!userData.user) throw new Error('Not authenticated');
 
       // Get organization stats from RPC function (handles company ID resolution)
+      // @ts-ignore - RPC function exists but types not generated
       const { data: stats, error: statsError } = await supabase
         .rpc('get_organization_stats');
 
@@ -477,6 +471,9 @@ export class MarketSkillsService {
         console.error('Error fetching organization stats:', statsError);
         throw statsError;
       }
+
+      // RPC returns single object, not array
+      const orgStats = Array.isArray(stats) ? stats[0] : stats;
 
       // Get the user's actual company_id
       const { data: userDetails } = await supabase
@@ -518,9 +515,9 @@ export class MarketSkillsService {
           critical_skills_count: 0,
           moderate_skills_count: 0,
           minor_skills_count: 0,
-          total_employees: stats?.total_employees || 0,
-          analyzed_employees: stats?.analyzed_employees || 0,
-          departments_count: stats?.departments_count || 0
+          total_employees: orgStats?.total_employees || 0,
+          analyzed_employees: orgStats?.analyzed_employees || 0,
+          departments_count: orgStats?.departments_count || 0
         };
       }
 
@@ -552,8 +549,8 @@ export class MarketSkillsService {
       let totalEmployeesAnalyzed = 0;
       
       this.logAudit('Starting calculations', {
-        totalEmployees: stats?.total_employees,
-        analyzedEmployees: stats?.analyzed_employees,
+        totalEmployees: orgStats?.total_employees,
+        analyzedEmployees: orgStats?.analyzed_employees,
         skillsDataCount: skillsData?.length
       });
 
@@ -569,11 +566,11 @@ export class MarketSkillsService {
           let employeeSkillSum = 0;
           let employeeSkillCount = 0;
           
-          profile.extracted_skills.forEach((skill: ExtractedSkill) => {
-            if (skill.skill_name && typeof skill.proficiency === 'number') {
+          (profile.extracted_skills as unknown as ExtractedSkill[]).forEach((skill: ExtractedSkill) => {
+            if (skill.skill_name && typeof skill.proficiency_level === 'number') {
               // Calculate coverage based on proficiency levels (0-5 scale)
-              totalProficiencySum += skill.proficiency;
-              employeeSkillSum += skill.proficiency;
+              totalProficiencySum += skill.proficiency_level;
+              employeeSkillSum += skill.proficiency_level;
               skillCount++;
               employeeSkillCount++;
             }
@@ -626,17 +623,18 @@ export class MarketSkillsService {
         validScores,
         avgMatchScore,
         industryAlignmentIndex,
-        statsAnalyzedEmployees: stats?.analyzed_employees, // Log the RPC value for comparison
+        statsAnalyzedEmployees: orgStats?.analyzed_employees, // Log the RPC value for comparison
         skillsDataCount: skillsData?.length
       });
       
       console.log('Employee analysis discrepancy check:', {
         calculatedAnalyzed: totalEmployeesAnalyzed,
-        rpcAnalyzed: stats?.analyzed_employees,
+        rpcAnalyzed: orgStats?.analyzed_employees,
         skillsProfiles: skillsData?.length
       });
 
       // Get top missing skills
+      // @ts-ignore - RPC function exists but types not generated
       const { data: missingSkills, error: missingError } = await supabase
         .rpc('get_top_missing_skills', { gap_limit: 10 });
 
@@ -648,13 +646,8 @@ export class MarketSkillsService {
       // Critical: >50% of employees affected
       // Moderate: >33% but <=50% of employees affected  
       // Minor: <=33% of employees affected
-      const totalEmployees = stats?.total_employees || 1;
-      const topMissingSkills = (missingSkills || []).map((skill: {
-        skill_name: string;
-        affected_employees?: number;
-        affected_count?: number;
-        severity?: 'critical' | 'moderate' | 'minor';
-      }) => {
+      const totalEmployees = orgStats?.total_employees || 1;
+      const topMissingSkills = ((missingSkills || []) as any[]).map((skill: any) => {
         const affectedCount = skill.affected_employees || skill.affected_count || 0;
         const affectedPercentage = (affectedCount / totalEmployees) * 100;
         
@@ -704,7 +697,7 @@ export class MarketSkillsService {
           .eq('id', companyId)
           .single();
         
-        const industry = companyData?.settings?.industry as string | undefined;
+        const industry = (companyData?.settings as any)?.industry as string | undefined;
         
         // Get primary department if available
         const { data: primaryDept } = await supabase
@@ -723,10 +716,10 @@ export class MarketSkillsService {
           false,
           true, // include_insights = true
           {
-            employees_count: stats?.total_employees,
-            analyzed_count: stats?.analyzed_employees,
-            critical_gaps: stats?.critical_gaps_count,
-            moderate_gaps: stats?.moderate_gaps_count
+            employees_count: orgStats?.total_employees,
+            analyzed_count: orgStats?.analyzed_employees,
+            critical_gaps: orgStats?.critical_gaps_count,
+            moderate_gaps: orgStats?.moderate_gaps_count
           }
         );
         
@@ -737,7 +730,7 @@ export class MarketSkillsService {
       
       // Fallback to basic summary if AI generation fails
       if (!executiveSummary && totalEmployeesAnalyzed > 0) {
-        executiveSummary = `Your organization has analyzed ${totalEmployeesAnalyzed} of ${stats?.total_employees || 0} employees across ${stats?.departments_count || 0} departments. ` +
+        executiveSummary = `Your organization has analyzed ${totalEmployeesAnalyzed} of ${orgStats?.total_employees || 0} employees across ${orgStats?.departments_count || 0} departments. ` +
           `Current market coverage is at ${marketCoverageRate}% with an industry alignment index of ${industryAlignmentIndex}/10. ` +
           `Focus on addressing ${topMissingSkills.length} critical skill gaps to improve market competitiveness.`;
       }
@@ -749,9 +742,9 @@ export class MarketSkillsService {
         critical_skills_count: criticalSkillsCount,
         moderate_skills_count: moderateSkillsCount,
         minor_skills_count: minorSkillsCount,
-        total_employees: stats?.total_employees || 0,
+        total_employees: orgStats?.total_employees || 0,
         analyzed_employees: totalEmployeesAnalyzed, // Use our calculated value, not the RPC value
-        departments_count: stats?.departments_count || 0,
+        departments_count: orgStats?.departments_count || 0,
         executive_summary: executiveSummary
       };
     } catch (error) {
@@ -780,6 +773,7 @@ export class MarketSkillsService {
       if (!userData.user) throw new Error('Not authenticated');
 
       // Get department stats from RPC function (handles company ID resolution)
+      // @ts-ignore - RPC function not in generated types
       const { data: deptStats, error: statsError } = await supabase
         .rpc('get_departments_benchmark_data');
 
@@ -1086,12 +1080,13 @@ export class MarketSkillsService {
 
       // If force refresh, delete existing cache first
       if (forceRefresh) {
-        console.log('Force refresh requested - clearing existing cache...');
+        console.log('🔄 Force refresh requested - clearing existing cache and regenerating all data...');
         await this.invalidateCache(companyId, 'Manual refresh requested');
       }
       
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
+        // @ts-ignore - market_benchmark_cache table not in generated types
         const { data: cachedData } = await supabase
           .from('market_benchmark_cache')
           .select('*')
@@ -1101,29 +1096,31 @@ export class MarketSkillsService {
           .single();
 
         if (cachedData) {
-          const employeesData = cachedData.employees_data as EmployeeBenchmarkData[] | null;
+          const employeesData = cachedData.employees_data as unknown as EmployeeBenchmarkData[] | null;
 
           // If the cached row has ZERO employee benchmarks, treat it as stale and generate fresh data.
           if (Array.isArray(employeesData) && employeesData.length === 0) {
             console.log(
-              'Cached benchmark data has no employee entries – bypassing cache and regenerating benchmarks…'
+              '⚠️ Cached benchmark data has no employee entries – bypassing cache and regenerating benchmarks…'
             );
             // fall through → let the code below generate fresh benchmarks and recache
           } else {
-            console.log('Returning cached benchmark data');
+            console.log('✅ Returning cached benchmark data (expires:', new Date(cachedData.expires_at).toLocaleString(), ')');
             return {
-              organization: cachedData.organization_data as OrganizationBenchmarkData & {
+              organization: cachedData.organization_data as unknown as OrganizationBenchmarkData & {
                 executive_summary?: string;
               },
-              departments: cachedData.departments_data as DepartmentBenchmarkData[],
+              departments: cachedData.departments_data as unknown as DepartmentBenchmarkData[],
               employees: employeesData || [],
               generated_at: new Date(cachedData.generated_at)
             };
           }
         }
+      } else {
+        console.log('⏭️ Skipping cache check due to force refresh flag');
       }
 
-      console.log('Generating fresh benchmark data...');
+      console.log('🚀 Generating fresh benchmark data...');
       
       // Fetch all benchmark data in parallel
       const [organization, departments, employees] = await Promise.all([
@@ -1132,7 +1129,7 @@ export class MarketSkillsService {
         this.getEmployeesBenchmark()
       ]);
       
-      console.log('Fresh benchmark data fetched:');
+      console.log('📊 Fresh benchmark data fetched:');
       console.log('- Organization data:', organization);
       console.log('- Departments count:', departments?.length);
       console.log('- Employees count:', employees?.length);
@@ -1146,6 +1143,8 @@ export class MarketSkillsService {
       };
 
       // Save to cache
+      console.log('💾 Saving fresh benchmark data to cache...');
+      // @ts-ignore - market_benchmark_cache table not in generated types
       const { error: cacheError } = await supabase
         .from('market_benchmark_cache')
         .upsert({
@@ -1158,7 +1157,8 @@ export class MarketSkillsService {
             total_employees: organization.total_employees,
             analyzed_employees: organization.analyzed_employees,
             departments_count: departments.length,
-            generated_by: 'MarketSkillsService'
+            generated_by: 'MarketSkillsService',
+            force_refresh: forceRefresh
           },
           generated_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
@@ -1167,7 +1167,9 @@ export class MarketSkillsService {
         });
 
       if (cacheError) {
-        console.warn('Failed to cache benchmark data:', cacheError);
+        console.warn('❌ Failed to cache benchmark data:', cacheError);
+      } else {
+        console.log('✅ Benchmark data cached successfully (expires in 7 days)');
       }
 
       return comprehensiveData;
@@ -1200,6 +1202,7 @@ export class MarketSkillsService {
     try {
       console.log(`Invalidating cache for company ${companyId}. Reason: ${reason || 'Manual invalidation'}`);
       
+      // @ts-ignore - market_benchmark_cache table not in generated types
       const { error } = await supabase
         .from('market_benchmark_cache')
         .delete()
@@ -1242,6 +1245,8 @@ export class MarketSkillsService {
   /**
    * Utility method to check if benchmarks need refresh
    */
+  // Utility method for string matching - reserved for future use
+  // @ts-ignore - Method intentionally kept for future features
   private fuzzyMatch(str1: string, str2: string): boolean {
     const normalize = (s: string) => s.toLowerCase().replace(/[\s\-_.]/g, '');
     return normalize(str1) === normalize(str2);

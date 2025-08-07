@@ -174,6 +174,7 @@ export type Database = {
       cm_course_plans: {
         Row: {
           agent_turns: number | null
+          company_id: string
           course_duration_weeks: number | null
           course_structure: Json
           course_title: string | null
@@ -196,6 +197,7 @@ export type Database = {
         }
         Insert: {
           agent_turns?: number | null
+          company_id: string
           course_duration_weeks?: number | null
           course_structure: Json
           course_title?: string | null
@@ -218,6 +220,7 @@ export type Database = {
         }
         Update: {
           agent_turns?: number | null
+          company_id?: string
           course_duration_weeks?: number | null
           course_structure?: Json
           course_title?: string | null
@@ -239,6 +242,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cm_course_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_employee"
             columns: ["employee_id"]
@@ -382,15 +392,21 @@ export type Database = {
           core_content: string | null
           created_at: string | null
           created_by: string | null
+          draft_content: Json | null
           employee_name: string
           enhancement_history: Json | null
           introduction: string | null
           is_current_version: boolean | null
+          is_draft: boolean | null
+          last_edited_at: string | null
+          last_edited_by: string | null
           last_enhancement_id: string | null
           last_quality_check: string | null
+          module_id: string | null
           module_name: string
           module_spec: Json
           parent_content_id: string | null
+          plan_id: string | null
           practical_applications: string | null
           priority_level: string | null
           research_context: Json | null
@@ -408,12 +424,6 @@ export type Database = {
           updated_at: string | null
           version_notes: string | null
           version_number: number | null
-          module_id: string
-          plan_id: string
-          last_edited_by: string | null
-          last_edited_at: string | null
-          is_draft: boolean
-          draft_content: Json | null
         }
         Insert: {
           assessments?: string | null
@@ -424,15 +434,21 @@ export type Database = {
           core_content?: string | null
           created_at?: string | null
           created_by?: string | null
+          draft_content?: Json | null
           employee_name: string
           enhancement_history?: Json | null
           introduction?: string | null
           is_current_version?: boolean | null
+          is_draft?: boolean | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           last_enhancement_id?: string | null
           last_quality_check?: string | null
+          module_id?: string | null
           module_name: string
           module_spec: Json
           parent_content_id?: string | null
+          plan_id?: string | null
           practical_applications?: string | null
           priority_level?: string | null
           research_context?: Json | null
@@ -450,12 +466,6 @@ export type Database = {
           updated_at?: string | null
           version_notes?: string | null
           version_number?: number | null
-          module_id: string
-          plan_id: string
-          last_edited_by?: string | null
-          last_edited_at?: string | null
-          is_draft?: boolean
-          draft_content?: Json | null
         }
         Update: {
           assessments?: string | null
@@ -466,15 +476,21 @@ export type Database = {
           core_content?: string | null
           created_at?: string | null
           created_by?: string | null
+          draft_content?: Json | null
           employee_name?: string
           enhancement_history?: Json | null
           introduction?: string | null
           is_current_version?: boolean | null
+          is_draft?: boolean | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           last_enhancement_id?: string | null
           last_quality_check?: string | null
+          module_id?: string | null
           module_name?: string
           module_spec?: Json
           parent_content_id?: string | null
+          plan_id?: string | null
           practical_applications?: string | null
           priority_level?: string | null
           research_context?: Json | null
@@ -492,12 +508,6 @@ export type Database = {
           updated_at?: string | null
           version_notes?: string | null
           version_number?: number | null
-          module_id?: string
-          plan_id?: string
-          last_edited_by?: string | null
-          last_edited_at?: string | null
-          is_draft?: boolean
-          draft_content?: Json | null
         }
         Relationships: [
           {
@@ -1199,6 +1209,119 @@ export type Database = {
           },
         ]
       }
+      course_content_versions: {
+        Row: {
+          change_summary: string | null
+          content_id: string
+          content_snapshot: Json
+          created_at: string | null
+          edited_by: string | null
+          id: string
+          is_published: boolean | null
+          module_id: string
+          plan_id: string
+          version_number: number
+        }
+        Insert: {
+          change_summary?: string | null
+          content_id: string
+          content_snapshot: Json
+          created_at?: string | null
+          edited_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          module_id: string
+          plan_id: string
+          version_number: number
+        }
+        Update: {
+          change_summary?: string | null
+          content_id?: string
+          content_snapshot?: Json
+          created_at?: string | null
+          edited_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          module_id?: string
+          plan_id?: string
+          version_number?: number
+        }
+        Relationships: []
+      }
+      course_edit_history: {
+        Row: {
+          action_type: string
+          content_id: string
+          created_at: string | null
+          editor_id: string
+          id: string
+          module_id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action_type: string
+          content_id: string
+          created_at?: string | null
+          editor_id: string
+          id?: string
+          module_id: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action_type?: string
+          content_id?: string
+          created_at?: string | null
+          editor_id?: string
+          id?: string
+          module_id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
+      course_edit_permissions: {
+        Row: {
+          can_edit_all_courses: boolean | null
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          specific_course_ids: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          can_edit_all_courses?: boolean | null
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          specific_course_ids?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          can_edit_all_courses?: boolean | null
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          specific_course_ids?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_edit_permissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_generation_jobs: {
         Row: {
           company_id: string
@@ -1654,7 +1777,10 @@ export type Database = {
       }
       early_access_leads: {
         Row: {
+          auth_user_id: string | null
           company: string | null
+          converted_to_auth_at: string | null
+          converted_to_company_id: string | null
           converted_to_user_id: string | null
           created_at: string | null
           deleted_at: string | null
@@ -1665,6 +1791,7 @@ export type Database = {
           invited_at: string | null
           name: string | null
           onboarded_at: string | null
+          password_set: boolean | null
           profile_completed_at: string | null
           referral_code: string | null
           referral_count: number | null
@@ -1672,6 +1799,7 @@ export type Database = {
           role: string | null
           source: string | null
           status: string | null
+          team_size: string | null
           use_case: string | null
           utm_campaign: string | null
           utm_medium: string | null
@@ -1679,7 +1807,10 @@ export type Database = {
           waitlist_position: number | null
         }
         Insert: {
+          auth_user_id?: string | null
           company?: string | null
+          converted_to_auth_at?: string | null
+          converted_to_company_id?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -1690,6 +1821,7 @@ export type Database = {
           invited_at?: string | null
           name?: string | null
           onboarded_at?: string | null
+          password_set?: boolean | null
           profile_completed_at?: string | null
           referral_code?: string | null
           referral_count?: number | null
@@ -1697,6 +1829,7 @@ export type Database = {
           role?: string | null
           source?: string | null
           status?: string | null
+          team_size?: string | null
           use_case?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -1704,7 +1837,10 @@ export type Database = {
           waitlist_position?: number | null
         }
         Update: {
+          auth_user_id?: string | null
           company?: string | null
+          converted_to_auth_at?: string | null
+          converted_to_company_id?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -1715,6 +1851,7 @@ export type Database = {
           invited_at?: string | null
           name?: string | null
           onboarded_at?: string | null
+          password_set?: boolean | null
           profile_completed_at?: string | null
           referral_code?: string | null
           referral_count?: number | null
@@ -1722,6 +1859,7 @@ export type Database = {
           role?: string | null
           source?: string | null
           status?: string | null
+          team_size?: string | null
           use_case?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -1729,6 +1867,13 @@ export type Database = {
           waitlist_position?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "early_access_leads_converted_to_company_id_fkey"
+            columns: ["converted_to_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "early_access_leads_converted_to_user_id_fkey"
             columns: ["converted_to_user_id"]
@@ -2159,40 +2304,61 @@ export type Database = {
       }
       employee_skills_validation: {
         Row: {
+          assessment_data: Json | null
+          assessment_type: string | null
+          context_used: Json | null
           created_at: string | null
           employee_id: string | null
           id: string
           is_from_cv: boolean | null
           is_from_position: boolean | null
           proficiency_level: number | null
+          questions_asked: Json | null
+          responses: Json | null
           skill_id: string | null
           skill_name: string
           validated_at: string | null
           validation_order: number | null
+          verification_score: number | null
+          verified_at: string | null
         }
         Insert: {
+          assessment_data?: Json | null
+          assessment_type?: string | null
+          context_used?: Json | null
           created_at?: string | null
           employee_id?: string | null
           id?: string
           is_from_cv?: boolean | null
           is_from_position?: boolean | null
           proficiency_level?: number | null
+          questions_asked?: Json | null
+          responses?: Json | null
           skill_id?: string | null
           skill_name: string
           validated_at?: string | null
           validation_order?: number | null
+          verification_score?: number | null
+          verified_at?: string | null
         }
         Update: {
+          assessment_data?: Json | null
+          assessment_type?: string | null
+          context_used?: Json | null
           created_at?: string | null
           employee_id?: string | null
           id?: string
           is_from_cv?: boolean | null
           is_from_position?: boolean | null
           proficiency_level?: number | null
+          questions_asked?: Json | null
+          responses?: Json | null
           skill_id?: string | null
           skill_name?: string
           validated_at?: string | null
           validation_order?: number | null
+          verification_score?: number | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -2305,6 +2471,7 @@ export type Database = {
           hris_data: Json | null
           hris_id: string | null
           id: string
+          import_session_id: string | null
           is_active: boolean | null
           key_tools: string[] | null
           last_activity: string | null
@@ -2312,6 +2479,8 @@ export type Database = {
           learning_streak: number | null
           learning_style: Json | null
           manager_id: string | null
+          market_gap_data: Json | null
+          market_gap_updated_at: string | null
           position: string | null
           profile_builder_points: number | null
           profile_builder_streak: number | null
@@ -2346,6 +2515,7 @@ export type Database = {
           hris_data?: Json | null
           hris_id?: string | null
           id?: string
+          import_session_id?: string | null
           is_active?: boolean | null
           key_tools?: string[] | null
           last_activity?: string | null
@@ -2353,6 +2523,8 @@ export type Database = {
           learning_streak?: number | null
           learning_style?: Json | null
           manager_id?: string | null
+          market_gap_data?: Json | null
+          market_gap_updated_at?: string | null
           position?: string | null
           profile_builder_points?: number | null
           profile_builder_streak?: number | null
@@ -2387,6 +2559,7 @@ export type Database = {
           hris_data?: Json | null
           hris_id?: string | null
           id?: string
+          import_session_id?: string | null
           is_active?: boolean | null
           key_tools?: string[] | null
           last_activity?: string | null
@@ -2394,6 +2567,8 @@ export type Database = {
           learning_streak?: number | null
           learning_style?: Json | null
           manager_id?: string | null
+          market_gap_data?: Json | null
+          market_gap_updated_at?: string | null
           position?: string | null
           profile_builder_points?: number | null
           profile_builder_streak?: number | null
@@ -2458,6 +2633,27 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_employees_import_session"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "st_import_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_employees_import_session"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "v_batch_history"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "fk_employees_import_session"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "v_import_session_analytics"
             referencedColumns: ["id"]
           },
         ]
@@ -2954,6 +3150,101 @@ export type Database = {
           },
         ]
       }
+      market_benchmark_cache: {
+        Row: {
+          cache_key: string
+          company_id: string
+          created_at: string | null
+          departments_data: Json | null
+          employees_data: Json | null
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          metadata: Json | null
+          organization_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          cache_key?: string
+          company_id: string
+          created_at?: string | null
+          departments_data?: Json | null
+          employees_data?: Json | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          cache_key?: string
+          company_id?: string
+          created_at?: string | null
+          departments_data?: Json | null
+          employees_data?: Json | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_benchmark_cache_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_skills_benchmarks: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          industry: string | null
+          last_refresh_attempt: string | null
+          metadata: Json | null
+          role_name: string
+          skills: Json
+          source_model: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          industry?: string | null
+          last_refresh_attempt?: string | null
+          metadata?: Json | null
+          role_name: string
+          skills: Json
+          source_model?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          industry?: string | null
+          last_refresh_attempt?: string | null
+          metadata?: Json | null
+          role_name?: string
+          skills?: Json
+          source_model?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mm_audio_narrations: {
         Row: {
           audio_segments: Json | null
@@ -3374,6 +3665,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       peer_review_assignments: {
         Row: {
           assigned_at: string | null
@@ -3439,6 +3766,41 @@ export type Database = {
           },
         ]
       }
+      position_drafts: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          draft_data: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          draft_data: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          draft_data?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_drafts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       position_mappings: {
         Row: {
           approved_by: string | null
@@ -3498,62 +3860,62 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          email_clicked_at: string | null
+          email_clicked_count: number | null
+          email_clicks: Json | null
+          email_opened_at: string | null
+          email_opened_count: number | null
+          email_tracking_data: Json | null
           employee_id: string | null
           expires_at: string | null
           id: string
           invitation_token: string | null
           last_reminder_at: string | null
           reminder_count: number | null
+          resend_email_id: string | null
           sent_at: string | null
           updated_at: string | null
           viewed_at: string | null
-          resend_email_id: string | null
-          email_opened_at: string | null
-          email_opened_count: number | null
-          email_clicked_at: string | null
-          email_clicked_count: number | null
-          email_clicks: Json | null
-          email_tracking_data: Json | null
         }
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          email_clicked_at?: string | null
+          email_clicked_count?: number | null
+          email_clicks?: Json | null
+          email_opened_at?: string | null
+          email_opened_count?: number | null
+          email_tracking_data?: Json | null
           employee_id?: string | null
           expires_at?: string | null
           id?: string
           invitation_token?: string | null
           last_reminder_at?: string | null
           reminder_count?: number | null
+          resend_email_id?: string | null
           sent_at?: string | null
           updated_at?: string | null
           viewed_at?: string | null
-          resend_email_id?: string | null
-          email_opened_at?: string | null
-          email_opened_count?: number | null
-          email_clicked_at?: string | null
-          email_clicked_count?: number | null
-          email_clicks?: Json | null
-          email_tracking_data?: Json | null
         }
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          email_clicked_at?: string | null
+          email_clicked_count?: number | null
+          email_clicks?: Json | null
+          email_opened_at?: string | null
+          email_opened_count?: number | null
+          email_tracking_data?: Json | null
           employee_id?: string | null
           expires_at?: string | null
           id?: string
           invitation_token?: string | null
           last_reminder_at?: string | null
           reminder_count?: number | null
+          resend_email_id?: string | null
           sent_at?: string | null
           updated_at?: string | null
           viewed_at?: string | null
-          resend_email_id?: string | null
-          email_opened_at?: string | null
-          email_opened_count?: number | null
-          email_clicked_at?: string | null
-          email_clicked_count?: number | null
-          email_clicks?: Json | null
-          email_tracking_data?: Json | null
         }
         Relationships: [
           {
@@ -3647,62 +4009,257 @@ export type Database = {
           },
         ]
       }
+      skill_assessment_history: {
+        Row: {
+          assessment_date: string | null
+          assessment_version: string | null
+          calculated_level: number | null
+          context: Json | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          position_id: string | null
+          questions: Json
+          required_level: number | null
+          responses: Json
+          skill_id: string | null
+          skill_name: string
+          time_taken: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_date?: string | null
+          assessment_version?: string | null
+          calculated_level?: number | null
+          context?: Json | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          position_id?: string | null
+          questions?: Json
+          required_level?: number | null
+          responses?: Json
+          skill_id?: string | null
+          skill_name: string
+          time_taken?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_date?: string | null
+          assessment_version?: string | null
+          calculated_level?: number | null
+          context?: Json | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          position_id?: string | null
+          questions?: Json
+          required_level?: number | null
+          responses?: Json
+          skill_id?: string | null
+          skill_name?: string
+          time_taken?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_employee_skills_dashboard"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "st_skills_taxonomy"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
+      skill_assessment_questions: {
+        Row: {
+          assessment_context: Json | null
+          created_at: string | null
+          employee_id: string
+          generated_at: string | null
+          id: string
+          is_used: boolean | null
+          position_id: string | null
+          questions: Json
+          skill_id: string | null
+          skill_name: string
+          updated_at: string | null
+          used_at: string | null
+        }
+        Insert: {
+          assessment_context?: Json | null
+          created_at?: string | null
+          employee_id: string
+          generated_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          position_id?: string | null
+          questions: Json
+          skill_id?: string | null
+          skill_name: string
+          updated_at?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          assessment_context?: Json | null
+          created_at?: string | null
+          employee_id?: string
+          generated_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          position_id?: string | null
+          questions?: Json
+          skill_id?: string | null
+          skill_name?: string
+          updated_at?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_assessment_questions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_questions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_employee_skills_dashboard"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_questions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_questions_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills_gap_leads: {
         Row: {
+          auth_user_id: string | null
           company: string | null
+          converted_to_auth_at: string | null
+          converted_to_company_id: string | null
           converted_to_user_id: string | null
           created_at: string | null
           current_process: string | null
           email: string
+          enrichment_data: Json | null
+          heard_about: string | null
           id: string
           name: string | null
+          onboarded_at: string | null
+          password_set: boolean | null
           primary_challenge: string | null
           role: string | null
           source: string | null
           status: string | null
           team_size: string | null
+          use_case: string | null
           utm_campaign: string | null
           utm_medium: string | null
           utm_source: string | null
           verified_at: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           company?: string | null
+          converted_to_auth_at?: string | null
+          converted_to_company_id?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
           current_process?: string | null
           email: string
+          enrichment_data?: Json | null
+          heard_about?: string | null
           id?: string
           name?: string | null
+          onboarded_at?: string | null
+          password_set?: boolean | null
           primary_challenge?: string | null
           role?: string | null
           source?: string | null
           status?: string | null
           team_size?: string | null
+          use_case?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
           verified_at?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           company?: string | null
+          converted_to_auth_at?: string | null
+          converted_to_company_id?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
           current_process?: string | null
           email?: string
+          enrichment_data?: Json | null
+          heard_about?: string | null
           id?: string
           name?: string | null
+          onboarded_at?: string | null
+          password_set?: boolean | null
           primary_challenge?: string | null
           role?: string | null
           source?: string | null
           status?: string | null
           team_size?: string | null
+          use_case?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
           verified_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "skills_gap_leads_converted_to_company_id_fkey"
+            columns: ["converted_to_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "skills_gap_leads_converted_to_user_id_fkey"
             columns: ["converted_to_user_id"]
@@ -3928,6 +4485,13 @@ export type Database = {
             foreignKeyName: "st_cv_processing_queue_import_session_id_fkey"
             columns: ["import_session_id"]
             isOneToOne: false
+            referencedRelation: "v_batch_history"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "st_cv_processing_queue_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
             referencedRelation: "v_import_session_analytics"
             referencedColumns: ["id"]
           },
@@ -3936,6 +4500,13 @@ export type Database = {
             columns: ["session_item_id"]
             isOneToOne: true
             referencedRelation: "st_import_session_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_cv_processing_queue_session_item_id_fkey"
+            columns: ["session_item_id"]
+            isOneToOne: true
+            referencedRelation: "v_active_spreadsheet_items"
             referencedColumns: ["id"]
           },
         ]
@@ -3957,6 +4528,8 @@ export type Database = {
           id: string
           industry_experience: Json | null
           languages: Json | null
+          market_comparison: Json | null
+          market_comparison_updated_at: string | null
           projects_summary: string | null
           skills_analysis_version: number | null
           skills_match_score: number | null
@@ -3983,6 +4556,8 @@ export type Database = {
           id?: string
           industry_experience?: Json | null
           languages?: Json | null
+          market_comparison?: Json | null
+          market_comparison_updated_at?: string | null
           projects_summary?: string | null
           skills_analysis_version?: number | null
           skills_match_score?: number | null
@@ -4009,6 +4584,8 @@ export type Database = {
           id?: string
           industry_experience?: Json | null
           languages?: Json | null
+          market_comparison?: Json | null
+          market_comparison_updated_at?: string | null
           projects_summary?: string | null
           skills_analysis_version?: number | null
           skills_match_score?: number | null
@@ -4131,14 +4708,20 @@ export type Database = {
           cv_analysis_result: Json | null
           cv_file_path: string | null
           cv_filename: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           employee_email: string
           employee_id: string | null
           employee_name: string | null
           error_message: string | null
+          field_values: Json | null
           id: string
           import_session_id: string
+          is_deleted: boolean | null
+          last_modified: string | null
           position_match_analysis: Json | null
           processed_at: string | null
+          row_order: number | null
           skills_profile_id: string | null
           status: string | null
           suggested_positions: Json | null
@@ -4154,14 +4737,20 @@ export type Database = {
           cv_analysis_result?: Json | null
           cv_file_path?: string | null
           cv_filename?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           employee_email: string
           employee_id?: string | null
           employee_name?: string | null
           error_message?: string | null
+          field_values?: Json | null
           id?: string
           import_session_id: string
+          is_deleted?: boolean | null
+          last_modified?: string | null
           position_match_analysis?: Json | null
           processed_at?: string | null
+          row_order?: number | null
           skills_profile_id?: string | null
           status?: string | null
           suggested_positions?: Json | null
@@ -4177,14 +4766,20 @@ export type Database = {
           cv_analysis_result?: Json | null
           cv_file_path?: string | null
           cv_filename?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           employee_email?: string
           employee_id?: string | null
           employee_name?: string | null
           error_message?: string | null
+          field_values?: Json | null
           id?: string
           import_session_id?: string
+          is_deleted?: boolean | null
+          last_modified?: string | null
           position_match_analysis?: Json | null
           processed_at?: string | null
+          row_order?: number | null
           skills_profile_id?: string | null
           status?: string | null
           suggested_positions?: Json | null
@@ -4223,6 +4818,13 @@ export type Database = {
             foreignKeyName: "st_import_session_items_import_session_id_fkey"
             columns: ["import_session_id"]
             isOneToOne: false
+            referencedRelation: "v_batch_history"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "st_import_session_items_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
             referencedRelation: "v_import_session_analytics"
             referencedColumns: ["id"]
           },
@@ -4240,6 +4842,7 @@ export type Database = {
           active_position_id: string | null
           analysis_config: Json | null
           bulk_analysis_status: string | null
+          checklist_state: Json | null
           company_id: string
           completed_at: string | null
           created_at: string | null
@@ -4249,8 +4852,10 @@ export type Database = {
           failed: number | null
           id: string
           import_type: string | null
+          last_active: string | null
           processed: number | null
           session_metadata: Json | null
+          spreadsheet_mode: boolean | null
           status: string | null
           successful: number | null
           total_employees: number
@@ -4259,6 +4864,7 @@ export type Database = {
           active_position_id?: string | null
           analysis_config?: Json | null
           bulk_analysis_status?: string | null
+          checklist_state?: Json | null
           company_id: string
           completed_at?: string | null
           created_at?: string | null
@@ -4268,8 +4874,10 @@ export type Database = {
           failed?: number | null
           id?: string
           import_type?: string | null
+          last_active?: string | null
           processed?: number | null
           session_metadata?: Json | null
+          spreadsheet_mode?: boolean | null
           status?: string | null
           successful?: number | null
           total_employees?: number
@@ -4278,6 +4886,7 @@ export type Database = {
           active_position_id?: string | null
           analysis_config?: Json | null
           bulk_analysis_status?: string | null
+          checklist_state?: Json | null
           company_id?: string
           completed_at?: string | null
           created_at?: string | null
@@ -4287,8 +4896,10 @@ export type Database = {
           failed?: number | null
           id?: string
           import_type?: string | null
+          last_active?: string | null
           processed?: number | null
           session_metadata?: Json | null
+          spreadsheet_mode?: boolean | null
           status?: string | null
           successful?: number | null
           total_employees?: number
@@ -4484,6 +5095,53 @@ export type Database = {
           },
         ]
       }
+      undo_operations: {
+        Row: {
+          affected_ids: string[]
+          affected_table: string
+          company_id: string
+          created_at: string | null
+          executed: boolean | null
+          expires_at: string | null
+          id: string
+          operation_data: Json
+          operation_type: string
+          user_id: string
+        }
+        Insert: {
+          affected_ids: string[]
+          affected_table: string
+          company_id: string
+          created_at?: string | null
+          executed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          operation_data: Json
+          operation_type: string
+          user_id: string
+        }
+        Update: {
+          affected_ids?: string[]
+          affected_table?: string
+          company_id?: string
+          created_at?: string | null
+          executed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          operation_data?: Json
+          operation_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "undo_operations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -4497,6 +5155,7 @@ export type Database = {
           is_active: boolean | null
           last_login: string | null
           learning_preferences: Json | null
+          metadata: Json | null
           password_hash: string
           phone: string | null
           position: string | null
@@ -4515,6 +5174,7 @@ export type Database = {
           is_active?: boolean | null
           last_login?: string | null
           learning_preferences?: Json | null
+          metadata?: Json | null
           password_hash: string
           phone?: string | null
           position?: string | null
@@ -4533,6 +5193,7 @@ export type Database = {
           is_active?: boolean | null
           last_login?: string | null
           learning_preferences?: Json | null
+          metadata?: Json | null
           password_hash?: string
           phone?: string | null
           position?: string | null
@@ -4634,175 +5295,8 @@ export type Database = {
           },
         ]
       }
-      course_content_versions: {
-        Row: {
-          id: string
-          content_id: string
-          module_id: string
-          plan_id: string
-          version_number: number
-          content_snapshot: Json
-          edited_by: string | null
-          created_at: string
-          change_summary: string | null
-          is_published: boolean
-        }
-        Insert: {
-          id?: string
-          content_id: string
-          module_id: string
-          plan_id: string
-          version_number: number
-          content_snapshot: Json
-          edited_by?: string | null
-          created_at?: string
-          change_summary?: string | null
-          is_published?: boolean
-        }
-        Update: {
-          id?: string
-          content_id?: string
-          module_id?: string
-          plan_id?: string
-          version_number?: number
-          content_snapshot?: Json
-          edited_by?: string | null
-          created_at?: string
-          change_summary?: string | null
-          is_published?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_content_versions_edited_by_fkey"
-            columns: ["edited_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      course_edit_permissions: {
-        Row: {
-          id: string
-          company_id: string
-          user_id: string
-          can_edit_all_courses: boolean
-          specific_course_ids: string[] | null
-          created_at: string
-          created_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          company_id: string
-          user_id: string
-          can_edit_all_courses?: boolean
-          specific_course_ids?: string[] | null
-          created_at?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          company_id?: string
-          user_id?: string
-          can_edit_all_courses?: boolean
-          specific_course_ids?: string[] | null
-          created_at?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_edit_permissions_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "course_edit_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "course_edit_permissions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      course_edit_history: {
-        Row: {
-          id: string
-          content_id: string
-          module_id: string
-          editor_id: string
-          action_type: string
-          field_changed: string | null
-          old_value: string | null
-          new_value: string | null
-          created_at: string
-          ip_address: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          id?: string
-          content_id: string
-          module_id: string
-          editor_id: string
-          action_type: string
-          field_changed?: string | null
-          old_value?: string | null
-          new_value?: string | null
-          created_at?: string
-          ip_address?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          id?: string
-          content_id?: string
-          module_id?: string
-          editor_id?: string
-          action_type?: string
-          field_changed?: string | null
-          old_value?: string | null
-          new_value?: string | null
-          created_at?: string
-          ip_address?: string | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_edit_history_editor_id_fkey"
-            columns: ["editor_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
     }
     Views: {
-      v_user_editable_courses: {
-        Row: {
-          plan_id: string
-          course_title: string | null
-          employee_id: string
-          employee_name: string
-          company_id: string
-          company_name: string
-          can_edit_all_courses: boolean
-          created_at: string | null
-          module_count: number | null
-          last_edited: string | null
-        }
-        Relationships: []
-      }
       cv_analysis_stats: {
         Row: {
           analysis_date: string | null
@@ -4843,6 +5337,56 @@ export type Database = {
           },
         ]
       }
+      latest_skill_assessments: {
+        Row: {
+          assessment_date: string | null
+          assessment_version: string | null
+          calculated_level: number | null
+          employee_id: string | null
+          position_id: string | null
+          required_level: number | null
+          skill_id: string | null
+          skill_name: string | null
+          time_taken: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_employee_skills_dashboard"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_assessment_history_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "st_skills_taxonomy"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
       st_skills_overview: {
         Row: {
           category: string | null
@@ -4869,6 +5413,90 @@ export type Database = {
           utm_source: string | null
         }
         Relationships: []
+      }
+      v_active_spreadsheet_items: {
+        Row: {
+          checklist_state: Json | null
+          company_id: string | null
+          current_position_code: string | null
+          cv_file_path: string | null
+          cv_filename: string | null
+          employee_email: string | null
+          employee_name: string | null
+          field_values: Json | null
+          id: string | null
+          import_session_id: string | null
+          last_modified: string | null
+          row_order: number | null
+          spreadsheet_mode: boolean | null
+          status: string | null
+          target_position_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_import_session_items_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "st_import_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_session_items_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "v_batch_history"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "st_import_session_items_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "v_import_session_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_batch_history: {
+        Row: {
+          active_items: number | null
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          created_by_name: string | null
+          deleted_items: number | null
+          failed: number | null
+          import_type: string | null
+          last_active: string | null
+          processed: number | null
+          session_id: string | null
+          session_metadata: Json | null
+          status: string | null
+          successful: number | null
+          total_employees: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_import_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_company_employees: {
         Row: {
@@ -5018,6 +5646,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_spreadsheet_row: {
+        Args: { p_session_id: string; p_field_values: Json }
+        Returns: string
+      }
       admin_reset_user_password: {
         Args: { user_email: string; new_password: string }
         Returns: string
@@ -5025,6 +5657,14 @@ export type Database = {
       assign_waitlist_position: {
         Args: { lead_email: string } | { lead_id: string }
         Returns: number
+      }
+      batch_delete_items: {
+        Args: { p_item_ids: string[] }
+        Returns: Json
+      }
+      batch_update_rows: {
+        Args: { p_session_id: string; p_updates: Json[] }
+        Returns: Json
       }
       calculate_department_skills_gaps: {
         Args: { p_company_id: string; p_department: string }
@@ -5091,9 +5731,20 @@ export type Database = {
           total_gaps_count: number
         }[]
       }
+      can_edit_course: {
+        Args: { p_plan_id: string }
+        Returns: boolean
+      }
       check_auth_uid: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      check_pending_major_changes: {
+        Args: { p_module_id: string }
+        Returns: {
+          has_major_changes: boolean
+          affected_employees: number
+        }[]
       }
       check_user_exists_by_email: {
         Args: { p_email: string }
@@ -5102,17 +5753,37 @@ export type Database = {
           user_exists: boolean
         }[]
       }
+      clean_expired_benchmark_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      clean_expired_market_benchmarks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_expired_skills_gap_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_undo_operations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_expired_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_cv_analysis_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       cleanup_old_import_files: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      cleanup_old_spreadsheet_drafts: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       create_company_user: {
         Args: {
@@ -5122,6 +5793,10 @@ export type Database = {
           p_role?: string
         }
         Returns: string
+      }
+      create_empty_rows: {
+        Args: { p_session_id: string; p_count?: number }
+        Returns: number
       }
       create_session_items_for_employees: {
         Args: { p_session_id: string; p_employee_ids: string[] }
@@ -5139,6 +5814,78 @@ export type Database = {
           p_file_name: string
         }
         Returns: string
+      }
+      get_active_benchmark_configs: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          role_name: string
+          industry: string
+          department: string
+          skills_count: number
+          last_refresh: string
+          expires_at: string
+          is_stale: boolean
+        }[]
+      }
+      get_batch_history: {
+        Args: { p_company_id: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          session_id: string
+          created_by_name: string
+          created_at: string
+          total_employees: number
+          active_items: number
+          deleted_items: number
+          status: string
+          session_metadata: Json
+        }[]
+      }
+      get_department_skill_breakdown: {
+        Args: { dept_name: string }
+        Returns: {
+          critical_count: number
+          emerging_count: number
+          foundational_count: number
+          total_skills: number
+        }[]
+      }
+      get_department_top_gaps: {
+        Args: { dept_name: string; gap_limit?: number }
+        Returns: {
+          skill_name: string
+          gap_percentage: number
+          category: string
+          affected_employees: number
+        }[]
+      }
+      get_departments_benchmark_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          department: string
+          employee_count: number
+          analyzed_count: number
+          avg_skills_match: number
+          critical_gaps: number
+          emerging_gaps: number
+        }[]
+      }
+      get_employee_verification_status: {
+        Args: { p_employee_id: string }
+        Returns: {
+          total_skills: number
+          verified_skills: number
+          verification_percentage: number
+          last_verification_date: string
+          position_readiness_score: number
+        }[]
+      }
+      get_market_benchmarks: {
+        Args: {
+          p_role_name: string
+          p_industry?: string
+          p_department?: string
+        }
+        Returns: Json
       }
       get_module_content_for_admin: {
         Args: { p_content_id: string; p_company_id: string }
@@ -5188,6 +5935,35 @@ export type Database = {
           import_session_id: string
         }[]
       }
+      get_organization_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_employees: number
+          analyzed_employees: number
+          departments_count: number
+          avg_skills_match: number
+          critical_gaps_count: number
+          moderate_gaps_count: number
+        }[]
+      }
+      get_pending_import_counts: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
+      get_session_items_detailed: {
+        Args: { p_session_id: string }
+        Returns: {
+          item_id: string
+          employee_name: string
+          employee_email: string
+          department: string
+          position_title: string
+          status: string
+          created_at: string
+          deleted_at: string
+          can_undo: boolean
+        }[]
+      }
       get_skill_path: {
         Args: { skill_uuid: string }
         Returns: {
@@ -5200,6 +5976,29 @@ export type Database = {
       get_skills_insights_from_profile: {
         Args: { p_employee_id: string }
         Returns: Json
+      }
+      get_spreadsheet_rows: {
+        Args: { p_session_id: string }
+        Returns: {
+          id: string
+          import_session_id: string
+          employee_name: string
+          employee_email: string
+          current_position_code: string
+          field_values: Json
+          status: string
+          created_at: string
+          last_modified: string
+        }[]
+      }
+      get_top_missing_skills: {
+        Args: { gap_limit?: number }
+        Returns: {
+          skill_name: string
+          affected_employees: number
+          severity: string
+          avg_gap_score: number
+        }[]
       }
       get_user_auth_data: {
         Args: { user_uuid: string }
@@ -5220,9 +6019,43 @@ export type Database = {
         Args: { check_company_id: string }
         Returns: boolean
       }
+      is_course_editor: {
+        Args: { p_user_id: string; p_company_id: string }
+        Returns: boolean
+      }
+      is_major_content_change: {
+        Args: { p_old_content: Json; p_new_content: Json }
+        Returns: boolean
+      }
+      notify_course_update: {
+        Args: {
+          p_plan_id: string
+          p_editor_name: string
+          p_course_title: string
+          p_change_summary?: string
+        }
+        Returns: number
+      }
       process_referral: {
         Args: { referrer_id: string }
         Returns: undefined
+      }
+      refresh_stale_market_benchmarks: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      reset_module_progress_for_major_change: {
+        Args: {
+          p_content_id: string
+          p_module_id: string
+          p_plan_id: string
+          p_reason?: string
+        }
+        Returns: number
+      }
+      save_spreadsheet_cell: {
+        Args: { p_item_id: string; p_field: string; p_value: string }
+        Returns: Json
       }
       search_skills: {
         Args: { search_term: string; limit_count?: number }
@@ -5234,6 +6067,10 @@ export type Database = {
           full_path: string
           relevance: number
         }[]
+      }
+      soft_delete_row: {
+        Args: { p_item_id: string }
+        Returns: Json
       }
       test_auth_context: {
         Args: Record<PropertyKey, never>
@@ -5253,6 +6090,14 @@ export type Database = {
           test_bucket_id: string
           test_object_name: string
         }
+        Returns: Json
+      }
+      transform_cv_data_fields: {
+        Args: { cv_data: Json }
+        Returns: Json
+      }
+      undo_last_operation: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       update_employee_skills_scores: {

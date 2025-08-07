@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS market_skills_benchmarks (
   metadata JSONB, -- Store insights, trends, sources
   source_model TEXT DEFAULT 'gpt-4o',
   generated_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '30 days',
+  expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '14 days',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT unique_role_industry_dept UNIQUE(role_name, industry, department)

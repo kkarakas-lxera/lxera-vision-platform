@@ -1,6 +1,9 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import OpenAI from 'https://esm.sh/openai@5.11.0'
+ // @ts-ignore: Deno imports
+ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+ // @ts-ignore: Deno imports
+ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+ // @ts-ignore: Deno imports
+ import OpenAI from 'https://esm.sh/openai@5.11.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -65,54 +68,26 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client
+    // @ts-ignore: Deno environment
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    // @ts-ignore: Deno environment
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check for cached benchmarks if not forcing refresh
+    // Check for cached benchmarks via SQL RPC if not forcing refresh
     if (!force_refresh) {
-      // Get full benchmark data including metadata
-      const { data: cachedBenchmark } = await supabase
-        .from('market_skills_benchmarks')
-        .select('skills, generated_at, expires_at')
-        .eq('role_name', role)
-        .eq('industry', industry || '')
-        .eq('department', department || '')
-        .gt('expires_at', new Date().toISOString())
-        .order('generated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (cachedBenchmark?.skills) {
+      const { data: rpcSkills, error: rpcError } = await supabase.rpc('get_market_benchmarks', {
+        p_role_name: role,
+        p_industry: industry,
+        p_department: department
+      })
+      if (rpcError) throw rpcError
+      if (rpcSkills) {
         console.log('Returning cached benchmarks')
-        
-        // If insights are requested, check if we have cached insights
-        let cachedInsights = undefined
-        if (include_insights && cachedBenchmark.skills) {
-          // Try to get cached insights from metadata
-          const { data: benchmarkWithMeta } = await supabase
-            .from('market_skills_benchmarks')
-            .select('metadata')
-            .eq('role_name', role)
-            .eq('industry', industry || '')
-            .eq('department', department || '')
-            .gt('expires_at', new Date().toISOString())
-            .order('generated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-          
-          if (benchmarkWithMeta?.metadata?.insights) {
-            cachedInsights = benchmarkWithMeta.metadata.insights
-          }
-        }
-        
         return new Response(
-          JSON.stringify({ 
-            skills: cachedBenchmark.skills,
-            insights: cachedInsights,
-            cached: true,
-            generated_at: cachedBenchmark.generated_at,
-            expires_at: cachedBenchmark.expires_at
+          JSON.stringify({
+            skills: rpcSkills,
+            cached: true
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
@@ -120,6 +95,7 @@ serve(async (req) => {
     }
 
     // Generate new benchmarks with OpenAI
+    // @ts-ignore: Deno environment
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured')
