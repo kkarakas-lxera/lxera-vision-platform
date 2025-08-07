@@ -186,7 +186,8 @@ export default function EmployeeProfile() {
       // Create skills profile compatible structure
       const skillsProfile = {
         employee_id: employeeId,
-        extracted_skills: employeeSkills?.map(skill => ({
+        // Only include CV-sourced skills in extracted_skills
+        extracted_skills: employeeSkills?.filter(skill => skill.source === 'cv').map(skill => ({
           skill_name: skill.skill_name,
           proficiency_level: skill.proficiency, // Already 0-3
           source: skill.source,

@@ -291,7 +291,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   // Calculate metrics
   const extractedSkillsCount = cvSkills.length;
   const roleRequirementsCount = positionRequirements.length;
-  const verifiedSkillsCount = allSkills.filter(s => s.verified_percentage > 0).length;
+  const verifiedSkillsCount = allSkills.filter(s => s.verification_data !== null && s.verification_data !== undefined).length;
   
   const summary = `${extractedSkillsCount} extracted from CV | ${roleRequirementsCount} role requirements | ${verifiedSkillsCount} verified`;
 
