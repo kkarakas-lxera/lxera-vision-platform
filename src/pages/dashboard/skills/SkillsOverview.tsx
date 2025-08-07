@@ -681,7 +681,9 @@ export default function SkillsOverview() {
                         onRegenerate={async () => {
                           setBenchmarkRefreshing(true);
                           try {
-                            await fetchBenchmarkData(false);
+                            // The button already cleared cache via RPC
+                            // Just fetch fresh data
+                            await fetchBenchmarkData(true);
                           } finally {
                             setBenchmarkRefreshing(false);
                           }

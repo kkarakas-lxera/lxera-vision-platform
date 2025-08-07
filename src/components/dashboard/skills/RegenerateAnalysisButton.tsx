@@ -84,24 +84,46 @@ export function RegenerateAnalysisButton({
       }
 
       // Show progress toast
-      toast.loading('Regenerating analysis...', {
+      const toastId = toast.loading('Regenerating analysis...', {
         description: 'This may take a moment'
       });
 
-      // Call the actual regeneration function
-      await onRegenerate();
+      try {
+        // Call the actual regeneration function
+        await onRegenerate();
 
-      // Update local status
-      setRegenerationStatus(prev => ({
-        ...prev,
-        remaining: regenerateData.remaining || 0,
-        used: (prev.used || 0) + 1,
-        lastRegeneratedAt: new Date()
-      }));
+        // Update local status
+        setRegenerationStatus(prev => ({
+          ...prev,
+          remaining: regenerateData.remaining || 0,
+          used: (prev.used || 0) + 1,
+          lastRegeneratedAt: new Date()
+        }));
 
-      toast.success('Analysis regenerated successfully!', {
-        description: `${regenerateData.remaining} regenerations remaining this month`
-      });
+        toast.success('Analysis regenerated successfully!', {
+          id: toastId,
+          description: `${regenerateData.remaining} regenerations remaining this month`
+        });
+      } catch (regenerateError) {
+        // Regeneration failed - try to restore the count
+        console.error('Regeneration failed:', regenerateError);
+        
+        // Restore the regeneration count since it failed
+        try {
+          await supabase.rpc('restore_regeneration_count');
+        } catch (restoreError) {
+          console.error('Could not restore regeneration count:', restoreError);
+        }
+        
+        toast.error('Failed to regenerate analysis', {
+          id: toastId,
+          description: 'Your regeneration was not consumed. Please try again.'
+        });
+        
+        // Re-fetch the status
+        await fetchRegenerationStatus();
+        throw regenerateError;
+      }
 
     } catch (error) {
       console.error('Error regenerating analysis:', error);
