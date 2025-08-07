@@ -65,10 +65,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
   const profileCompletion = useProfileCompletion();
-  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
-    // Start with sidebar closed for learners, open for others
-    return userProfile?.role !== 'learner';
-  });
+  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Always start collapsed, expand on hover
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     // Load from localStorage or default to all expanded
     const saved = localStorage.getItem('sidebar-expanded-sections');
@@ -172,12 +169,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
     <div className="min-h-screen bg-white dashboard-theme font-inter">
       {/* Sidebar - Hidden on mobile */}
       {!isMobile && (
-        <div className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out font-inter",
-          sidebarExpanded ? "w-64" : "w-16"
-        )}>
+        <div 
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out font-inter",
+            sidebarExpanded ? "w-64" : "w-16"
+          )}
+          onMouseEnter={() => setSidebarExpanded(true)}
+          onMouseLeave={() => setSidebarExpanded(false)}
+        >
         <div className="flex h-16 items-center justify-between border-b border-slate-700 px-4">
-          {sidebarExpanded && (
+          {sidebarExpanded ? (
             <div className="flex items-center">
               <img
                 src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
@@ -190,15 +191,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                 decoding="sync"
               />
             </div>
+          ) : (
+            <div className="flex items-center justify-center w-full">
+              <Menu className="h-5 w-5 text-slate-400" />
+            </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
-          >
-            {sidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
         </div>
         
         <nav className="mt-6 px-2">
