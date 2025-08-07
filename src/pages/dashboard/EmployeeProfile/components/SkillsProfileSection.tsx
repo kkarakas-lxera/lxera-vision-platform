@@ -299,7 +299,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   // Filter pill options
   const filterOptions = [
     { id: 'mandatory', label: 'Mandatory only', active: filters.has('mandatory') },
-    { id: 'low_verified', label: 'Low Verified %', active: filters.has('low_verified') },
+    { id: 'low_verified', label: 'Low Score %', active: filters.has('low_verified') },
     { id: 'from_cv', label: 'From CV', active: filters.has('from_cv') }
   ];
 
@@ -415,7 +415,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="verified">Verified %</SelectItem>
+                  <SelectItem value="verified">Score %</SelectItem>
                   <SelectItem value="level">Required Level</SelectItem>
                   <SelectItem value="alphabetical">Alphabetical</SelectItem>
                 </SelectContent>
@@ -472,7 +472,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
                             {/* Required level now shown in SkillBadge */}
                             
                             <div className="flex items-center gap-3 min-w-[200px]">
-                              <span className="text-sm text-gray-600">Verified:</span>
+                              <span className="text-sm text-gray-600">Score:</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <Progress 
                                   value={skill.verified_percentage} 
