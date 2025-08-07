@@ -1046,9 +1046,10 @@ export class MarketSkillsService {
   }
 
   /**
-   * Get comprehensive benchmark data combining all levels (with caching)
+   * Get comprehensive benchmark data - simplified version
+   * Cache is handled automatically, use regenerate button for fresh data
    */
-  async getComprehensiveBenchmark(forceRefresh = false): Promise<ComprehensiveBenchmarkData> {
+  async getComprehensiveBenchmark(): Promise<ComprehensiveBenchmarkData> {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
@@ -1088,14 +1089,8 @@ export class MarketSkillsService {
         throw new Error('Could not determine company ID');
       }
 
-      // If force refresh, delete existing cache first
-      if (forceRefresh) {
-        console.log('🔄 Force refresh requested - clearing existing cache and regenerating all data...');
-        await this.invalidateCache(companyId, 'Manual refresh requested');
-      }
-      
-      // Check cache first (unless force refresh)
-      if (!forceRefresh) {
+      // Always check cache first - regeneration is handled by the button
+      {
         // @ts-ignore - market_benchmark_cache table not in generated types
         const { data: cachedData } = await supabase
           .from('market_benchmark_cache')
@@ -1126,8 +1121,6 @@ export class MarketSkillsService {
             };
           }
         }
-      } else {
-        console.log('⏭️ Skipping cache check due to force refresh flag');
       }
 
       console.log('🚀 Generating fresh benchmark data...');
@@ -1168,7 +1161,7 @@ export class MarketSkillsService {
             analyzed_employees: organization.analyzed_employees,
             departments_count: departments.length,
             generated_by: 'MarketSkillsService',
-            force_refresh: forceRefresh
+            force_refresh: false
           },
           generated_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days

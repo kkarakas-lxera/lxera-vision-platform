@@ -42,6 +42,7 @@ import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/MarketBenchmarkVerticalLoader';
 import { cn } from '@/lib/utils';
 import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+import { RegenerateAnalysisButton } from '@/components/dashboard/skills/RegenerateAnalysisButton';
 import { Code } from 'lucide-react';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
 import DepartmentAnalysisPanel from '@/components/dashboard/skills/DepartmentAnalysisPanel';
@@ -236,8 +237,8 @@ export default function SkillsOverview() {
       const industry = companyData?.settings?.industry as string || 'industry';
       setCompanyIndustry(industry);
       
-      // Pass forceRefresh parameter to service
-      const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark(isRefresh);
+      // Get benchmark data (cache is handled automatically)
+      const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
       console.log('Comprehensive benchmark data received:', comprehensiveData);
       console.log('Employees data:', comprehensiveData.employees);
       console.log('Employees data length:', comprehensiveData.employees?.length);
@@ -258,14 +259,7 @@ export default function SkillsOverview() {
         setIsFirstLoad(false);
       }
       
-      // Show success message for manual refresh
-      if (isRefresh) {
-        toast({
-          title: "✓ Market Benchmark Updated",
-          description: "All metrics have been recalculated with the latest data.",
-          duration: 3000,
-        });
-      }
+      // Success is handled by the regenerate button component
     } catch (error) {
       console.error('Error fetching benchmark data:', error);
       toast({
@@ -682,7 +676,20 @@ export default function SkillsOverview() {
                         </CardDescription>
                       </div>
                     </div>
-                    <Brain className="h-4 w-4 text-gray-400" />
+                    <div className="flex items-center gap-2">
+                      <RegenerateAnalysisButton 
+                        onRegenerate={async () => {
+                          setBenchmarkRefreshing(true);
+                          try {
+                            await fetchBenchmarkData(false);
+                          } finally {
+                            setBenchmarkRefreshing(false);
+                          }
+                        }}
+                        isLoading={benchmarkRefreshing}
+                      />
+                      <Brain className="h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -723,7 +730,7 @@ export default function SkillsOverview() {
                                   {organizationBenchmark.analyzed_employees < organizationBenchmark.total_employees && (
                                     <span> Only {Math.round((organizationBenchmark.analyzed_employees / organizationBenchmark.total_employees) * 100)}% of employees have been analyzed.</span>
                                   )}
-                                  <span className="text-gray-700"> Use the refresh button above to update.</span>
+                                  <span className="text-gray-700"> Consider regenerating the analysis for updated metrics.</span>
                                 </div>
                               </div>
                             );
