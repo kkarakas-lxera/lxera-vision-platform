@@ -947,8 +947,8 @@ export default function CourseViewer() {
                         <BookOpen className={cn("h-4 w-4 mr-2", isCurrentModule ? "text-blue-500" : "")} />
                       )}
                       <div className="text-left">
-                        <div className="text-xs font-medium">Module {module.module}</div>
-                        <div className="text-xs opacity-80">{module.title}</div>
+                        <div className="text-xs font-medium">{module.title || `Module ${module.module}`}</div>
+                        <div className="text-xs opacity-80">Week {module.module}</div>
                       </div>
                     </span>
                     {hasContent && (
@@ -1521,31 +1521,8 @@ export default function CourseViewer() {
                       "flex items-center gap-2",
                       isMobile ? "flex-col w-full" : ""
                     )}>
-                      {/* Single Game Entry Point - Rolodex */}
-                      <Button
-                        variant="outline"
-                        onClick={() => setGameMode('rolodex')}
-                        className={cn(
-                          "bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0",
-                          isMobile ? "w-full" : ""
-                        )}
-                      >
-                        <Target className="h-4 w-4 mr-2" />
-                        Start Learning Game
-                      </Button>
-
-                      {!sectionProgress[currentSection] ? (
-                        <Button
-                          onClick={markSectionComplete}
-                          className={cn(
-                            "bg-blue-500 hover:bg-blue-600 text-white",
-                            isMobile ? "w-full" : ""
-                          )}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Mark as Complete
-                        </Button>
-                      ) : (
+                      {/* Show completion status only */}
+                      {sectionProgress[currentSection] && (
                         <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Completed
