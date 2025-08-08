@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   ChevronUp, 
   ChevronDown, 
@@ -11,7 +12,8 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Edit3
+  Edit3,
+  GripVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
@@ -72,21 +74,23 @@ const ModuleNavigator: React.FC<ModuleNavigatorProps> = ({
   };
   
   return (
-    <Card className="p-6 bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-business-black">Modules</h2>
-        <Button 
-          size="sm" 
-          variant="ghost"
-          className="h-8 w-8 p-0"
-          title="Add new module"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+    <Card className="p-3 bg-card rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-medium text-foreground">Modules</h2>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Add module">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Add module</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
       <ScrollArea className="h-[calc(100vh-300px)]">
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {modules.map((module, index) => {
             const info = getModuleInfo(module);
             const isActive = module.content_id === activeModuleId;
@@ -95,56 +99,56 @@ const ModuleNavigator: React.FC<ModuleNavigatorProps> = ({
               <div
                 key={module.content_id}
                 className={cn(
-                  "group relative rounded-2xl transition-all duration-200 cursor-pointer",
+                  "group relative rounded-md transition-colors cursor-pointer",
                   isActive 
-                    ? "bg-future-green shadow-sm" 
-                    : "hover:bg-gray-50"
+                    ? "bg-muted ring-2 ring-primary/20" 
+                    : "hover:bg-muted/60"
                 )}
                 onClick={() => handleModuleSelect(module.content_id)}
               >
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
+                <div className="p-3">
+                  <div className="flex items-start justify-between mb-1.5">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-gray-500">
+                        <span className="text-[11px] font-medium text-muted-foreground">
                           Module {info.id}
                         </span>
                         {getStatusIcon(module)}
                       </div>
                       <h3 className={cn(
-                        "font-medium line-clamp-2",
-                        isActive ? "text-business-black" : "text-gray-700"
+                        "text-sm font-medium line-clamp-2",
+                        isActive ? "text-foreground" : "text-foreground"
                       )}>
                         {module.module_name}
                       </h3>
                     </div>
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         // TODO: Show module options menu
                       }}
                     >
-                      <MoreVertical className="h-3 w-3" />
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <Badge 
                       variant="outline" 
-                      className={cn("border-0", getPriorityColor(info.priority))}
+                      className={cn("h-5 px-1 border-0", getPriorityColor(info.priority))}
                     >
                       {info.priority}
                     </Badge>
-                    <span className="text-gray-500">
+                    <span>
                       Week {info.week} • {info.duration}h
                     </span>
                   </div>
                   
                   {module.is_draft && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-orange-600">
+                    <div className="mt-2 flex items-center gap-1 text-[11px] text-orange-600">
                       <AlertCircle className="h-3 w-3" />
                       Draft changes
                     </div>

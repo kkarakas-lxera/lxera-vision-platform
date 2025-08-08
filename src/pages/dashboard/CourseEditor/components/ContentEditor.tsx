@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -166,11 +168,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   const readingTime = getReadingTime(currentContent);
   
   return (
-    <Card className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="bg-card rounded-lg shadow-sm">
       {/* Section Tabs */}
       <Tabs value={activeSection} onValueChange={(v) => onSectionChange(v as ContentSection)}>
-        <div className="border-b px-6 pt-6">
-          <TabsList className="grid grid-cols-5 w-full bg-gray-100/50 p-1 rounded-full">
+        <div className="border-b px-4 pt-3">
+          <TabsList className="w-full justify-start gap-2 bg-transparent p-0 rounded-none">
             {Object.entries(sectionConfig).map(([key, config]) => {
               const Icon = config.icon;
               const sectionContent = content[key as ContentSection] || '';
@@ -181,17 +183,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   key={key}
                   value={key}
                   className={cn(
-                    "flex items-center gap-2 rounded-full transition-all",
-                    "data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    "px-2 py-2 rounded-none border-b-2 border-transparent",
+                    "data-[state=active]:border-primary"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", config.color)} />
-                  <span className="hidden lg:inline">{config.label}</span>
-                  {hasContent && (
-                    <Badge variant="outline" className="h-5 px-1 text-xs">
-                      {getWordCount(sectionContent)}
-                    </Badge>
-                  )}
+                  <Icon className={cn("h-4 w-4 mr-1", config.color)} />
+                  <span className="text-sm">{config.label}</span>
                 </TabsTrigger>
               );
             })}
@@ -200,9 +197,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         
         {/* Content Area */}
         <TabsContent value={activeSection} className="m-0">
-          <div className="p-6">
+          <div className="p-4">
             {/* Section Header */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   {React.createElement(sectionConfig[activeSection].icon, {
@@ -243,110 +240,34 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             ) : (
               <div>
                 {/* Markdown Toolbar */}
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2 flex items-center gap-1 flex-wrap">
                   <div className="flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('**', '**')}
-                      title="Bold"
-                    >
-                      <Bold className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('*', '*')}
-                      title="Italic"
-                    >
-                      <Italic className="h-4 w-4" />
-                    </Button>
-                    <div className="w-px h-6 bg-gray-300 mx-1" />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('# ')}
-                      title="Heading 1"
-                    >
-                      <Heading1 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('## ')}
-                      title="Heading 2"
-                    >
-                      <Heading2 className="h-4 w-4" />
-                    </Button>
-                    <div className="w-px h-6 bg-gray-300 mx-1" />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('- ')}
-                      title="Bullet list"
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('1. ')}
-                      title="Numbered list"
-                    >
-                      <ListOrdered className="h-4 w-4" />
-                    </Button>
-                    <div className="w-px h-6 bg-gray-300 mx-1" />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('> ')}
-                      title="Quote"
-                    >
-                      <Quote className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('`', '`')}
-                      title="Inline code"
-                    >
-                      <Code className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => insertMarkdown('[', '](url)')}
-                      title="Link"
-                    >
-                      <Link className="h-4 w-4" />
-                    </Button>
-                    <div className="w-px h-6 bg-gray-300 mx-1" />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => setShowImageUpload(true)}
-                      title="Insert image"
-                    >
-                      <ImagePlus className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('**','**')}><Bold className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Bold</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('*','*')}><Italic className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Italic</TooltipContent></Tooltip>
+                    </TooltipProvider>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowMarkdownHelp(!showMarkdownHelp)}
-                  >
-                    <HelpCircle className="h-4 w-4 mr-1" />
-                    Markdown help
+                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <div className="flex items-center gap-1">
+                    <TooltipProvider>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('# ')}><Heading1 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Heading 1</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('## ')}><Heading2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Heading 2</TooltipContent></Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <div className="flex items-center gap-1">
+                    <TooltipProvider>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('- ')}><List className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Bullet list</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('1. ')}><ListOrdered className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Numbered list</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('> ')}><Quote className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Quote</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('`','`')}><Code className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Inline code</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => insertMarkdown('[','](url)')}><Link className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Link</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setShowImageUpload(true)}><ImagePlus className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Insert image</TooltipContent></Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex-1" />
+                  <Button size="sm" variant="ghost" onClick={() => setShowMarkdownHelp(!showMarkdownHelp)}>
+                    <HelpCircle className="h-4 w-4 mr-1" /> Markdown help
                   </Button>
                 </div>
                 
@@ -376,7 +297,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   id="content-editor"
                   value={currentContent}
                   onChange={handleTextareaChange}
-                  className="min-h-[400px] font-mono text-sm resize-y"
+                  className="min-h-[360px] font-mono text-sm resize-y"
                   placeholder={`Write your ${sectionConfig[activeSection].label.toLowerCase()} content here...`}
                 />
               </div>
