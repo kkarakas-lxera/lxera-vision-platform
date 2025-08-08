@@ -225,8 +225,7 @@ export default function DepartmentSkillsDetail() {
           id,
           department,
           current_position_id,
-          user_id,
-          users!employees_user_id_fkey(full_name)
+          user_id
         `)
         .eq('company_id', userProfile.company_id)
         .ilike('department', decodeURIComponent(department));
@@ -250,6 +249,22 @@ export default function DepartmentSkillsDetail() {
       }
 
       const employeeIds = employeesInDept.map(emp => emp.id);
+      const userIds = employeesInDept.map(emp => emp.user_id).filter(Boolean);
+
+      // Fetch user names
+      const usersMap = new Map();
+      if (userIds.length > 0) {
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, full_name')
+          .in('id', userIds);
+        
+        if (usersData) {
+          usersData.forEach(user => {
+            usersMap.set(user.id, user.full_name);
+          });
+        }
+      }
 
       // Fetch all employees with their skills (analyzed or not)
       const { data: employeesWithSkills, error: skillsError } = await supabase
@@ -336,25 +351,20 @@ export default function DepartmentSkillsDetail() {
 
           return {
             employee_id: emp.id,
+            employee_name: usersMap.get(emp.user_id) || 'Unknown Employee',
             skills_match_score: employeeWithSkills.cv_analysis_data?.skills_match_score || 0,
             analyzed_at: employeeWithSkills.skills_last_analyzed,
             technical_skills: technicalSkills,
             soft_skills: [],
-            employees: {
-              id: emp.id,
-              department: emp.department,
-              current_position_id: emp.current_position_id,
-              users: emp.users,
-              position_title: positionsMap.get(emp.current_position_id) || 'Not Assigned'
-            }
+            position_title: positionsMap.get(emp.current_position_id) || 'Not Assigned'
           };
         })
         .filter((e): e is NonNullable<typeof e> => Boolean(e));
 
       const formattedEmployees = employeesData.map(profile => ({
         employee_id: profile.employee_id,
-        employee_name: profile.employees.users?.full_name || 'Unknown',
-        position_title: profile.employees.position_title || 'Not Assigned',
+        employee_name: profile.employee_name,
+        position_title: profile.position_title,
         skills_match_score: profile.skills_match_score,
         analyzed_at: profile.analyzed_at,
         technical_skills: profile.technical_skills,
