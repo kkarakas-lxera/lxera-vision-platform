@@ -30,7 +30,7 @@ interface SkillRequirement {
 interface SkillSuggestion {
   skill_id?: string;
   skill_name: string;
-  category: 'essential' | 'important';
+  category: 'essential' | 'important' | 'nice-to-have';
   proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
   description: string;
   source: 'database' | 'ai';
@@ -83,6 +83,61 @@ export default function PositionEdit() {
   const [newSkillProficiency, setNewSkillProficiency] = useState<'basic' | 'intermediate' | 'advanced' | 'expert'>('intermediate');
   const [newSkillMandatory, setNewSkillMandatory] = useState(true);
 
+  // ---- Helpers: proficiency mapping between UI (text) and DB/API (numeric) ----
+  const toTextLevel = (level: number): 'basic' | 'intermediate' | 'advanced' | 'expert' => {
+    if (level >= 3) return 'expert';
+    if (level >= 2) return 'intermediate';
+    if (level >= 1) return 'basic';
+    return 'basic';
+  };
+
+  const toNumericLevel = (level: 'basic' | 'intermediate' | 'advanced' | 'expert'): number => {
+    switch (level) {
+      case 'basic':
+        return 1;
+      case 'intermediate':
+        return 2;
+      case 'advanced':
+      case 'expert':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
+  const normalizeCategory = (category: any): 'essential' | 'important' | 'nice-to-have' => {
+    if (category === 'essential' || category === 'important' || category === 'nice-to-have') return category;
+    return 'important';
+  };
+
+  const mapApiToUiSuggestions = (items: any[]): SkillSuggestion[] => {
+    if (!Array.isArray(items)) return [];
+    return items
+      .filter((s) => s && typeof s.skill_name === 'string')
+      .map((s) => ({
+        skill_id: s.skill_id,
+        skill_name: s.skill_name,
+        category: normalizeCategory(s.category),
+        proficiency_level: toTextLevel(typeof s.proficiency_level === 'number' ? s.proficiency_level : 1),
+        description: s.description || '',
+        source: 'ai',
+        relevance_score: s.relevance_score,
+        reason: s.reason,
+      }));
+  };
+
+  const mapUiToDbSuggestions = (items: SkillSuggestion[]): any[] => {
+    return items.map((s) => ({
+      skill_id: s.skill_id,
+      skill_name: s.skill_name,
+      category: normalizeCategory(s.category),
+      proficiency_level: toNumericLevel(s.proficiency_level),
+      description: s.description,
+      reason: s.reason,
+      source: 'ai',
+    }));
+  };
+
   useEffect(() => {
     if (id) {
       fetchPosition();
@@ -122,9 +177,9 @@ export default function PositionEdit() {
         setDescription(typedPosition.description || '');
         setRequiredSkills(typedPosition.required_skills || []);
         
-        // Load AI suggestions if available from database
-        if (typedPosition.ai_suggestions && typedPosition.ai_suggestions.length > 0) {
-          setAiSuggestions(typedPosition.ai_suggestions);
+        // Load AI suggestions for UI (preserve description/category/reason), mapping to UI shape
+        if (Array.isArray(data.ai_suggestions) && data.ai_suggestions.length > 0) {
+          setAiSuggestions(mapApiToUiSuggestions(data.ai_suggestions));
           setSuggestionsLoaded(true);
         }
       }
@@ -154,7 +209,8 @@ export default function PositionEdit() {
       if (error) throw error;
 
       if (data.skills) {
-        setAiSuggestions(data.skills);
+        // Map to UI strings for rendering
+        setAiSuggestions(mapApiToUiSuggestions(data.skills));
         setSuggestionsLoaded(true);
         
         // Store AI suggestions in database immediately
@@ -303,7 +359,8 @@ export default function PositionEdit() {
         description: description || null,
         required_skills: requiredSkills as any[],
         nice_to_have_skills: [],
-        ai_suggestions: aiSuggestions.length > 0 ? aiSuggestions : position.ai_suggestions
+        // Persist suggestions in DB as numeric scale with full details
+        ai_suggestions: aiSuggestions.length > 0 ? mapUiToDbSuggestions(aiSuggestions) : position.ai_suggestions
       };
 
       const { error } = await supabase
