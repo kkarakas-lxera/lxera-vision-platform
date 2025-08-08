@@ -598,251 +598,137 @@ export default function LearnerDashboard() {
     );
   }
 
-  // Desktop view
+  // Desktop view - Elegant, Minimalistic and Compact
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 space-y-3">
       {/* Early Trial Banner */}
       <EarlyTrialBanner />
       
-      {/* Welcome Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-foreground">
-            {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}! Ready to continue learning?
-          </h1>
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        {/* Streak Banner */}
-        {streak.current_streak > 0 && (
-          <Card className="p-4 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-            <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              <span className="font-medium text-orange-900">
-                {streak.current_streak}-day streak! Keep it up!
-              </span>
+      {/* Compact Header with Greeting and Stats */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <div>
+            <h1 className="text-base font-medium text-foreground">
+              {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}!
+            </h1>
+            {streak.current_streak > 0 && (
+              <div className="flex items-center gap-1 mt-0.5">
+                <Flame className="h-3 w-3 text-orange-500" />
+                <span className="text-xs text-orange-600">{streak.current_streak} day streak</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Inline Stats */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <BookOpen className="h-3 w-3" />
+              <span>{total} courses</span>
             </div>
-          </Card>
-        )}
-
-        {/* Learning Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Assigned Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{total}</div>
-              <p className="text-xs text-muted-foreground">
-                {total === completed ? 'All completed' : 'Ready to learn'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Progress</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {total > 0 ? Math.round((completed / total) * 100) : 0}%
-              </div>
-              <p className="text-xs text-muted-foreground">Overall completion</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Study Hours</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{getTotalEstimatedHours()}h</div>
-              <p className="text-xs text-muted-foreground">Estimated total</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Goal</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {completed === total ? '🎉' : `${completed + 1}${completed === 0 ? 'st' : completed === 1 ? 'nd' : completed === 2 ? 'rd' : 'th'}`}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {completed === total ? 'All done!' : 'Course completion'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Continue Where You Left Off */}
-      {currentCourse && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-medium text-muted-foreground">Continue where you left off</h2>
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => continueLearning(currentCourse)}>
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-semibold flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    {currentCourse.cm_module_content.module_name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {currentCourse.cm_module_content.introduction}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Progress value={currentCourse.progress_percentage || 0} className="h-3" />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{currentCourse.progress_percentage || 0}% complete</span>
-                  <Button size="sm" className="gap-2">
-                    Continue Learning
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="text-sm text-muted-foreground">
-                Next up: Module overview • 15 min
-              </div>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              <span>{total > 0 ? Math.round((completed / total) * 100) : 0}%</span>
             </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Learning Path */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-medium text-muted-foreground">Your Learning Path</h2>
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" />
-                <span className="font-medium">Progress Overview</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {completed} of {total} courses completed
-              </span>
-            </div>
-            
-            {/* Visual Progress Path */}
-            <div className="relative">
-              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-muted -translate-y-1/2" />
-              <div className="relative flex justify-between">
-                {assignments.slice(0, 5).map((assignment, index) => (
-                  <div key={assignment.id} className="flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center bg-background z-10 ${
-                      assignment.status === 'completed' 
-                        ? 'border-green-500 bg-green-50' 
-                        : assignment.status === 'in_progress'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-muted'
-                    }`}>
-                      {assignment.status === 'completed' ? (
-                        <span className="text-green-600 font-bold">✓</span>
-                      ) : assignment.status === 'in_progress' ? (
-                        <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-                      ) : (
-                        <span className="text-xs text-muted-foreground">{index + 1}</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground mt-2 text-center max-w-[80px] line-clamp-2">
-                      {assignment.cm_module_content.module_name.split(' ').slice(0, 2).join(' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{getTotalEstimatedHours()}h</span>
             </div>
           </div>
-        </Card>
+        </div>
+        
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+          <Settings className="h-3.5 w-3.5" />
+        </Button>
       </div>
 
-      {/* All Courses */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-muted-foreground">All Courses</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/learner/courses')}>
+      {/* Current Course - Compact Card */}
+      {currentCourse && (
+        <Card 
+          className="p-3 hover:shadow-sm transition-shadow cursor-pointer border-gray-200 dark:border-gray-800" 
+          onClick={() => continueLearning(currentCourse)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-sm font-medium">{currentCourse.cm_module_content.module_name}</h3>
+              </div>
+              <div className="flex items-center gap-3 mt-1.5">
+                <Progress value={currentCourse.progress_percentage || 0} className="h-1.5 flex-1 max-w-[200px]" />
+                <span className="text-xs text-muted-foreground">{currentCourse.progress_percentage || 0}%</span>
+              </div>
+            </div>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
+              Continue <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* All Courses - Compact Grid */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Your Courses</h2>
+          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => navigate('/learner/courses')}>
             View All →
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {assignments.slice(0, 4).map((assignment) => (
+        <div className="grid grid-cols-1 gap-2">
+          {assignments.map((assignment) => (
             <Card 
               key={assignment.id} 
-              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="p-2.5 hover:shadow-sm transition-shadow cursor-pointer border-gray-200 dark:border-gray-800"
               onClick={() => continueLearning(assignment)}
             >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="text-lg">
-                      {assignment.status === 'completed' ? '📚' : 
-                       assignment.status === 'in_progress' ? '📖' : '📋'}
-                    </div>
-                    <h3 className="font-medium line-clamp-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-1">
+                  <div className="text-sm">
+                    {assignment.status === 'completed' ? '✅' : 
+                     assignment.status === 'in_progress' ? '📖' : '📋'}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium line-clamp-1">
                       {assignment.cm_module_content.module_name}
                     </h3>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    {assignment.status === 'completed' && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        ✓ Completed
-                      </Badge>
-                    )}
-                    {assignment.status === 'in_progress' && (
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                        In Progress
-                      </Badge>
-                    )}
-                    {assignment.status === 'assigned' && (
-                      <Badge variant="outline">
-                        Ready to Start
-                      </Badge>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {assignment.status === 'completed' ? 'Completed' : 
+                       assignment.status === 'in_progress' ? `${assignment.progress_percentage || 0}% complete` : 
+                       'Ready to start'}
+                    </p>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Progress value={assignment.progress_percentage || 0} className="h-2" />
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{assignment.progress_percentage || 0}% complete</span>
-                    {assignment.status === 'completed' ? (
-                      <span className="text-green-600 font-medium">Completed</span>
-                    ) : assignment.status === 'in_progress' ? (
-                      <span className="text-blue-600 font-medium">
-                        {Math.round((100 - (assignment.progress_percentage || 0)) / 10)} modules left
-                      </span>
-                    ) : (
-                      <span className="text-gray-600">
-                        {Math.round(getTotalEstimatedHours() / assignments.length)} hours estimated
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Course description preview */}
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {assignment.cm_module_content.introduction || 'No description available'}
-                  </p>
-                </div>
+                {assignment.status !== 'completed' && (
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Progress Overview - Visual Path (Optional, can be removed for even more minimalism) */}
+      {assignments.length > 0 && (
+        <Card className="p-3 border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-muted-foreground">Learning Progress</span>
+            <span className="text-xs text-muted-foreground">{completed} of {total} completed</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {assignments.map((assignment, index) => (
+              <div 
+                key={assignment.id} 
+                className={cn(
+                  "flex-1 h-1.5 rounded-full",
+                  assignment.status === 'completed' ? 'bg-green-500' :
+                  assignment.status === 'in_progress' ? 'bg-blue-500' :
+                  'bg-gray-200 dark:bg-gray-800'
+                )}
+              />
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
-
-// Global touch optimization is now handled by the touchOptimization utility
-// This ensures consistent touch behavior across all mobile components
