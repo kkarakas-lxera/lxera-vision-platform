@@ -176,15 +176,21 @@ export default function LearnerDashboard() {
         last_learning_date: employee.last_learning_date
       });
 
-      // Fetch course assignments with course content
+      // Fetch course assignments with course plan data
       const { data: courseAssignments, error } = await supabase
         .from('course_assignments')
         .select(`
           id,
-          course_id,
+          plan_id,
           progress_percentage,
           status,
-          started_at
+          started_at,
+          cm_course_plans!inner (
+            plan_id,
+            course_title,
+            employee_name,
+            total_modules
+          )
         `)
         .eq('employee_id', employee.id)
         .order('updated_at', { ascending: false });
@@ -193,24 +199,20 @@ export default function LearnerDashboard() {
       
       let finalAssignments: CourseAssignment[] = [];
       
-      // For each assignment, fetch the course content
+      // Transform assignments to match expected structure
       if (courseAssignments && courseAssignments.length > 0) {
-        const assignmentsWithContent = await Promise.all(
-          courseAssignments.map(async (assignment) => {
-            const { data: content } = await supabase
-              .from('cm_module_content')
-              .select('module_name, introduction, content_id')
-              .eq('content_id', assignment.course_id)
-              .single();
-            
-            return {
-              ...assignment,
-              cm_module_content: content
-            };
-          })
-        );
-        
-        finalAssignments = assignmentsWithContent.filter(a => a.cm_module_content) as CourseAssignment[];
+        finalAssignments = courseAssignments.map((assignment: any) => ({
+          id: assignment.id,
+          course_id: assignment.plan_id, // Use plan_id as course_id
+          progress_percentage: assignment.progress_percentage || 0,
+          status: assignment.status,
+          started_at: assignment.started_at,
+          cm_module_content: {
+            module_name: assignment.cm_course_plans?.course_title || 'Course',
+            introduction: `Continue your learning journey with ${assignment.cm_course_plans?.course_title}`,
+            content_id: assignment.plan_id
+          }
+        }));
         setAssignments(finalAssignments);
       } else {
         setAssignments([]);
