@@ -1281,7 +1281,7 @@ export default function CourseViewer() {
             {gameMode === 'none' && (
               <>
                 {/* Video Player - Mobile vs Desktop */}
-                {currentSection !== 'assessments' && (
+                {currentSection !== 'assessments' && currentSection !== 'course_overview' && (
                   isMobile ? (
                     <MobileVideoPlayer 
                       videoUrl={sectionVideoUrl}
