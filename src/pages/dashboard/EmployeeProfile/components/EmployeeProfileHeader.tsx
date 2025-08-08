@@ -18,13 +18,7 @@ import {
   Award,
   ArrowRight
 } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+ 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -206,34 +200,19 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
                   <span className={`text-3xl font-bold ${getMatchScoreColor(employee.skills_profile?.skills_match_score || 0)}`}>
                     {employee.skills_profile?.skills_match_score || 0}%
                   </span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {getMatchScoreLabel(employee.skills_profile?.skills_match_score || 0)}
-                    </Badge>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="Position match explanation"
-                            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p className="text-sm">
-                            {getMatchExplanation(employee.skills_profile?.skills_match_score || 0)}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                  <Badge variant="outline">
+                    {getMatchScoreLabel(employee.skills_profile?.skills_match_score || 0)}
+                  </Badge>
                 </div>
                 <Progress 
                   value={employee.skills_profile?.skills_match_score || 0} 
                   className="h-2"
                 />
+                <div className="mt-2 p-2 rounded-md border border-gray-200 bg-gray-50">
+                  <p className="text-xs text-muted-foreground">
+                    {getMatchExplanation(employee.skills_profile?.skills_match_score || 0)}
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
