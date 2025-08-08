@@ -207,27 +207,41 @@ export default function SkillsOverview() {
         // Enrich employees with name/department/position
         const { data: employeeMeta } = await supabase
           .from('employees')
-          .select('id, department, users(full_name, email), st_company_positions(position_title)')
+          .select('id, department, user_id, current_position_id')
           .eq('company_id', companyId);
+        
+        // Fetch user details separately
+        const userIds = employeeMeta?.map(e => e.user_id).filter(Boolean) || [];
+        const { data: usersData } = userIds.length > 0 ? await supabase
+          .from('users')
+          .select('id, full_name, email')
+          .in('id', userIds) : { data: [] };
+        
+        // Fetch position details separately  
+        const positionIds = employeeMeta?.map(e => e.current_position_id).filter(Boolean) || [];
+        const { data: positionsData } = positionIds.length > 0 ? await supabase
+          .from('st_company_positions')
+          .select('id, position_title')
+          .in('id', positionIds) : { data: [] };
+        
+        // Create maps for quick lookup
+        const usersMap = new Map(usersData?.map(u => [u.id, u]) || []);
+        const positionsMap = new Map(positionsData?.map(p => [p.id, p]) || []);
 
         const employeeMetaById = new Map<string, { name: string; department: string; position: string }>();
         (employeeMeta || []).forEach((emp: any) => {
-          const userRel = emp.users as unknown;
+          const user = usersMap.get(emp.user_id);
+          const position = positionsMap.get(emp.current_position_id);
+          
           let name = 'Unknown';
-          if (Array.isArray(userRel)) {
-            const u = userRel[0] as { full_name?: string; email?: string } | undefined;
-            name = u?.full_name || (u?.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
-          } else if (userRel && typeof userRel === 'object') {
-            const u = userRel as { full_name?: string; email?: string };
-            name = u.full_name || (u.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+          if (user) {
+            name = user.full_name || (user.email ? user.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
           }
-          const posRel = emp.st_company_positions as unknown;
-          const positionData = Array.isArray(posRel) ? (posRel[0] as { position_title?: string } | undefined) : ((posRel as { position_title?: string } | undefined));
         
           employeeMetaById.set(emp.id, {
             name,
             department: emp.department || 'Unknown',
-            position: positionData?.position_title || 'Unknown'
+            position: position?.position_title || 'Unknown'
           });
         });
 
