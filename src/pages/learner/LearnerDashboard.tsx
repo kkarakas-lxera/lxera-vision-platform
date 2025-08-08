@@ -26,7 +26,6 @@ import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import FormProfileBuilder from '@/components/learner/FormProfileBuilder';
 import CourseGenerationWelcome from '@/components/learner/CourseGenerationWelcome';
 import CourseOutlineReward from '@/components/learner/CourseOutlineReward';
-import EarlyTrialBanner from '@/components/ui/early-trial-banner';
 
 interface CourseAssignment {
   id: string;
@@ -508,10 +507,6 @@ export default function LearnerDashboard() {
             transition: pullToRefresh.pullDistance === 0 ? 'transform 0.3s ease-out' : 'none'
           }}
         >
-          {/* Early Trial Banner */}
-          <div className="px-4 pt-3">
-            <EarlyTrialBanner />
-          </div>
           {/* Enhanced Streak Banner */}
           {streak.current_streak > 0 && (
             <div className="px-4 py-3">
@@ -600,15 +595,13 @@ export default function LearnerDashboard() {
 
   // Desktop view - Elegant, Minimalistic and Compact
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-3">
-      {/* Early Trial Banner */}
-      <EarlyTrialBanner />
+    <div className="max-w-6xl mx-auto px-6 py-4 space-y-4">
       
       {/* Compact Header with Greeting and Stats */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <div>
-            <h1 className="text-base font-medium text-foreground">
+            <h1 className="text-xl font-semibold text-foreground">
               {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}!
             </h1>
             {streak.current_streak > 0 && (
@@ -620,7 +613,7 @@ export default function LearnerDashboard() {
           </div>
           
           {/* Inline Stats */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <BookOpen className="h-3 w-3" />
               <span>{total} courses</span>

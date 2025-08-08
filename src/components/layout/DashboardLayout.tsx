@@ -129,8 +129,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];
       case 'learner':
-        // Learners only see My Profile - whether complete or incomplete
         return [
+          { href: '/learner', icon: Home, label: 'Dashboard' },
+          { href: '/learner/courses', icon: BookOpen, label: 'My Courses' },
           { href: '/learner/profile', icon: Users, label: 'My Profile' },
         ];
       default:
