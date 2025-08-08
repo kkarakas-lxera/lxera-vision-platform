@@ -1383,16 +1383,24 @@ export default function SkillsOverview() {
                           
                           {/* Skills List */}
                           <div className="space-y-1.5 mb-2">
-                            {(organizationBenchmark?.top_missing_skills || []).slice(0, 2).map((skill, i) => (
-                              <div key={i} className="flex items-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${
-                                  skill.severity === 'critical' ? 'bg-red-500' :
-                                  skill.severity === 'moderate' ? 'bg-yellow-500' :
-                                  'bg-gray-400'
-                                }`}></div>
-                                <span className="text-xs text-gray-700 truncate">{skill.skill_name}</span>
-                              </div>
-                            ))}
+                            {(organizationBenchmark?.top_missing_skills || []).slice(0, 5).map((skill, i) => {
+                              // Handle both string and object formats
+                              const skillName = typeof skill === 'string' ? skill : skill.skill_name;
+                              const severity = typeof skill === 'string' ? 
+                                (i < (organizationBenchmark?.critical_skills_count || 5) ? 'critical' : 'moderate') : 
+                                skill.severity;
+                                
+                              return (
+                                <div key={i} className="flex items-center gap-2">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${
+                                    severity === 'critical' ? 'bg-red-500' :
+                                    severity === 'moderate' ? 'bg-yellow-500' :
+                                    'bg-gray-400'
+                                  }`}></div>
+                                  <span className="text-xs text-gray-700 truncate">{skillName}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                           
                           {/* Context Row */}
@@ -1406,8 +1414,8 @@ export default function SkillsOverview() {
                                (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 2 ? 'Moderate' :
                                'Managing Well'}
                             </span>
-                            {organizationBenchmark?.top_missing_skills?.length > 2 && (
-                              <span className="text-gray-400">+{organizationBenchmark.top_missing_skills.length - 2} more</span>
+                            {organizationBenchmark?.top_missing_skills?.length > 5 && (
+                              <span className="text-gray-400">+{organizationBenchmark.top_missing_skills.length - 5} more</span>
                             )}
                           </div>
                         </div>
