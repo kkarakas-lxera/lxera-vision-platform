@@ -5120,10 +5120,7 @@ export type Database = {
         Args: { p_plan_id: string }
         Returns: boolean
       }
-      check_and_use_regeneration: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      
       check_auth_uid: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -5343,10 +5340,7 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: Json
       }
-      get_regeneration_status: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      
       get_session_items_detailed: {
         Args: { p_session_id: string }
         Returns: {
@@ -5462,10 +5456,7 @@ export type Database = {
         }
         Returns: number
       }
-      restore_regeneration_count: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      
       save_spreadsheet_cell: {
         Args: { p_item_id: string; p_field: string; p_value: string }
         Returns: Json
