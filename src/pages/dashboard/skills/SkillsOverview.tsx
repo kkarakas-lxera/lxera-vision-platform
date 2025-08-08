@@ -200,24 +200,9 @@ export default function SkillsOverview() {
     if (!userProfile?.company_id) return;
     
     try {
-      // Quick check for cached data
-      const { data: cacheCheck } = await supabase
-        .from('market_benchmark_cache')
-        .select('generated_at')
-        .eq('company_id', userProfile.company_id)
-        .eq('cache_key', 'comprehensive')
-        .gt('expires_at', new Date().toISOString())
-        .single();
-      
-      if (cacheCheck) {
-        // We have cached data, load it without showing loading state
-        setIsFirstLoad(false);
-        await fetchBenchmarkData(false);
-      } else {
-        // No cache, this is first load
-        setIsFirstLoad(true);
-        await fetchBenchmarkData(false);
-      }
+      // market_benchmark_cache table was removed; rely on function + company flag
+      setIsFirstLoad(true);
+      await fetchBenchmarkData(false);
     } catch (error) {
       // No cache found, proceed with first load
       setIsFirstLoad(true);

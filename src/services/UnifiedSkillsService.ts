@@ -382,19 +382,15 @@ export class UnifiedSkillsService {
     entityType: 'employee' | 'organization',
     forceRefresh: boolean = false
   ): Promise<SkillGap[]> {
-    // Check cache first unless forced refresh
-    if (!forceRefresh) {
-      const cached = await this.getCachedGaps(entityId, entityType);
-      if (cached) return cached;
-    }
+    // Temporarily disable client-side caching due to RLS and REST constraints
+    // Always compute fresh gaps on the client
 
     // Calculate fresh gaps
     const gaps = entityType === 'employee'
       ? await this.calculateEmployeeGaps(entityId)
       : await this.calculateOrganizationGaps(entityId);
 
-    // Cache the results
-    await this.cacheGaps(entityId, entityType, gaps);
+    // Do not attempt to upsert cache from the client (violates RLS)
 
     return gaps;
   }

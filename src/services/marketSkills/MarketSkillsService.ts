@@ -1076,10 +1076,27 @@ export class MarketSkillsService {
       if (!userData.user) throw new Error('Not authenticated');
 
       // Get company to check last generation time
+      // Resolve company_id via users/employees; avoid malformed OR query
+      const { data: userDetails } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', userData.user.id)
+        .single();
+
+      let resolvedCompanyId = userDetails?.company_id as string | undefined;
+      if (!resolvedCompanyId) {
+        const { data: employeeRow } = await supabase
+          .from('employees')
+          .select('company_id')
+          .eq('user_id', userData.user.id)
+          .single();
+        resolvedCompanyId = employeeRow?.company_id as string | undefined;
+      }
+
       const { data: company } = await supabase
         .from('companies')
         .select('benchmark_last_regenerated_at')
-        .or(`id.eq.${userData.user.id},id.in.(select company_id from users where id='${userData.user.id}'),id.in.(select company_id from employees where user_id='${userData.user.id}')`)
+        .eq('id', resolvedCompanyId || userData.user.id)
         .single();
 
       // If never generated, return empty data
