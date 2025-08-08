@@ -68,9 +68,11 @@ interface CoursePlan {
   course_title: string;
   course_structure: {
     modules: Array<{
-      module: number;
+      week: number;
       title: string;
       topics: string[];
+      duration?: string;
+      priority?: string;
       status?: string;
     }>;
   };
@@ -929,7 +931,7 @@ export default function CourseViewer() {
               const isLocked = moduleNumber > currentModuleNumber;
               
               return (
-                <div key={module.module} className="space-y-1">
+                <div key={`module-${index}`} className="space-y-1">
                   <div
                     className={cn(
                       "flex items-center justify-between w-full px-3 py-2 rounded-md transition-all duration-200",
@@ -947,8 +949,8 @@ export default function CourseViewer() {
                         <BookOpen className={cn("h-4 w-4 mr-2", isCurrentModule ? "text-blue-500" : "")} />
                       )}
                       <div className="text-left">
-                        <div className="text-xs font-medium">{module.title || `Module ${module.module}`}</div>
-                        <div className="text-xs opacity-80">Week {module.module}</div>
+                        <div className="text-xs font-medium">{module.title || `Module ${moduleNumber}`}</div>
+                        <div className="text-xs opacity-80">Week {module.week || moduleNumber}</div>
                       </div>
                     </span>
                     {hasContent && (
