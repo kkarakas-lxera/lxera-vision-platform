@@ -549,16 +549,34 @@ export class MarketSkillsService {
         throw employeesError;
       }
 
-      // Transform to match expected structure
-      const skillsData = employeesData?.map(emp => ({
-        extracted_skills: emp.employee_skills || [],
-        skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
-        employee: {
-          department: emp.department,
-          current_position: emp.current_position,
-          company_id: companyId
-        }
-      }));
+      // Transform to match expected structure with fallback to CV extracted skills
+      const skillsData = employeesData?.map(emp => {
+        const fromEmployeeSkills = (emp.employee_skills || []).map((s: any) => ({
+          skill_name: s.skill_name,
+          proficiency: s.proficiency,
+          source: s.source || 'cv'
+        }));
+        const fromCv = Array.isArray((emp.cv_analysis_data as any)?.extracted_skills)
+          ? ((emp.cv_analysis_data as any).extracted_skills as any[]).map((s: any) => ({
+              skill_name: s.skill_name,
+              // cv data may have proficiency_level 0-3 already; default to 0 if missing
+              proficiency: typeof s.proficiency_level === 'number' ? s.proficiency_level : (typeof s.proficiency === 'number' ? s.proficiency : 0),
+              source: 'cv'
+            }))
+          : [];
+
+        const extracted_skills = fromEmployeeSkills.length > 0 ? fromEmployeeSkills : fromCv;
+
+        return {
+          extracted_skills,
+          skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
+          employee: {
+            department: emp.department,
+            current_position: emp.current_position,
+            company_id: companyId
+          }
+        };
+      });
 
 
       // Calculate market coverage and alignment based on skills match scores
@@ -968,14 +986,30 @@ export class MarketSkillsService {
         .eq('company_id', companyId)
         .not('cv_analysis_data', 'is', null);
       
-      // Transform to match expected structure
-      const employeesData = employeesRaw?.map(emp => ({
-        employee_id: emp.id,
-        skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
-        extracted_skills: emp.employee_skills || [],
-        gap_analysis_completed_at: emp.skills_last_analyzed,
-        employees: emp
-      }));
+      // Transform to match expected structure with fallback to CV extracted skills
+      const employeesData = employeesRaw?.map(emp => {
+        const fromEmployeeSkills = (emp.employee_skills || []).map((s: any) => ({
+          skill_name: s.skill_name,
+          proficiency: s.proficiency,
+          source: s.source || 'cv'
+        }));
+        const fromCv = Array.isArray((emp.cv_analysis_data as any)?.extracted_skills)
+          ? ((emp.cv_analysis_data as any).extracted_skills as any[]).map((s: any) => ({
+              skill_name: s.skill_name,
+              proficiency: typeof s.proficiency_level === 'number' ? s.proficiency_level : (typeof s.proficiency === 'number' ? s.proficiency : 0),
+              source: 'cv'
+            }))
+          : [];
+        const extracted_skills = fromEmployeeSkills.length > 0 ? fromEmployeeSkills : fromCv;
+
+        return {
+          employee_id: emp.id,
+          skills_match_score: (emp.cv_analysis_data as any)?.skills_match_score || 0,
+          extracted_skills,
+          gap_analysis_completed_at: emp.skills_last_analyzed,
+          employees: emp
+        };
+      });
 
       console.log('Supabase query response:', { data: employeesData, error });
       
