@@ -271,23 +271,41 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
             let totalMaxLevel = 0;
             let totalCurrentLevel = 0;
 
-            // Extract gaps from the nested structure
-            Object.values(gapsData).forEach((category: any) => {
-              if (category.gaps && Array.isArray(category.gaps)) {
-                category.gaps.forEach((gap: any) => {
-                  const current = gap.current_level || 0;
-                  const required = gap.required_level || 0;
-                  totalCurrentLevel += current;
-                  totalMaxLevel += required;
-                  totalGaps++;
-                  
-                  // Collect targeted skills
-                  if (gap.skill_name && current < required) {
-                    targetedSkills.push(gap.skill_name);
-                  }
-                });
-              }
-            });
+            // Check if gapsData is an array (new structure) or object (legacy structure)
+            if (Array.isArray(gapsData)) {
+              // New flat array structure
+              gapsData.forEach((gap: any) => {
+                const current = gap.current_proficiency || gap.current_level || 0;
+                const required = gap.required_proficiency || gap.required_level || 0;
+                totalCurrentLevel += current;
+                totalMaxLevel += required;
+                totalGaps++;
+                
+                // Collect targeted skills
+                const skillName = gap.skill || gap.skill_name;
+                if (skillName && current < required) {
+                  targetedSkills.push(skillName);
+                }
+              });
+            } else {
+              // Legacy nested structure (keep for backward compatibility)
+              Object.values(gapsData).forEach((category: any) => {
+                if (category.gaps && Array.isArray(category.gaps)) {
+                  category.gaps.forEach((gap: any) => {
+                    const current = gap.current_level || 0;
+                    const required = gap.required_level || 0;
+                    totalCurrentLevel += current;
+                    totalMaxLevel += required;
+                    totalGaps++;
+                    
+                    // Collect targeted skills
+                    if (gap.skill_name && current < required) {
+                      targetedSkills.push(gap.skill_name);
+                    }
+                  });
+                }
+              });
+            }
 
             if (totalMaxLevel > 0) {
               // Calculate gap as percentage of missing skills
@@ -300,7 +318,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
             const courseModules = plan.course_structure.modules;
             
             modules = courseModules.map((module: any, index: number) => ({
-              module_name: module.module_title || module.title || `Module ${index + 1}`,
+              module_name: module.name || module.module_title || module.title || `Module ${index + 1}`,
               module_order: index + 1,
               has_content: false, // Will update this later
               content_id: undefined,
