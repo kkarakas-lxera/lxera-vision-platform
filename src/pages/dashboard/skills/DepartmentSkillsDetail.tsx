@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { parseJsonSkills } from '@/utils/typeGuards';
 import { cn } from '@/lib/utils';
+import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
 
 interface DepartmentEmployee {
   employee_id: string;
@@ -228,7 +229,7 @@ export default function DepartmentSkillsDetail() {
           users!employees_user_id_fkey(full_name)
         `)
         .eq('company_id', userProfile.company_id)
-        .eq('department', decodeURIComponent(department));
+        .ilike('department', decodeURIComponent(department));
 
       if (empError) {
         console.error('Error fetching employees:', empError);
@@ -290,23 +291,48 @@ export default function DepartmentSkillsDetail() {
         }
       }
 
-      // Combine the data - only include employees with skills
+      // Combine the data - include employees with either employee_skills or CV extracted skills
+      interface TechnicalSkill {
+        skill_name: string;
+        proficiency_level: number; // 0-3
+        confidence: number;
+        source: 'cv' | 'verified' | 'ai_suggested' | 'position_requirement' | string;
+      }
+
       const employeesData = employeesInDept
         .map(emp => {
           const employeeWithSkills = employeesWithSkills?.find(ews => ews.id === emp.id);
           if (!employeeWithSkills) return null;
-          
-          // Check if employee has any skills
-          const hasSkills = employeeWithSkills.employee_skills && employeeWithSkills.employee_skills.length > 0;
-          if (!hasSkills) return null;
 
-          // Transform employee_skills to match old format
-          const technicalSkills = (employeeWithSkills.employee_skills || []).map(skill => ({
-            skill_name: skill.skill_name,
-            proficiency_level: skill.proficiency, // 0-3 scale
-            confidence: skill.confidence || 0,
-            source: skill.source
-          }));
+          const hasTableSkills = Array.isArray(employeeWithSkills.employee_skills) && employeeWithSkills.employee_skills.length > 0;
+
+          let technicalSkills: TechnicalSkill[] = [];
+
+          if (hasTableSkills) {
+            technicalSkills = employeeWithSkills.employee_skills.map((skill: {
+              skill_name: string;
+              proficiency: number;
+              confidence?: number;
+              source: string;
+            }) => ({
+              skill_name: skill.skill_name,
+              proficiency_level: skill.proficiency,
+              confidence: typeof skill.confidence === 'number' ? skill.confidence : 0,
+              source: skill.source
+            }));
+          } else if (Array.isArray(employeeWithSkills.cv_analysis_data?.extracted_skills)) {
+            const standardized = UnifiedSkillsService.convertLegacySkills(
+              employeeWithSkills.cv_analysis_data.extracted_skills
+            );
+            technicalSkills = standardized.map(s => ({
+              skill_name: s.skill_name,
+              proficiency_level: s.proficiency,
+              confidence: 0,
+              source: s.source || 'cv'
+            }));
+          }
+
+          if (technicalSkills.length === 0) return null;
 
           return {
             employee_id: emp.id,
@@ -323,7 +349,7 @@ export default function DepartmentSkillsDetail() {
             }
           };
         })
-        .filter(Boolean);
+        .filter((e): e is NonNullable<typeof e> => Boolean(e));
 
       const formattedEmployees = employeesData.map(profile => ({
         employee_id: profile.employee_id,

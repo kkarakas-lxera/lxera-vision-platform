@@ -180,11 +180,14 @@ export default function SkillsOverview() {
     }
   }, [userProfile?.role]);
 
-  // Fetch benchmark data when Market Benchmark tab becomes active
+  // When Market Benchmark tab becomes active, load from current tables (primary path)
   useEffect(() => {
-    if (activeTab === 'market' && !organizationBenchmark) {
-      // Check if we have cached data first
-      checkCachedData();
+    if (activeTab === 'market') {
+      // Prefer current-state tables over legacy RPCs
+      // This avoids stale "cached" labels and missing RPCs
+      (async () => {
+        await loadExecutiveReports();
+      })();
     }
   }, [activeTab]);
 
@@ -285,7 +288,10 @@ export default function SkillsOverview() {
         });
         setEmployeesBenchmark(empData);
 
-        setLastBenchmarkUpdate(new Date());
+        // Set last update from org current row if available
+        if (orgCurrent?.last_computed_at) {
+          setLastBenchmarkUpdate(new Date(orgCurrent.last_computed_at));
+        }
       } catch (err) {
         // Silent failure: the page still has fallback paths
         console.warn('loadCurrentMarketData failed:', err);
@@ -489,8 +495,9 @@ export default function SkillsOverview() {
         .select('*')
         .eq('company_id', userProfile.company_id);
 
-      if (deptData) {
-        setDepartmentSummaries(deptData.map(dept => ({
+      let effectiveDeptSummaries: DepartmentSummary[] = [];
+      if (deptData && deptData.length > 0) {
+        effectiveDeptSummaries = deptData.map(dept => ({
           department: dept.department || 'Unassigned',
           total_employees: Number(dept.total_employees) || 0,
           analyzed_employees: Number(dept.analyzed_employees) || 0,
@@ -498,8 +505,57 @@ export default function SkillsOverview() {
           critical_gaps: Number(dept.critical_gaps) || 0,
           moderate_gaps: Number(dept.moderate_gaps) || 0,
           exceeding_targets: Number(dept.exceeding_targets) || 0
-        })));
+        }));
       }
+
+      // If the view returned empty or clearly stale numbers while we know employees exist, build a fallback from employees
+      const totalsFromView = effectiveDeptSummaries.reduce((acc, d) => acc + d.total_employees + d.analyzed_employees, 0);
+      if (effectiveDeptSummaries.length === 0 || (totalsFromView === 0 && (employeesCount > 0))) {
+        const { data: allEmployees } = await supabase
+          .from('employees')
+          .select(`
+            id,
+            department,
+            skills_last_analyzed,
+            cv_analysis_data,
+            employee_skills(
+              skill_name,
+              proficiency
+            )
+          `)
+          .eq('company_id', userProfile.company_id);
+
+        const byDept = new Map<string, { total: number; analyzed: number; scores: number[]; critical: number; moderate: number }>();
+        (allEmployees || []).forEach((emp: any) => {
+          const dept = emp.department?.trim() || 'Unassigned';
+          if (!byDept.has(dept)) byDept.set(dept, { total: 0, analyzed: 0, scores: [], critical: 0, moderate: 0 });
+          const bucket = byDept.get(dept)!;
+          bucket.total += 1;
+          const hasTableSkills = Array.isArray(emp.employee_skills) && emp.employee_skills.length > 0;
+          const hasCvSkills = Array.isArray(emp.cv_analysis_data?.extracted_skills) && emp.cv_analysis_data.extracted_skills.length > 0;
+          const isAnalyzed = Boolean(emp.skills_last_analyzed) || hasTableSkills || hasCvSkills;
+          if (isAnalyzed) {
+            bucket.analyzed += 1;
+            const scoreNum = typeof emp.cv_analysis_data?.skills_match_score === 'number' ? emp.cv_analysis_data.skills_match_score : null;
+            if (typeof scoreNum === 'number') {
+              bucket.scores.push(scoreNum);
+              if (scoreNum < 50) bucket.critical += 1; else if (scoreNum < 70) bucket.moderate += 1;
+            }
+          }
+        });
+
+        effectiveDeptSummaries = Array.from(byDept.entries()).map(([department, v]) => ({
+          department,
+          total_employees: v.total,
+          analyzed_employees: v.analyzed,
+          avg_skills_match: v.scores.length > 0 ? Math.round(v.scores.reduce((a, b) => a + b, 0) / v.scores.length) : null,
+          critical_gaps: v.critical,
+          moderate_gaps: v.moderate,
+          exceeding_targets: 0
+        }));
+      }
+
+      setDepartmentSummaries(effectiveDeptSummaries);
 
       // Fetch critical skills gaps
       const { data: gapsData } = await supabase
@@ -524,14 +580,14 @@ export default function SkillsOverview() {
       }
 
       // Calculate overall stats
-      const totalEmployees = deptData?.reduce((sum, dept) => sum + (Number(dept.total_employees) || 0), 0) || 0;
-      const analyzedEmployees = deptData?.reduce((sum, dept) => sum + (Number(dept.analyzed_employees) || 0), 0) || 0;
+      const totalEmployees = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.total_employees) || 0), 0) || 0;
+      const analyzedEmployees = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.analyzed_employees) || 0), 0) || 0;
       
       // Calculate weighted average, only including departments with analyzed employees
       let totalWeightedMatch = 0;
       let totalAnalyzedForAverage = 0;
       
-      deptData?.forEach(dept => {
+      effectiveDeptSummaries.forEach(dept => {
         if (dept.avg_skills_match !== null && dept.analyzed_employees > 0) {
           totalWeightedMatch += Number(dept.avg_skills_match) * Number(dept.analyzed_employees);
           totalAnalyzedForAverage += Number(dept.analyzed_employees);
@@ -543,8 +599,8 @@ export default function SkillsOverview() {
         : 0;
       
       // Sum up all skill gaps from department data
-      const totalCriticalGaps = deptData?.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
-      const totalModerateGaps = deptData?.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
+      const totalCriticalGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
+      const totalModerateGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
       const totalGaps = totalCriticalGaps + totalModerateGaps;
 
       setOverallStats({
@@ -553,7 +609,7 @@ export default function SkillsOverview() {
         avgSkillsMatch: Math.round(avgMatch || 0),
         totalCriticalGaps,
         totalModerateGaps,
-        departmentsCount: deptData?.length || 0
+        departmentsCount: effectiveDeptSummaries.length || 0
       });
 
     } catch (error) {
@@ -597,7 +653,7 @@ export default function SkillsOverview() {
               )
             `)
             .eq('company_id', userProfile.company_id)
-            .eq('department', dept.department)
+            .ilike('department', dept.department)
             .not('employee_skills', 'is', null);
 
           // Aggregate all skills from employees
