@@ -202,13 +202,33 @@ export default function CourseViewer() {
 
       setEmployeeId(employee.id);
 
-      // Fetch course content - now using moduleId for specific module
-      const { data: content, error: contentError } = await supabase
-        .from('cm_module_content')
-        .select('*')
-        .eq('content_id', moduleId || courseId)
-        .eq('is_current_version', true)
-        .single();
+      // Fetch course content - using plan_id to get all modules for the course
+      let content: CourseContent | null = null;
+      let contentError: any = null;
+      
+      if (moduleId) {
+        // If specific module is requested, fetch by content_id
+        const { data, error } = await supabase
+          .from('cm_module_content')
+          .select('*')
+          .eq('content_id', moduleId)
+          .eq('is_current_version', true)
+          .single();
+        content = data;
+        contentError = error;
+      } else {
+        // Otherwise fetch the first module for this course plan
+        const { data, error } = await supabase
+          .from('cm_module_content')
+          .select('*')
+          .eq('plan_id', courseId)
+          .eq('is_current_version', true)
+          .order('module_spec->module_id')
+          .limit(1)
+          .single();
+        content = data;
+        contentError = error;
+      }
 
       if (contentError) {
         console.error('Error fetching module content:', contentError);
@@ -249,12 +269,12 @@ export default function CourseViewer() {
       });
       setAvailableSections(sectionsWithContent);
 
-      // Fetch assignment details
+      // Fetch assignment details - using plan_id
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('course_assignments')
         .select('*')
         .eq('employee_id', employee.id)
-        .eq('course_id', courseId)
+        .eq('plan_id', courseId)
         .single();
 
       if (assignmentError) {

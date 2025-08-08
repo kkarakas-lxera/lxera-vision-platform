@@ -18,14 +18,17 @@ interface CourseAssignment {
   started_at: string;
   completed_at: string | null;
   course_plan: {
+    course_title?: string;  // Add course_title field
     course_structure: {
-      title: string;
+      title?: string;  // Make title optional since it might not exist
       modules: Array<{
-        week: number;
-        title: string;
-        topics: string[];
-        duration: string;
-        priority: string;
+        week?: number;
+        id?: string;
+        name?: string;
+        title?: string;
+        topics?: string[];
+        duration?: string;
+        priority?: string;
       }>;
     };
   };
@@ -95,7 +98,8 @@ export default function MyCourses() {
             const { data: moduleContent } = await supabase
               .from('cm_module_content')
               .select('*')
-              .eq('content_id', assignment.course_id)
+              .eq('plan_id', assignment.plan_id)
+              .limit(1)
               .single();
 
             if (!moduleContent) continue;
@@ -141,13 +145,14 @@ export default function MyCourses() {
           
           formattedCourses.push({
             id: assignment.id,
-            course_id: assignment.course_id,
+            course_id: assignment.plan_id || assignment.course_id || '',  // Use plan_id as course_id
             plan_id: assignment.plan_id || '',
             progress_percentage: assignment.progress_percentage || 0,
             status: assignment.status,
             started_at: assignment.started_at || assignment.assigned_at,
             completed_at: assignment.completed_at,
             course_plan: {
+              course_title: courseTitle,  // Add the course title here
               course_structure: courseStructure || { title: courseTitle, modules: [] }
             }
           });
@@ -228,7 +233,7 @@ export default function MyCourses() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg mb-2 line-clamp-2">
-                      {course.course_plan.course_structure.title}
+                      {course.course_plan.course_title || course.course_plan.course_structure.title || 'Untitled Course'}
                     </CardTitle>
                     <Badge className={`text-xs ${getStatusColor(course.status)}`}>
                       {course.status.replace('_', ' ')}
@@ -251,7 +256,7 @@ export default function MyCourses() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    <span>{course.course_plan.course_structure.modules.length} modules</span>
+                    <span>{course.course_plan.course_structure.modules?.length || 0} modules</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
