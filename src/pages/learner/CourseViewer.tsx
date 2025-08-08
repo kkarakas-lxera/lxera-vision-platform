@@ -49,6 +49,7 @@ import TaskRolodex from '@/components/learner/game/TaskRolodex';
 import TaskDecisionModal from '@/components/learner/game/TaskDecisionModal';
 import PuzzleProgress from '@/components/learner/game/PuzzleProgress';
 import AssessmentSection from '@/components/learner/assessments/AssessmentSection';
+import CourseOverviewSection from '@/components/learner/CourseOverviewSection';
 
 interface CourseContent {
   content_id: string;
@@ -796,6 +797,8 @@ export default function CourseViewer() {
     
     // Read directly from cm_module_content columns
     switch (currentSection) {
+      case 'course_overview':
+        return null; // Handle separately with CourseOverviewSection component
       case 'introduction':
         return courseContent.introduction || 'No introduction available.';
       case 'core_content':
@@ -892,6 +895,33 @@ export default function CourseViewer() {
         
         {moduleHierarchyExpanded && coursePlan && (
           <div className="ml-2 space-y-2">
+            {/* Course Overview Link */}
+            <button
+              onClick={() => setCurrentSection('course_overview')}
+              className={cn(
+                "flex items-center justify-between w-full px-3 py-2 rounded-md transition-all duration-200",
+                currentSection === 'course_overview'
+                  ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              )}
+            >
+              <span className="flex items-center">
+                <Target className="h-4 w-4 mr-2" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Course Overview</div>
+                  <div className="text-xs opacity-80">What you'll learn & skills</div>
+                </div>
+              </span>
+              {currentSection === 'course_overview' && (
+                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-0 text-xs">
+                  Active
+                </Badge>
+              )}
+            </button>
+            
+            <Separator className="my-2" />
+            
+            {/* Modules */}
             {coursePlan.course_structure.modules.map((module, index) => {
               const moduleNumber = index + 1;
               const isCurrentModule = moduleNumber === currentModuleNumber;
@@ -1272,8 +1302,16 @@ export default function CourseViewer() {
                   )
                 )}
 
-                {/* Special handling for assessments section - no tabs needed */}
-                {currentSection === 'assessments' ? (
+                {/* Special handling for course overview section */}
+                {currentSection === 'course_overview' ? (
+                  <CourseOverviewSection
+                    courseTitle={coursePlan?.course_title || courseContent.module_name}
+                    coursePlan={coursePlan}
+                    totalModules={coursePlan?.total_modules || 4}
+                    employeeName={userProfile?.full_name}
+                  />
+                ) : /* Special handling for assessments section - no tabs needed */
+                currentSection === 'assessments' ? (
                   <AssessmentSection 
                     moduleId={moduleId || courseId || ''}
                     employeeId={employeeId || ''}
