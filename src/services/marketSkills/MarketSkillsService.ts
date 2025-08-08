@@ -1036,9 +1036,15 @@ export class MarketSkillsService {
         }
 
         // Use full name from user data, fallback to email-based name
-        const userData = employee.users?.[0] || employee.users; // Handle both array and object response
-        const name = userData?.full_name || 
-                    (userData?.email ? userData.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+        let name = 'Unknown';
+        const userRel = employee.users as unknown;
+        if (Array.isArray(userRel)) {
+          const u = userRel[0] as { full_name?: string; email?: string } | undefined;
+          name = u?.full_name || (u?.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+        } else if (userRel && typeof userRel === 'object') {
+          const u = userRel as { full_name?: string; email?: string };
+          name = u.full_name || (u.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+        }
         
         // Calculate skills by source
         const skillsBySource = { ai: 0, cv: 0, verified: 0 };
@@ -1072,7 +1078,8 @@ export class MarketSkillsService {
           });
         }
 
-        const positionData = employee.st_company_positions?.[0] || employee.st_company_positions;
+        const posRel = employee.st_company_positions as unknown;
+        const positionData = Array.isArray(posRel) ? posRel[0] as { position_title?: string } | undefined : (posRel as { position_title?: string } | undefined);
         
         employeeBenchmarks.push({
           employee_id: employee.id,
@@ -1189,6 +1196,103 @@ export class MarketSkillsService {
         employees: [],
         generated_at: new Date()
       };
+    }
+  }
+
+  /**
+   * New: Read current-state market matches with realtime support
+   */
+  async getOrganizationMarketMatchCurrent(companyId: string) {
+    const { data } = await (supabase as any)
+      .from('organization_market_match_current')
+      .select('*')
+      .eq('company_id', companyId)
+      .single()
+    return data
+  }
+
+  async getDepartmentsMarketMatchCurrent(companyId: string) {
+    const { data } = await (supabase as any)
+      .from('department_market_match_current')
+      .select('*')
+      .eq('company_id', companyId)
+    return data || []
+  }
+
+  async getEmployeesMarketMatchCurrent(companyId: string) {
+    const { data } = await (supabase as any)
+      .from('employee_market_match_current')
+      .select('*')
+      .eq('company_id', companyId)
+    return data || []
+  }
+
+  /**
+   * Generate an executive report and return id + optional signed PDF URL
+   */
+  async generateExecutiveReport(
+    scope: 'organization' | 'department',
+    scopeId?: string,
+    period?: { start?: string; end?: string },
+    includeCitations: boolean = true
+  ): Promise<{ id: string; pdf_url?: string }> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('Not authenticated');
+
+    const { data, error } = await (supabase as any).functions.invoke('generate-executive-report', {
+      body: {
+        scope,
+        scope_id: scopeId,
+        period,
+        include_citations: includeCitations,
+      },
+    });
+    if (error) throw error;
+    return data as { id: string; pdf_url?: string };
+  }
+
+  /**
+   * List executive reports for the current company (RLS-protected table read)
+   */
+  async listExecutiveReports(options?: { limit?: number; scope?: 'organization' | 'department'; department?: string }) {
+    const limit = options?.limit ?? 10;
+    let query = supabase
+      .from('market_executive_reports')
+      .select('id, scope, scope_id, period_start, period_end, generated_at, pdf_path, version')
+      .order('generated_at', { ascending: false })
+      .limit(limit);
+
+    if (options?.scope === 'organization') query = query.eq('scope', 'organization');
+    if (options?.scope === 'department' && options.department) query = query.eq('scope', 'department').eq('scope_id', options.department);
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('listExecutiveReports error:', error);
+      return [] as Array<{ id: string; scope: string; scope_id?: string; generated_at: string; pdf_path?: string; version: number }>;
+    }
+    return (data || []) as Array<{ id: string; scope: string; scope_id?: string; generated_at: string; pdf_path?: string; version: number }>;
+  }
+
+  subscribeMarketMatchUpdates(companyId: string, onChange: () => void) {
+    const org = supabase
+      .channel('org_market_current')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'organization_market_match_current', filter: `company_id=eq.${companyId}` }, onChange)
+      .subscribe()
+
+    const dept = supabase
+      .channel('dept_market_current')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'department_market_match_current', filter: `company_id=eq.${companyId}` }, onChange)
+      .subscribe()
+
+    const emp = supabase
+      .channel('emp_market_current')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'employee_market_match_current', filter: `company_id=eq.${companyId}` }, onChange)
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(org)
+      supabase.removeChannel(dept)
+      supabase.removeChannel(emp)
     }
   }
 

@@ -30,7 +30,8 @@ import {
   ChevronUp,
   HelpCircle,
   Info,
-  RefreshCcw
+  RefreshCcw,
+  Clock
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -141,6 +142,8 @@ export default function SkillsOverview() {
   const [activeTab, setActiveTab] = useState('internal');
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [auditLog, setAuditLog] = useState<Array<{ timestamp: Date; step: string; data: any }>>([]);
+  const [reports, setReports] = useState<Array<{ id: string; scope: string; scope_id?: string; generated_at: string; pdf_path?: string; pdf_url?: string; version: number }>>([]);
+  const [reportLoading, setReportLoading] = useState(false);
   
   // Internal Readiness view state
   const [internalView, setInternalView] = useState<'cards' | 'heatmap' | 'trends'>('cards');
@@ -184,6 +187,119 @@ export default function SkillsOverview() {
       checkCachedData();
     }
   }, [activeTab]);
+
+  // Load current-state market data and subscribe to realtime changes
+  useEffect(() => {
+    if (activeTab !== 'market' || !userProfile?.company_id) return;
+
+    const loadCurrentMarketData = async () => {
+      try {
+        const companyId = userProfile.company_id as string;
+        const [orgCurrent, deptCurrent, empCurrent] = await Promise.all([
+          marketSkillsService.getOrganizationMarketMatchCurrent(companyId),
+          marketSkillsService.getDepartmentsMarketMatchCurrent(companyId),
+          marketSkillsService.getEmployeesMarketMatchCurrent(companyId)
+        ]);
+
+        // Enrich employees with name/department/position
+        const { data: employeeMeta } = await supabase
+          .from('employees')
+          .select('id, department, users(full_name, email), st_company_positions(position_title)')
+          .eq('company_id', companyId);
+
+        const employeeMetaById = new Map<string, { name: string; department: string; position: string }>();
+        (employeeMeta || []).forEach((emp: any) => {
+          const userRel = emp.users as unknown;
+          let name = 'Unknown';
+          if (Array.isArray(userRel)) {
+            const u = userRel[0] as { full_name?: string; email?: string } | undefined;
+            name = u?.full_name || (u?.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+          } else if (userRel && typeof userRel === 'object') {
+            const u = userRel as { full_name?: string; email?: string };
+            name = u.full_name || (u.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+          }
+          const posRel = emp.st_company_positions as unknown;
+          const positionData = Array.isArray(posRel) ? (posRel[0] as { position_title?: string } | undefined) : ((posRel as { position_title?: string } | undefined));
+        
+          employeeMetaById.set(emp.id, {
+            name,
+            department: emp.department || 'Unknown',
+            position: positionData?.position_title || 'Unknown'
+          });
+        });
+
+        // Map organization
+        const analyzedEmployees = Array.isArray(empCurrent) ? empCurrent.length : 0;
+        const departmentsCount = Array.isArray(deptCurrent) ? deptCurrent.length : 0;
+        const orgData = {
+          market_coverage_rate: orgCurrent?.market_coverage_rate || 0,
+          industry_alignment_index: orgCurrent?.industry_alignment_index || 0,
+          top_missing_skills: Array.isArray(orgCurrent?.top_missing_skills) ? (orgCurrent?.top_missing_skills as any) : [],
+          critical_skills_count: orgCurrent?.critical_skills_count ?? 0,
+          moderate_skills_count: orgCurrent?.moderate_skills_count ?? 0,
+          minor_skills_count: 0,
+          total_employees: employeesCount,
+          analyzed_employees: analyzedEmployees,
+          departments_count: departmentsCount,
+          executive_summary: organizationBenchmark?.executive_summary,
+          last_computed_at: orgCurrent?.last_computed_at || null
+        } as any;
+
+        setOrganizationBenchmark(orgData);
+
+        // Map departments
+        const deptData = (deptCurrent || []).map((d: any) => ({
+          department: d.department,
+          benchmark_health_score: Math.min(10, Math.max(0, Math.round((d.avg_market_match / 100) * 10))),
+          impact_score: Math.min(
+            10,
+            Math.round(
+              ((d.critical_gaps / 3) * 3) +
+              (((100 - (d.avg_market_match || 0)) / 100) * 4) +
+              ((Math.min(d.employee_count || 0, 20) / 20) * 3)
+            )
+          ),
+          market_skill_breakdown: { critical: d.critical_gaps || 0, emerging: d.emerging_gaps || 0, foundational: 0 },
+          employee_count: d.employee_count || 0,
+          analyzed_count: d.analyzed_count || 0,
+          avg_market_match: d.avg_market_match || 0,
+          top_gaps: Array.isArray(d.top_gaps) ? d.top_gaps : [],
+          ai_explanation: undefined
+        }));
+        setDepartmentsBenchmark(deptData);
+
+        // Map employees
+        const empData = (empCurrent || []).map((e: any) => {
+          const meta = employeeMetaById.get(e.employee_id) || { name: 'Unknown', department: 'Unknown', position: 'Unknown' };
+          return {
+            employee_id: e.employee_id,
+            name: meta.name,
+            department: meta.department,
+            position: meta.position,
+            market_match_percentage: e.market_match_percentage || 0,
+            critical_gaps_count: (Array.isArray(e.top_missing_skills) ? e.top_missing_skills : []).filter((s: any) => s.category === 'critical').length,
+            skills_by_source: e.skills_by_source || { ai: 0, cv: 0, verified: 0 },
+            top_missing_skills: Array.isArray(e.top_missing_skills) ? e.top_missing_skills : [],
+            last_analyzed: e.last_computed_at ? new Date(e.last_computed_at) : null
+          };
+        });
+        setEmployeesBenchmark(empData);
+
+        setLastBenchmarkUpdate(new Date());
+      } catch (err) {
+        // Silent failure: the page still has fallback paths
+        console.warn('loadCurrentMarketData failed:', err);
+      }
+    };
+
+    loadCurrentMarketData();
+    const unsubscribe = marketSkillsService.subscribeMarketMatchUpdates(userProfile.company_id, () => {
+      loadCurrentMarketData();
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, [activeTab, userProfile?.company_id, employeesCount]);
 
   // Fetch data for different internal views
   useEffect(() => {
@@ -306,6 +422,15 @@ export default function SkillsOverview() {
     } finally {
       setBenchmarkLoading(false);
       setBenchmarkRefreshing(false);
+    }
+  };
+
+  const loadExecutiveReports = async () => {
+    try {
+      const items = await marketSkillsService.listExecutiveReports({ limit: 5 });
+      setReports(items);
+    } catch (e) {
+      // soft fail
     }
   };
 
@@ -579,8 +704,17 @@ export default function SkillsOverview() {
           const current = positionSkills.get(skill.skill_name)!;
           current.total += skill.proficiency || 0; // proficiency is 0-3 in new structure
           current.count += 1;
+          const userRel = employee.users as unknown;
+          let displayName = 'Unknown';
+          if (Array.isArray(userRel)) {
+            const u = userRel[0] as { full_name?: string; email?: string } | undefined;
+            displayName = u?.full_name || (u?.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+          } else if (userRel && typeof userRel === 'object') {
+            const u = userRel as { full_name?: string; email?: string };
+            displayName = u.full_name || (u.email ? u.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+          }
           current.employees.push({
-            name: employee.users?.full_name || employee.users?.email || 'Unknown',
+            name: displayName,
             proficiency: skill.proficiency || 0 // proficiency is 0-3 in new structure
           });
         });
@@ -940,10 +1074,16 @@ export default function SkillsOverview() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <div className="flex items-center gap-4 mt-1">
-                        <CardDescription className="text-xs">
+                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                        <CardDescription>
                           Compare skills against {companyIndustry} standards
                         </CardDescription>
+                        {organizationBenchmark?.last_computed_at && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Last computed {new Date(organizationBenchmark.last_computed_at).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -957,12 +1097,33 @@ export default function SkillsOverview() {
                             setDepartmentsBenchmark(freshData.departments);
                             setEmployeesBenchmark(freshData.employees);
                             setLastBenchmarkUpdate(freshData.generated_at);
+                            await loadExecutiveReports();
                           } finally {
                             setBenchmarkRefreshing(false);
                           }
                         }}
                         isLoading={benchmarkRefreshing}
                       />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                        disabled={reportLoading}
+                        onClick={async () => {
+                          setReportLoading(true);
+                          try {
+                            await marketSkillsService.generateExecutiveReport('organization');
+                            await loadExecutiveReports();
+                            toast({ title: 'Executive report generated', duration: 3000 });
+                          } catch (e) {
+                            toast({ title: 'Failed to generate report', variant: 'destructive' });
+                          } finally {
+                            setReportLoading(false);
+                          }
+                        }}
+                      >
+                        Generate Executive Report
+                      </Button>
                       <Brain className="h-4 w-4 text-gray-400" />
                     </div>
                   </div>
@@ -1196,6 +1357,37 @@ export default function SkillsOverview() {
                           </div>
                         </div>
                       )}
+
+                      {/* Executive Reports History */}
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm font-medium text-gray-900">Recent Executive Reports</h4>
+                          <Button variant="ghost" size="sm" onClick={loadExecutiveReports}>Refresh</Button>
+                        </div>
+                        {reports.length === 0 ? (
+                          <div className="text-xs text-gray-500">No reports yet. Generate one to get started.</div>
+                        ) : (
+                          <ul className="space-y-1">
+                            {reports.map((r) => (
+                              <li key={r.id} className="flex items-center justify-between text-xs bg-white border border-gray-200 rounded px-2 py-1">
+                                <span>Report • {new Date(r.generated_at).toLocaleString()}</span>
+                                {r.pdf_url ? (
+                                  <a
+                                    className="text-blue-600 hover:underline"
+                                    href={r.pdf_url as unknown as string}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    View PDF
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-400">Processing…</span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -1217,13 +1409,13 @@ export default function SkillsOverview() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {benchmarkLoading ? (
+                          {benchmarkLoading ? (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                       {[1, 2, 3].map(i => (
                         <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg"></div>
                       ))}
                     </div>
-                  ) : (
+                          ) : (
                     <div className="space-y-4">
                       {departmentsBenchmark.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
@@ -1319,6 +1511,9 @@ export default function SkillsOverview() {
                                     <div className="text-gray-500">Analyzed</div>
                                   </div>
                                 </div>
+                                <div className="mt-1 text-[10px] text-gray-400">
+                                  Last computed {dept.last_computed_at ? new Date(dept.last_computed_at).toLocaleString() : '—'}
+                                </div>
                                 
                                 {/* Market Gap Toggle */}
                                 {marketGap && marketGap.skills.length > 0 && (
@@ -1342,11 +1537,7 @@ export default function SkillsOverview() {
                                         <Brain className="h-3 w-3" />
                                         Market Skills Gap ({marketGap.skills.length} skills)
                                       </span>
-                                      {isExpanded ? (
-                                        <ChevronUp className="h-3 w-3" />
-                                      ) : (
-                                        <ChevronDown className="h-3 w-3" />
-                                      )}
+                                      {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                                     </button>
                                     
                                     {/* Expandable Market Gap Section */}
@@ -1432,7 +1623,7 @@ export default function SkillsOverview() {
                         ) : employeesBenchmark.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-gray-500">
-                              {console.log('Rendering empty state, employeesBenchmark:', employeesBenchmark)}
+                              {/* Empty state message */}
                               No employee benchmark data available
                             </td>
                           </tr>
@@ -1440,8 +1631,8 @@ export default function SkillsOverview() {
                           employeesBenchmark.slice(0, 10).map((employee, i) => {
                             const matchPercentage = employee.market_match_percentage || 0;
                             const topGap = employee.top_missing_skills?.[0];
-                            const primarySource = Object.entries(employee.skills_by_source)
-                              .reduce((max, [key, value]) => value > max.value ? { key, value } : max, { key: 'ai', value: 0 });
+                            const primarySource = Object.entries(employee.skills_by_source as Record<string, number>)
+                              .reduce((max, [key, value]) => (Number(value) > Number(max.value) ? { key, value: Number(value) } : max), { key: 'ai', value: 0 });
                             
                             return (
                               <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
@@ -1496,6 +1687,9 @@ export default function SkillsOverview() {
                                   ) : (
                                     <span className="text-xs text-gray-400">No gaps</span>
                                   )}
+                                </td>
+                                <td className="py-3 text-[10px] text-gray-400">
+                                  {employee.last_analyzed ? `Last computed ${new Date(employee.last_analyzed).toLocaleString()}` : '—'}
                                 </td>
                                 <td className="py-3">
                                   <Button 
