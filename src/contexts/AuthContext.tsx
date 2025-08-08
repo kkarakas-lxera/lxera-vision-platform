@@ -28,6 +28,8 @@ interface UserProfile {
     position?: string;
     department?: string;
     current_position_id?: string;
+    profile_complete?: boolean;
+    skills_validation_completed?: boolean;
     st_company_positions?: {
       position_title: string;
       department: string;
@@ -111,6 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             department,
             current_position_id,
             company_id,
+            profile_complete,
+            skills_validation_completed,
             st_company_positions!employees_current_position_id_fkey (
               position_title,
               department

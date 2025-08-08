@@ -41,7 +41,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       case 'company_admin':
         return <Navigate to="/dashboard" replace />;
       case 'learner':
-        return <Navigate to="/learner/profile" replace />;
+        // Check if learner has completed their profile
+        if (userProfile.employee?.profile_complete && userProfile.employee?.skills_validation_completed) {
+          return <Navigate to="/learner" replace />;
+        } else {
+          return <Navigate to="/learner/profile" replace />;
+        }
       default:
         return <Navigate to="/login" replace />;
     }
