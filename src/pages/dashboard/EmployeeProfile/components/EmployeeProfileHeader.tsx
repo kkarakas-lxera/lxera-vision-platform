@@ -19,6 +19,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -90,6 +97,19 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
     if (score >= 60) return 'Good Match';
     if (score >= 40) return 'Moderate Match';
     return 'Poor Match';
+  };
+
+  const getMatchExplanation = (score: number): string => {
+    if (score >= 80) {
+      return 'Excellent Match: Strong alignment with role requirements. The employee’s skills closely match the position expectations.';
+    }
+    if (score >= 60) {
+      return 'Good Match: Solid fit with minor gaps. Targeted upskilling can elevate readiness to excellent.';
+    }
+    if (score >= 40) {
+      return 'Moderate Match: Partial alignment. Several gaps need to be addressed to meet role expectations.';
+    }
+    return 'Poor Match: Low alignment with role requirements. Significant upskilling or role adjustment may be needed.';
   };
 
   return (
@@ -186,9 +206,29 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
                   <span className={`text-3xl font-bold ${getMatchScoreColor(employee.skills_profile?.skills_match_score || 0)}`}>
                     {employee.skills_profile?.skills_match_score || 0}%
                   </span>
-                  <Badge variant="outline" className="ml-2">
-                    {getMatchScoreLabel(employee.skills_profile?.skills_match_score || 0)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">
+                      {getMatchScoreLabel(employee.skills_profile?.skills_match_score || 0)}
+                    </Badge>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="Position match explanation"
+                            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-sm">
+                            {getMatchExplanation(employee.skills_profile?.skills_match_score || 0)}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
                 <Progress 
                   value={employee.skills_profile?.skills_match_score || 0} 

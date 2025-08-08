@@ -120,10 +120,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
-          { href: isFreeTrial ? '#' : '/dashboard/analytics', icon: BarChart3, label: 'Game Engine', locked: isFreeTrial },
+          // Temporarily unlock premium items for free skills gap users
+          { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
           { section: 'Learning Platform', icon: School },
-          { href: isFreeTrial ? '#' : '/dashboard/courses', icon: BookOpen, label: 'Courses', locked: isFreeTrial },
-          { href: isFreeTrial ? '#' : '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator', locked: isFreeTrial },
+          { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
+          { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
           { section: 'System', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];

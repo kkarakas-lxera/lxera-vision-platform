@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Target, CheckCircle, Database, Sparkles, Plus, X, Search, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Target, CheckCircle, Database, Sparkles, Plus, X, ChevronDown, Save, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,22 +11,20 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SkillSearch } from '@/components/admin/SkillsManagement/SkillSearch';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { SkillSearchResult } from '@/types/skills';
 import { parseSkillsArray } from '@/utils/typeGuards';
 import type { SkillData } from '@/types/common';
 
 interface SkillRequirement {
   skill_id: string;
   skill_name: string;
-  skill_type: string;
+  skill_type?: string;
   proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
   is_mandatory: boolean;
   description?: string;
-  reason?: string;
+  why_needed?: string;
 }
 
 interface SkillSuggestion {
@@ -66,8 +64,8 @@ export default function PositionEdit() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
   const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
-  const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
   const [expandedRequiredSkills, setExpandedRequiredSkills] = useState<{[key: string]: boolean}>({});
+  const [editingSkill, setEditingSkill] = useState<string | null>(null);
   
   // Form state
   const [positionCode, setPositionCode] = useState('');
@@ -76,6 +74,14 @@ export default function PositionEdit() {
   const [department, setDepartment] = useState('');
   const [description, setDescription] = useState('');
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
+  
+  // Manual skill entry state
+  const [showAddSkill, setShowAddSkill] = useState(false);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillDescription, setNewSkillDescription] = useState('');
+  const [newSkillWhyNeeded, setNewSkillWhyNeeded] = useState('');
+  const [newSkillProficiency, setNewSkillProficiency] = useState<'basic' | 'intermediate' | 'advanced' | 'expert'>('intermediate');
+  const [newSkillMandatory, setNewSkillMandatory] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -116,7 +122,7 @@ export default function PositionEdit() {
         setDescription(typedPosition.description || '');
         setRequiredSkills(typedPosition.required_skills || []);
         
-        // Load AI suggestions if available
+        // Load AI suggestions if available from database
         if (typedPosition.ai_suggestions && typedPosition.ai_suggestions.length > 0) {
           setAiSuggestions(typedPosition.ai_suggestions);
           setSuggestionsLoaded(true);
@@ -132,7 +138,7 @@ export default function PositionEdit() {
   };
 
   const fetchAiSuggestions = async () => {
-    if (!positionTitle || isLoadingSuggestions) return;
+    if (!positionTitle || isLoadingSuggestions || suggestionsLoaded) return;
 
     setIsLoadingSuggestions(true);
     try {
@@ -150,6 +156,14 @@ export default function PositionEdit() {
       if (data.skills) {
         setAiSuggestions(data.skills);
         setSuggestionsLoaded(true);
+        
+        // Store AI suggestions in database immediately
+        if (position) {
+          await supabase
+            .from('st_company_positions')
+            .update({ ai_suggestions: data.skills })
+            .eq('id', position.id);
+        }
       }
     } catch (error) {
       console.error('Error fetching AI suggestions:', error);
@@ -186,21 +200,43 @@ export default function PositionEdit() {
     }
   };
 
-  const handleSkillSelect = (skill: SkillSearchResult, isRequired: boolean, proficiencyLevel: string = 'intermediate') => {
+  const addManualSkill = () => {
+    if (!newSkillName.trim()) {
+      toast.error('Skill name is required');
+      return;
+    }
+
     const skillRequirement: SkillRequirement = {
-      skill_id: skill.skill_id,
-      skill_name: skill.skill_name,
-      skill_type: skill.skill_type,
-      proficiency_level: proficiencyLevel as any,
-      is_mandatory: isRequired,
-      description: skill.description
+      skill_id: `manual_${Date.now()}_${Math.random()}`,
+      skill_name: newSkillName.trim(),
+      skill_type: 'Manual Entry',
+      proficiency_level: newSkillProficiency,
+      is_mandatory: newSkillMandatory,
+      description: newSkillDescription.trim(),
+      why_needed: newSkillWhyNeeded.trim()
     };
 
-    if (isRequired) {
-      if (!requiredSkills.find(s => s.skill_id === skill.skill_id)) {
-        setRequiredSkills([...requiredSkills, skillRequirement]);
-      }
+    if (!requiredSkills.find(s => s.skill_name.toLowerCase() === newSkillName.toLowerCase())) {
+      setRequiredSkills([...requiredSkills, skillRequirement]);
+      toast.success(`Added ${newSkillName} to required skills`);
+      
+      // Reset form
+      setNewSkillName('');
+      setNewSkillDescription('');
+      setNewSkillWhyNeeded('');
+      setNewSkillProficiency('intermediate');
+      setNewSkillMandatory(true);
+      setShowAddSkill(false);
+    } else {
+      toast.error('This skill already exists');
     }
+  };
+
+  const updateSkill = (skillId: string, updates: Partial<SkillRequirement>) => {
+    setRequiredSkills(requiredSkills.map(skill => 
+      skill.skill_id === skillId ? { ...skill, ...updates } : skill
+    ));
+    setEditingSkill(null);
   };
 
   const removeSkill = (skillId: string) => {
@@ -222,7 +258,7 @@ export default function PositionEdit() {
       proficiency_level: suggestion.proficiency_level,
       is_mandatory: suggestion.category === 'essential',
       description: suggestion.description,
-      reason: suggestion.reason
+      why_needed: suggestion.reason
     };
 
     if (!requiredSkills.find(s => s.skill_name === suggestion.skill_name)) {
@@ -266,7 +302,8 @@ export default function PositionEdit() {
         department: department || null,
         description: description || null,
         required_skills: requiredSkills as any[],
-        nice_to_have_skills: []
+        nice_to_have_skills: [],
+        ai_suggestions: aiSuggestions.length > 0 ? aiSuggestions : position.ai_suggestions
       };
 
       const { error } = await supabase
@@ -435,27 +472,51 @@ export default function PositionEdit() {
         <CardContent className="space-y-6">
           {/* Current Skills Grid */}
           {requiredSkills.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               {requiredSkills.map((skill) => {
                 const isExpanded = expandedRequiredSkills[skill.skill_id];
+                const isEditing = editingSkill === skill.skill_id;
                 
                 return (
                   <div key={skill.skill_id} className="bg-white border rounded-lg shadow-sm">
                     <div 
                       className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => toggleRequiredSkillExpanded(skill.skill_id)}
+                      onClick={() => !isEditing && toggleRequiredSkillExpanded(skill.skill_id)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">{skill.skill_name}</span>
-                            {skill.is_mandatory && (
-                              <Badge variant="destructive" className="text-xs">Essential</Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">{skill.skill_type}</p>
+                          {isEditing ? (
+                            <Input
+                              value={skill.skill_name}
+                              onChange={(e) => updateSkill(skill.skill_id, { skill_name: e.target.value })}
+                              onClick={(e) => e.stopPropagation()}
+                              className="mb-2"
+                              placeholder="Skill name"
+                            />
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{skill.skill_name}</span>
+                              {skill.is_mandatory && (
+                                <Badge variant="destructive" className="text-xs">Essential</Badge>
+                              )}
+                              {skill.skill_type && (
+                                <Badge variant="outline" className="text-xs">{skill.skill_type}</Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingSkill(isEditing ? null : skill.skill_id);
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            {isEditing ? <Save className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
+                          </Button>
                           <ChevronDown 
                             className={`h-4 w-4 text-gray-400 transition-transform ${
                               isExpanded ? 'rotate-180' : ''
@@ -476,18 +537,80 @@ export default function PositionEdit() {
                       </div>
                     </div>
                     
-                    {isExpanded && (skill.description || skill.reason) && (
+                    {(isExpanded || isEditing) && (
                       <div className="px-3 pb-3 border-t border-gray-100">
-                        <div className="pt-2 space-y-2">
-                          {skill.description && (
-                            <p className="text-xs text-gray-600 leading-relaxed">
-                              {skill.description}
-                            </p>
-                          )}
-                          {skill.reason && (
-                            <div className="text-xs">
-                              <span className="font-medium text-gray-700">Why needed: </span>
-                              <span className="text-gray-600">{skill.reason}</span>
+                        <div className="pt-2 space-y-3">
+                          <div>
+                            <Label className="text-xs text-gray-600">Description</Label>
+                            {isEditing ? (
+                              <Textarea
+                                value={skill.description || ''}
+                                onChange={(e) => updateSkill(skill.skill_id, { description: e.target.value })}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Describe this skill and what it entails..."
+                                rows={2}
+                                className="mt-1"
+                              />
+                            ) : (
+                              <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                                {skill.description || 'No description provided'}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs text-gray-600">Why Needed</Label>
+                            {isEditing ? (
+                              <Textarea
+                                value={skill.why_needed || ''}
+                                onChange={(e) => updateSkill(skill.skill_id, { why_needed: e.target.value })}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Explain why this skill is important for this position..."
+                                rows={2}
+                                className="mt-1"
+                              />
+                            ) : (
+                              <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                                {skill.why_needed || 'No reason provided'}
+                              </p>
+                            )}
+                          </div>
+                          
+                          {isEditing && (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs text-gray-600">Proficiency Level</Label>
+                                <Select 
+                                  value={skill.proficiency_level} 
+                                  onValueChange={(value: any) => updateSkill(skill.skill_id, { proficiency_level: value })}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="basic">Basic</SelectItem>
+                                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                                    <SelectItem value="advanced">Advanced</SelectItem>
+                                    <SelectItem value="expert">Expert</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-xs text-gray-600">Requirement Type</Label>
+                                <Select 
+                                  value={skill.is_mandatory ? 'mandatory' : 'nice-to-have'} 
+                                  onValueChange={(value) => updateSkill(skill.skill_id, { is_mandatory: value === 'mandatory' })}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="mandatory">Mandatory</SelectItem>
+                                    <SelectItem value="nice-to-have">Nice to Have</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -506,6 +629,114 @@ export default function PositionEdit() {
               <p className="text-xs">Use the options below to add skills</p>
             </div>
           )}
+
+          <Separator />
+
+          {/* Add Manual Skill Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Add Skills Manually</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddSkill(!showAddSkill)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-3 w-3" />
+                Add Skill
+              </Button>
+            </div>
+            
+            {showAddSkill && (
+              <div className="border rounded-lg p-4 space-y-3 bg-gray-50">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Skill Name *</Label>
+                    <Input
+                      value={newSkillName}
+                      onChange={(e) => setNewSkillName(e.target.value)}
+                      placeholder="e.g., Project Management"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Proficiency Level</Label>
+                    <Select value={newSkillProficiency} onValueChange={(value: any) => setNewSkillProficiency(value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-xs">Description</Label>
+                  <Textarea
+                    value={newSkillDescription}
+                    onChange={(e) => setNewSkillDescription(e.target.value)}
+                    placeholder="Describe what this skill entails and how it's used in this position..."
+                    rows={2}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-xs">Why This Skill is Needed</Label>
+                  <Textarea
+                    value={newSkillWhyNeeded}
+                    onChange={(e) => setNewSkillWhyNeeded(e.target.value)}
+                    placeholder="Explain why this skill is crucial for success in this position..."
+                    rows={2}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="mandatory"
+                      checked={newSkillMandatory}
+                      onChange={(e) => setNewSkillMandatory(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="mandatory" className="text-sm">Mandatory Skill</Label>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAddSkill(false);
+                        setNewSkillName('');
+                        setNewSkillDescription('');
+                        setNewSkillWhyNeeded('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addManualSkill}
+                    >
+                      Add Skill
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           <Separator />
 
@@ -529,18 +760,9 @@ export default function PositionEdit() {
                   {isLoadingSuggestions ? 'Loading...' : 'Get Suggestions'}
                 </Button>
               ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSuggestionsLoaded(false);
-                    setAiSuggestions([]);
-                    fetchAiSuggestions();
-                  }}
-                >
-                  Regenerate
-                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Click to analyze position and get skill recommendations
+                </span>
               )}
             </div>
             
@@ -597,22 +819,23 @@ export default function PositionEdit() {
                             />
                             <Button
                               type="button"
+                              variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAddAiSuggestion(suggestion);
                               }}
-                              className="flex items-center gap-1"
+                              className="h-7 px-2 text-xs"
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-3 w-3 mr-1" />
                               Add
                             </Button>
                           </div>
                         </div>
                       </div>
                       
-                      {isExpanded && (suggestion.description || suggestion.reason) && (
-                        <div className="px-2 pb-2 border-t border-gray-100">
+                      {isExpanded && (
+                        <div className="px-3 pb-3 border-t border-gray-100">
                           <div className="pt-2 space-y-2">
                             {suggestion.description && (
                               <p className="text-xs text-gray-600 leading-relaxed">
@@ -625,6 +848,12 @@ export default function PositionEdit() {
                                 <span className="text-gray-600">{suggestion.reason}</span>
                               </div>
                             )}
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-500">Proficiency:</span>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {suggestion.proficiency_level}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -633,52 +862,32 @@ export default function PositionEdit() {
                 })}
               </div>
             )}
-
+            
             {suggestionsLoaded && getAvailableSuggestions().length === 0 && (
               <div className="text-center py-4 text-muted-foreground border rounded-lg">
-                <CheckCircle className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">All AI suggestions have been added!</p>
-                <p className="text-xs">Use manual search below for additional skills</p>
+                <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-500" />
+                <p className="text-sm">All suggested skills have been added</p>
               </div>
             )}
-
-            {!suggestionsLoaded && !isLoadingSuggestions && (
-              <div className="text-center py-4 text-muted-foreground border rounded-lg">
-                <p className="text-sm">Click to analyze position and get skill recommendations</p>
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Manual Skill Search */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-medium">Search and add more skills</Label>
-            </div>
-            <SkillSearch
-              onSkillSelect={(skill) => handleSkillSelect(skill, true)}
-              placeholder="Search skills database..."
-            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
+      {/* Save Button */}
       <div className="flex justify-end gap-3">
         <Button
           variant="outline"
           onClick={() => navigate('/dashboard/positions')}
-          disabled={saving}
         >
           Cancel
         </Button>
         <Button
           onClick={handleSave}
-          disabled={saving || !positionCode.trim() || !positionTitle.trim()}
+          disabled={saving}
+          className="flex items-center gap-2"
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          <Save className="h-4 w-4" />
+          {saving ? 'Saving...' : 'Save Position'}
         </Button>
       </div>
     </div>
