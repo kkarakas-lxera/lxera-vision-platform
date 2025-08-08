@@ -29,7 +29,7 @@ import {
   ImagePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import ImageUpload from './ImageUpload';
+import InlineImageUpload from './InlineImageUpload';
 import type { Database } from '@/integrations/supabase/types';
 import type { ContentSection } from '../hooks/useCourseEditor';
 
@@ -142,6 +142,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
       currentContent.substring(start);
     
     onContentChange(activeSection, newContent);
+    
+    // Close the inline uploader
+    setShowImageUpload(false);
     
     // Focus back on textarea
     setTimeout(() => {
@@ -271,6 +274,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   </Button>
                 </div>
                 
+                {/* Inline Image Upload */}
+                <InlineImageUpload
+                  show={showImageUpload}
+                  onClose={() => setShowImageUpload(false)}
+                  onImageInsert={handleImageInsert}
+                  planId={module.plan_id}
+                  moduleId={module.module_id}
+                />
+                
                 {/* Markdown Help */}
                 {showMarkdownHelp && (
                   <Card className="mb-4 p-4 bg-gray-50">
@@ -305,15 +317,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           </div>
         </TabsContent>
       </Tabs>
-      
-      {/* Image Upload Dialog */}
-      <ImageUpload
-        open={showImageUpload}
-        onOpenChange={setShowImageUpload}
-        onImageInsert={handleImageInsert}
-        planId={module.plan_id}
-        moduleId={module.module_id}
-      />
     </Card>
   );
 };

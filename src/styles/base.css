@@ -17,7 +17,7 @@
     --card: 0 0% 100%; /* White in HSL */
     --card-foreground: 0 0% 10%; /* Business Black (approx 10% lightness) */
 
-    --background: 60 27% 91%; /* Smart Beige */
+    --background: 0 0% 98%; /* Light gray background */
     --foreground: 0 0% 10%; /* Business Black */
 
     --popover: 0 0% 100%; /* White */
