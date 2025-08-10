@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email_verified, 
           position,
           metadata,
-          companies:company_id (
+          companies!users_company_id_fkey (
             id,
             name,
             plan_type
@@ -101,9 +101,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      // Transform the companies array to a single object if it exists
+      const transformedData = {
+        ...data,
+        companies: Array.isArray(data.companies) && data.companies.length > 0 ? data.companies[0] : data.companies,
+        employee: undefined as UserProfile['employee']
+      };
+
       // If user is a learner, fetch employee data with company info
-      if (data.role === 'learner') {
-        console.log('[AuthContext] Fetching employee data for learner user:', { userId, userEmail: data.email });
+      if (transformedData.role === 'learner') {
+        console.log('[AuthContext] Fetching employee data for learner user:', { userId, userEmail: transformedData.email });
         
         const { data: employeeData, error: employeeError } = await supabase
           .from('employees')
@@ -119,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               position_title,
               department
             ),
-            companies!company_id (
+            companies!employees_company_id_fkey (
               id,
               name,
               plan_type
@@ -136,24 +143,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (employeeData) {
-          data.employee = employeeData;
+          // Transform companies to single object if it's an array
+          const employeeWithTransformedCompany = {
+            ...employeeData,
+            companies: Array.isArray(employeeData.companies) && employeeData.companies.length > 0 ? employeeData.companies[0] : employeeData.companies
+          };
+          
+          transformedData.employee = employeeWithTransformedCompany;
           // With fixed PostgREST syntax, the join should work properly
-          if (employeeData.companies) {
-            console.log('[AuthContext] Using company data from employee join:', employeeData.companies);
-            data.companies = employeeData.companies;
-          } else if (employeeData.company_id) {
-            console.log('[AuthContext] Join failed, fetching company directly for employee:', employeeData.company_id);
+          if (employeeWithTransformedCompany.companies) {
+            console.log('[AuthContext] Using company data from employee join:', employeeWithTransformedCompany.companies);
+            transformedData.companies = employeeWithTransformedCompany.companies;
+          } else if (employeeWithTransformedCompany.company_id) {
+            console.log('[AuthContext] Join failed, fetching company directly for employee:', employeeWithTransformedCompany.company_id);
             // Fallback: fetch company directly if join still fails
             const { data: companyData, error: companyError } = await supabase
               .from('companies')
               .select('id, name, plan_type')
-              .eq('id', employeeData.company_id)
+              .eq('id', employeeWithTransformedCompany.company_id)
               .maybeSingle();
             
             console.log('[AuthContext] Direct company fetch result:', { companyData, companyError });
             
             if (companyData) {
-              data.companies = companyData;
+              transformedData.companies = companyData;
             } else {
               console.warn('[AuthContext] Failed to fetch company data:', companyError);
             }
@@ -164,10 +177,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('[AuthContext] No employee record found for learner user');
         }
 
-        console.log('[AuthContext] Final company data for learner:', data.companies);
+        console.log('[AuthContext] Final company data for learner:', transformedData.companies);
       }
 
-      return data as UserProfile;
+      return transformedData as UserProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return null;
