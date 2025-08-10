@@ -396,7 +396,7 @@ export default function CompanyDashboard() {
         analyzedCount: analyzedCVs,
         totalCount: employeeCount || 0
       });
-
+      
       // Fetch skills gap overview with real data
       await fetchSkillsGapOverview();
 
@@ -605,8 +605,7 @@ export default function CompanyDashboard() {
   return (
     <div 
       className={cn(
-        "font-inter space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen",
-        isFreeTrialUser && "bg-gradient-to-br from-slate-50 via-indigo-50 to-white"
+        "font-inter space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen"
       )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -630,8 +629,7 @@ export default function CompanyDashboard() {
 
       {/* Welcome Header */}
       <div className={cn(
-        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
-        isFreeTrialUser && "bg-white/60 backdrop-blur-sm border border-indigo-100 rounded-lg p-4 shadow-sm"
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       )}>
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-semibold font-inter text-foreground">
@@ -706,15 +704,15 @@ export default function CompanyDashboard() {
           onViewSkills={() => navigate('/dashboard/skills')}
           onImportCVs={() => navigate('/dashboard/employees?tab=import')}
         />
-      </div>
-
+                    </div>
+                    
       {/* Legacy detailed skills health and overlays removed in favor of concise snapshot */}
 
       {/* Activity link (deprioritized) */}
       <div className="flex justify-end">
         <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/analytics')}>
           View activity
-        </Button>
+                </Button>
       </div>
       
       {/* Welcome modal removed */}
