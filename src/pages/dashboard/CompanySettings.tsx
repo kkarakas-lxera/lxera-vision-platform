@@ -53,17 +53,16 @@ interface HRISConnection {
   };
 }
 
-interface SkillsGapLead {
+interface CompanyProfileData {
   id: string;
   email: string;
-  name: string;
-  company: string;
+  name: string; // contact name
+  company: string; // company name
   role: string;
-  team_size: string;
-  use_case: string;
-  heard_about: string;
+  team_size?: string;
+  use_case?: string;
+  heard_about?: string;
   created_at: string;
-  status: string;
 }
 
 type ViewType = 'main' | 'company-profile' | 'team-members' | 'billing' | 'support';
@@ -80,10 +79,10 @@ export default function CompanySettings() {
   const [currentView, setCurrentView] = useState<ViewType>('main');
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
-  const [companyData, setCompanyData] = useState<SkillsGapLead | null>(null);
+  const [companyData, setCompanyData] = useState<CompanyProfileData | null>(null);
   const [companyLoading, setCompanyLoading] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
-  const [editCompanyData, setEditCompanyData] = useState<SkillsGapLead | null>(null);
+  const [editCompanyData, setEditCompanyData] = useState<CompanyProfileData | null>(null);
   const [savingCompany, setSavingCompany] = useState(false);
   const [formData, setFormData] = useState<FeedbackFormData>({
     type: 'general_feedback',
@@ -145,23 +144,41 @@ export default function CompanySettings() {
   };
 
   const fetchCompanyData = async () => {
-    if (!userProfile?.email) return;
-    
+    if (!userProfile?.company_id) return;
+
     setCompanyLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('skills_gap_leads')
-        .select('*')
-        .eq('email', userProfile.email)
-        .eq('status', 'converted')
+      const { data: companyRow, error } = await supabase
+        .from('companies')
+        .select('id, name, created_at, settings')
+        .eq('id', userProfile.company_id)
         .single();
 
       if (error) {
         console.error('Error fetching company data:', error);
-        // Don't show error toast, just set no data
+      } else if (companyRow) {
+        const settings = (companyRow.settings as Record<string, unknown>) || {};
+        const useCases = Array.isArray((settings as any).use_cases)
+          ? ((settings as any).use_cases as string[])
+          : undefined;
+
+        const profile: CompanyProfileData = {
+          id: companyRow.id,
+          company: companyRow.name,
+          team_size: (settings as any).team_size as string | undefined,
+          use_case: useCases && useCases.length > 0 ? useCases[0] : undefined,
+          heard_about: (settings as any).heard_about as string | undefined,
+          name: (userProfile as any)?.full_name || '',
+          email: userProfile?.email || '',
+          role: (userProfile as any)?.role || '',
+          created_at: companyRow.created_at || new Date().toISOString(),
+        };
+
+        setCompanyData(profile);
+        setEditCompanyData(profile);
       } else {
-        setCompanyData(data);
-        setEditCompanyData(data);
+        setCompanyData(null);
+        setEditCompanyData(null);
       }
     } catch (error) {
       console.error('Error fetching company data:', error);
@@ -316,25 +333,33 @@ export default function CompanySettings() {
   };
 
   const handleSaveCompany = async () => {
-    if (!editCompanyData || !companyData) return;
+    if (!editCompanyData || !userProfile?.company_id) return;
 
     setSavingCompany(true);
     try {
-      const { error } = await supabase
-        .from('skills_gap_leads')
-        .update({
-          company: editCompanyData.company,
-          name: editCompanyData.name,
-          role: editCompanyData.role,
-          team_size: editCompanyData.team_size,
-          use_case: editCompanyData.use_case,
-          heard_about: editCompanyData.heard_about
-        })
-        .eq('id', editCompanyData.id);
+      const { data: current, error: fetchErr } = await supabase
+        .from('companies')
+        .select('settings')
+        .eq('id', userProfile.company_id)
+        .single();
+      if (fetchErr) throw fetchErr;
 
-      if (error) {
-        throw error;
-      }
+      const currentSettings = (current?.settings as Record<string, unknown>) || {};
+      const newSettings = {
+        ...currentSettings,
+        team_size: editCompanyData.team_size,
+        use_cases: editCompanyData.use_case ? [editCompanyData.use_case] : (currentSettings as any).use_cases,
+        heard_about: editCompanyData.heard_about,
+      };
+
+      const { error: updateErr } = await supabase
+        .from('companies')
+        .update({
+          name: editCompanyData.company,
+          settings: newSettings as any,
+        })
+        .eq('id', userProfile.company_id);
+      if (updateErr) throw updateErr;
 
       setCompanyData(editCompanyData);
       setIsEditingCompany(false);
