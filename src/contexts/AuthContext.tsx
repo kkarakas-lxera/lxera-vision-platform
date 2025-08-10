@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email_verified, 
           position,
           metadata,
-          companies!users_company_id_fkey (
+          companies (
             id,
             name,
             plan_type
@@ -122,11 +122,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             company_id,
             profile_complete,
             skills_validation_completed,
-            st_company_positions!employees_current_position_id_fkey (
+            st_company_positions:current_position_id (
               position_title,
               department
             ),
-            companies!employees_company_id_fkey (
+            companies:company_id (
               id,
               name,
               plan_type
@@ -146,7 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Transform companies to single object if it's an array
           const employeeWithTransformedCompany = {
             ...employeeData,
-            companies: Array.isArray(employeeData.companies) && employeeData.companies.length > 0 ? employeeData.companies[0] : employeeData.companies
+            companies: Array.isArray(employeeData.companies) && employeeData.companies.length > 0 ? employeeData.companies[0] : employeeData.companies,
+            st_company_positions: employeeData.st_company_positions
           };
           
           transformedData.employee = employeeWithTransformedCompany;
