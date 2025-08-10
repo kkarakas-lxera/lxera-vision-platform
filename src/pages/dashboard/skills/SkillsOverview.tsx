@@ -225,17 +225,29 @@ export default function SkillsOverview() {
           .in('id', positionIds) : { data: [] };
         
         // Create maps for quick lookup
-        const usersMap = new Map(usersData?.map(u => [u.id, u]) || []);
-        const positionsMap = new Map(positionsData?.map(p => [p.id, p]) || []);
+        type UserRow = { id: string; full_name?: string | null; email?: string | null };
+        type PositionRow = { id: string; position_title?: string | null };
+        const usersEntries: Array<[string, UserRow]> = Array.isArray(usersData)
+          ? (usersData as any[])
+              .filter((u) => u && typeof u.id === 'string')
+              .map((u) => [u.id as string, u as UserRow])
+          : [];
+        const positionsEntries: Array<[string, PositionRow]> = Array.isArray(positionsData)
+          ? (positionsData as any[])
+              .filter((p) => p && typeof p.id === 'string')
+              .map((p) => [p.id as string, p as PositionRow])
+          : [];
+        const usersMap = new Map<string, UserRow>(usersEntries);
+        const positionsMap = new Map<string, PositionRow>(positionsEntries);
 
         const employeeMetaById = new Map<string, { name: string; department: string; position: string }>();
         (employeeMeta || []).forEach((emp: any) => {
-          const user = usersMap.get(emp.user_id);
-          const position = positionsMap.get(emp.current_position_id);
+          const user = usersMap.get(emp.user_id as string);
+          const position = positionsMap.get(emp.current_position_id as string);
           
           let name = 'Unknown';
           if (user) {
-            name = user.full_name || (user.email ? user.email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
+            name = user.full_name || (user.email ? (user.email as string).split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
           }
         
           employeeMetaById.set(emp.id, {

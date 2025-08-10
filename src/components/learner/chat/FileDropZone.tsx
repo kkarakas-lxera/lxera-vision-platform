@@ -6,26 +6,31 @@ import { cn } from '@/lib/utils';
 interface FileDropZoneProps {
   onFileSelect: (file: File) => void;
   isLoading?: boolean;
+  accept?: string; // e.g. ".pdf,.doc,.docx"
+  maxSize?: number; // bytes
 }
 
-export default function FileDropZone({ onFileSelect, isLoading }: FileDropZoneProps) {
+export default function FileDropZone({ onFileSelect, isLoading, accept = '.pdf,.doc,.docx', maxSize }: FileDropZoneProps) {
   const [isDragging, setIsDragging] = React.useState(false);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = Array.from(e.dataTransfer.files);
-    const validFile = files.find(file => 
-      file.type === 'application/pdf' || 
-      file.type === 'application/msword' ||
-      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    );
-    
-    if (validFile) {
-      onFileSelect(validFile);
+    const allowed = accept.split(',').map(ext => ext.trim().toLowerCase());
+    const isAllowed = (file: File) => {
+      const name = file.name.toLowerCase();
+      return allowed.some(ext => name.endsWith(ext));
+    };
+    const candidate = files.find(file => isAllowed(file));
+    if (candidate) {
+      if (typeof maxSize === 'number' && candidate.size > maxSize) {
+        console.warn(`File exceeds max size: ${candidate.size} > ${maxSize}`);
+        return;
+      }
+      onFileSelect(candidate);
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, accept, maxSize]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,9 +45,13 @@ export default function FileDropZone({ onFileSelect, isLoading }: FileDropZonePr
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (typeof maxSize === 'number' && file.size > maxSize) {
+        console.warn(`File exceeds max size: ${file.size} > ${maxSize}`);
+        return;
+      }
       onFileSelect(file);
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, maxSize]);
 
   return (
     <motion.div
@@ -64,7 +73,7 @@ export default function FileDropZone({ onFileSelect, isLoading }: FileDropZonePr
           type="file"
           id="cv-upload"
           className="hidden"
-          accept=".pdf,.doc,.docx"
+          accept={accept}
           onChange={handleFileInput}
           disabled={isLoading}
         />
