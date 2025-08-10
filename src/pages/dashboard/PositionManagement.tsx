@@ -425,7 +425,7 @@ export default function PositionManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -449,34 +449,6 @@ export default function PositionManagement() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Employees</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.total_employees}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Target className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Skill Gaps</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.positions_with_gaps}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <ChevronRight className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg Match</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.avg_skill_match}%</p>
               </div>
             </div>
           </CardContent>
@@ -574,16 +546,16 @@ export default function PositionManagement() {
                         <div className="p-4 hover:bg-gray-50 transition-colors">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
+                              <div className="flex items-center gap-3 mb-1.5">
                                 <ChevronRight className={`h-4 w-4 text-gray-500 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                                <h3 className="font-semibold text-lg">{position.position_title}</h3>
-                                <Badge variant="outline">{position.position_code}</Badge>
+                                <h3 className="font-semibold text-base md:text-lg tracking-[-0.01em]">{position.position_title}</h3>
+                                <Badge variant="outline" className="text-xs">{position.position_code}</Badge>
                                 {position.department && (
-                                  <Badge variant="secondary">{position.department}</Badge>
+                                  <Badge variant="secondary" className="text-xs">{position.department}</Badge>
                                 )}
                               </div>
                               
-                              <div className="flex items-center gap-6 text-sm">
+                              <div className="flex items-center gap-4 text-sm text-gray-700">
                                 <div className="flex items-center gap-2">
                                   <Users className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium">{position.employee_count || 0}</span>
@@ -594,34 +566,7 @@ export default function PositionManagement() {
                                     </Badge>
                                   )}
                                 </div>
-                                
-                                {position.avg_match_score !== null && (
-                                  <>
-                                    <div className="flex items-center gap-2">
-                                      <Target className="h-4 w-4 text-gray-400" />
-                                      <span className="font-medium">{Math.round(position.avg_match_score)}%</span>
-                                      <span className="text-gray-500">avg match</span>
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-2">
-                                      <div className={`h-2 w-2 rounded-full ${
-                                        gapSeverity === 'good' ? 'bg-green-500' :
-                                        gapSeverity === 'warning' ? 'bg-orange-500' :
-                                        gapSeverity === 'critical' ? 'bg-red-500' :
-                                        'bg-gray-300'
-                                      }`} />
-                                      <span className={`font-medium ${
-                                        gapSeverity === 'good' ? 'text-green-600' :
-                                        gapSeverity === 'warning' ? 'text-orange-600' :
-                                        gapSeverity === 'critical' ? 'text-red-600' :
-                                        'text-gray-500'
-                                      }`}>
-                                        {Math.round(position.skills_gap_percentage || 0)}%
-                                      </span>
-                                      <span className="text-gray-500">skills gap</span>
-                                    </div>
-                                  </>
-                                )}
+                                {/* Removed avg match and skills gap from compact view */}
                                 
                                 {position.avg_match_score === null && position.employee_count > 0 && (
                                   <span className="text-sm text-gray-500 italic">No skills analysis yet</span>
@@ -702,17 +647,7 @@ export default function PositionManagement() {
                               </div>
                             </div>
                             
-                            {position.avg_match_score !== null && position.employee_count > 0 && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-700 mb-2">Skills Coverage</h4>
-                                <div className="space-y-2">
-                                  <Progress value={position.avg_match_score} className="h-2" />
-                                  <p className="text-xs text-gray-500">
-                                    {position.employees_with_gaps || 0} employee{position.employees_with_gaps !== 1 ? 's' : ''} with skills gaps
-                                  </p>
-                                </div>
-                              </div>
-                            )}
+                            {/* Removed detailed skills coverage to keep list focused on positions */}
                           </div>
                         </div>
                       </CollapsibleContent>
