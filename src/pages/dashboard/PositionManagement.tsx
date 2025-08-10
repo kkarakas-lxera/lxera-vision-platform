@@ -377,13 +377,36 @@ export default function PositionManagement() {
   };
 
   const departments = Array.from(new Set(positions.map(p => p.department).filter(Boolean))) || [];
-  const baseFilteredPositions = selectedDepartment === 'all' 
-    ? positions 
+  const baseFilteredPositions = selectedDepartment === 'all'
+    ? positions
     : positions.filter(p => p.department === selectedDepartment);
-  
+
+  // Apply search and filter criteria
+  const normalizedQuery = query.trim().toLowerCase();
+  const fullyFilteredPositions = baseFilteredPositions.filter((p) => {
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      p.position_title.toLowerCase().includes(normalizedQuery) ||
+      p.position_code.toLowerCase().includes(normalizedQuery) ||
+      (p.department ? p.department.toLowerCase().includes(normalizedQuery) : false);
+
+    const matchesLevel = levelFilter === 'all' || (p.position_level ?? '').toLowerCase() === levelFilter.toLowerCase();
+
+    let matchesStatus = true;
+    if (statusFilter === 'has_analysis') {
+      matchesStatus = p.avg_match_score !== null && p.avg_match_score !== undefined;
+    } else if (statusFilter === 'no_analysis') {
+      matchesStatus = p.avg_match_score === null || p.avg_match_score === undefined;
+    } else if (statusFilter === 'has_pending') {
+      matchesStatus = (p.profiles_incomplete || 0) > 0;
+    }
+
+    return matchesQuery && matchesLevel && matchesStatus;
+  });
+
   // Use custom order hook for drag and drop
   const { orderedItems: filteredPositions, handleDragEnd } = useCustomOrder({
-    items: baseFilteredPositions,
+    items: fullyFilteredPositions,
     storageKey: `positions-order-${userProfile?.company_id}-${selectedDepartment}`,
     getItemId: (position) => position.id
   });
