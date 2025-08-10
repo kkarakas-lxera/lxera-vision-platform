@@ -39,7 +39,7 @@ const HeroSetupBanner: React.FC<HeroSetupBannerProps> = ({
     title = 'Import your team';
     description = 'Add employees to analyze their skills and get a health snapshot.';
     ctaLabel = 'Import Employees';
-    ctaPath = '/dashboard/onboarding';
+    ctaPath = '/dashboard/employees?tab=import';
     icon = <Users className="h-5 w-5" />;
   } else if (coveragePct < 50) {
     title = 'Increase analysis coverage';

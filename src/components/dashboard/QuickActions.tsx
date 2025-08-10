@@ -27,7 +27,7 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
         const importTab = document.querySelector('[data-tab="import"]') as HTMLElement;
         if (importTab) importTab.click();
       } else {
-        navigate('/dashboard/onboarding/import');
+        navigate('/dashboard/employees?tab=import');
       }
     }
   };
@@ -43,7 +43,7 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
           const invitationsTab = document.querySelector('[data-tab="invitations"]') as HTMLElement;
           if (invitationsTab) invitationsTab.click();
         } else {
-          navigate('/dashboard/onboarding/invite');
+          navigate('/dashboard/employees?tab=invitations');
         }
       }
     },
@@ -57,7 +57,7 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
           const analysisTab = document.querySelector('[data-tab="analysis"]') as HTMLElement;
           if (analysisTab) analysisTab.click();
         } else {
-          navigate('/dashboard/onboarding/analysis');
+          navigate('/dashboard/employees?tab=analysis');
         }
       }
     },

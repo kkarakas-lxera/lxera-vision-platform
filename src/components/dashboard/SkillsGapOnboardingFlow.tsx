@@ -53,7 +53,7 @@ export default function SkillsGapOnboardingFlow() {
       description: 'Upload your employee list',
       icon: <Users className="h-5 w-5" />,
       action: 'Import',
-      route: '/dashboard/onboarding/import',
+      route: '/dashboard/employees?tab=import',
       completed: false
     },
     {
@@ -62,7 +62,7 @@ export default function SkillsGapOnboardingFlow() {
       description: 'Invite employees to complete profiles',
       icon: <Send className="h-5 w-5" />,
       action: 'Send',
-      route: '/dashboard/onboarding/invite',
+      route: '/dashboard/employees?tab=invitations',
       completed: false
     },
     {

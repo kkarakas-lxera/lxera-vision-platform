@@ -26,7 +26,7 @@ export function QuickActions({
     {
       icon: Users,
       title: 'Add Employees',
-      description: 'Import via CSV',
+      description: 'Add team members',
       action: onAddEmployees,
       enabled: true,
       primary: true

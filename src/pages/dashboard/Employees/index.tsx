@@ -1502,7 +1502,7 @@ const EmployeesPage = () => {
           steps={[
             {
               target: '[data-tab="import"]',
-              content: 'Start here to import your team members via CSV or manual entry',
+              content: 'Start here to import your team members via manual entry',
               placement: 'bottom'
             },
             {
