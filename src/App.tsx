@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import TawkTo from "@/components/TawkTo";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CourseGenerationProvider } from "@/contexts/CourseGenerationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -131,8 +130,6 @@ const HRISCallback = lazy(() => import("./pages/dashboard/HRISCallback"));
 // Import CompanySettings directly to fix dynamic import issue
 import CompanySettings from "./pages/dashboard/CompanySettings";
 
-// Lazy load course generation
-const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationTwoColumn"));
 
 const queryClient = new QueryClient();
 
@@ -857,7 +854,6 @@ const App = () => {
           <BrowserRouter>
             <ThemeProvider>
               <AuthProvider>
-                <CourseGenerationProvider>
                   <Routes>
             {/* Public routes - Pass openDemoModal and openEarlyAccessModal to pages that need them */}
             <Route path="/" element={<Index openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />} />
@@ -955,7 +951,6 @@ const App = () => {
                       <Route path="/skills/positions" element={<PageSuspense><PositionRequirements /></PageSuspense>} />
                       <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
-                      <Route path="/course-generation" element={<PageSuspense><CourseGeneration /></PageSuspense>} />
                       <Route path="/settings" element={<CompanySettings />} />
                       <Route path="/settings/hris-callback" element={<PageSuspense><HRISCallback /></PageSuspense>} />
                     </Routes>
@@ -992,7 +987,6 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
                 </Routes>
                 <TawkTo />
-              </CourseGenerationProvider>
             </AuthProvider>
             </ThemeProvider>
           </BrowserRouter>

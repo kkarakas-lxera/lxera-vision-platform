@@ -122,7 +122,6 @@ const MobileHamburgerMenu: React.FC<MobileHamburgerMenuProps> = ({
             { href: '#', icon: Users, label: 'Employees', locked: true, description: 'Employee management' },
             { href: '#', icon: BrainCircuit, label: 'Skills', locked: true, description: 'Skills tracking' },
             { href: '#', icon: BookOpen, label: 'Courses', locked: true, description: 'Learning content' },
-            { href: '#', icon: Sparkles, label: 'AI Course Generator', locked: true, description: 'AI-powered course creation' },
             { href: '#', icon: BarChart3, label: 'Analytics', locked: true, description: 'Performance insights' },
           ]
         }
@@ -188,7 +187,6 @@ const MobileHamburgerMenu: React.FC<MobileHamburgerMenuProps> = ({
             title: 'Learning & Development',
             items: [
               { href: '/dashboard/courses', icon: BookOpen, label: 'Courses', description: 'Learning content' },
-              { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator', description: 'Create courses with AI' },
               { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine', description: 'Gamification system' },
             ]
           },

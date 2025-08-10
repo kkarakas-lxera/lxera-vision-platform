@@ -94,7 +94,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         { href: '#', icon: BarChart3, label: 'Analytics', locked: true },
         { section: 'Learning Platform', icon: School },
         { href: '#', icon: BookOpen, label: 'Courses', locked: true },
-        { href: '#', icon: Sparkles, label: 'AI Course Generator', locked: true },
       ];
     }
 
@@ -124,7 +123,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
           { section: 'Learning Platform', icon: School },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
-          { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
           { section: 'System', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];

@@ -65,7 +65,7 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
       icon: BookOpen,
       label: 'Generate Courses',
       description: 'Create personalized training',
-      onClick: () => navigate('/dashboard/course-generation')
+      onClick: () => navigate('/dashboard/courses')
     }
   ];
 

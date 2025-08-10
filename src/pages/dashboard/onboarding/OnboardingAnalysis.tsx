@@ -91,7 +91,7 @@ export default function OnboardingAnalysis() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/dashboard/course-generation')}
+            onClick={() => navigate('/dashboard/courses')}
           >
             <Target className="h-4 w-4 mr-1" />
             Generate Courses
@@ -171,7 +171,7 @@ export default function OnboardingAnalysis() {
             </p>
             <div className="flex justify-center gap-3">
               <Button
-                onClick={() => navigate('/dashboard/course-generation')}
+                onClick={() => navigate('/dashboard/courses')}
                 className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
               >
                 <Target className="h-4 w-4 mr-2" />
@@ -217,7 +217,7 @@ export default function OnboardingAnalysis() {
         </Button>
         
         <Button
-          onClick={() => navigate('/dashboard/course-generation')}
+          onClick={() => navigate('/dashboard/courses')}
           className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
         >
           <Target className="h-4 w-4 mr-2" />
