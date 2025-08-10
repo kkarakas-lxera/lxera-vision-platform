@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
@@ -64,6 +66,9 @@ export default function PositionManagement() {
   const [openPositions, setOpenPositions] = useState<Set<string>>(new Set());
   const [hasDraft, setHasDraft] = useState(false);
   const [draftInfo, setDraftInfo] = useState<{ id: string; updated_at: string; positions_count: number } | null>(null);
+  const [query, setQuery] = useState<string>('');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   
   // Drag and drop sensors
   const sensors = useSensors(
@@ -458,23 +463,54 @@ export default function PositionManagement() {
       {/* Positions List */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Positions</CardTitle>
-              <CardDescription>Manage your company positions and requirements</CardDescription>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Positions</CardTitle>
+                <CardDescription>Manage your company positions and requirements</CardDescription>
+              </div>
+              {departments.length > 0 && (
+                <Tabs value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <TabsList>
+                    <TabsTrigger value="all">All Departments</TabsTrigger>
+                    {departments.map(dept => (
+                      <TabsTrigger key={dept} value={dept || 'none'}>
+                        {dept || 'No Department'}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
             </div>
-            {departments.length > 0 && (
-              <Tabs value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <TabsList>
-                  <TabsTrigger value="all">All Departments</TabsTrigger>
-                  {departments.map(dept => (
-                    <TabsTrigger key={dept} value={dept || 'none'}>
-                      {dept || 'No Department'}
-                    </TabsTrigger>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by title, code, or department"
+              />
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {Array.from(new Set(positions.map(p => p.position_level).filter(Boolean))).map((lvl) => (
+                    <SelectItem key={String(lvl)} value={String(lvl)}>{String(lvl)}</SelectItem>
                   ))}
-                </TabsList>
-              </Tabs>
-            )}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="has_analysis">Has Analysis</SelectItem>
+                  <SelectItem value="no_analysis">No Analysis</SelectItem>
+                  <SelectItem value="has_pending">Has Pending Profiles</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
