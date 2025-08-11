@@ -229,7 +229,7 @@ export default function SkillsOverview() {
 
       // Fetch department summaries
       const { data: deptData } = await supabase
-        .from('v_department_skills_summary')
+        .from('v_department_skills_summary' as any)
         .select('*')
         .eq('company_id', userProfile.company_id);
 
@@ -297,7 +297,7 @@ export default function SkillsOverview() {
 
       // Fetch critical skills gaps
       const { data: gapsData } = await supabase
-        .from('v_critical_skills_gaps')
+        .from('v_critical_skills_gaps' as any)
         .select('*')
         .eq('company_id', userProfile.company_id)
         .limit(10);
@@ -553,7 +553,7 @@ export default function SkillsOverview() {
 
     try {
       const { data, error } = await supabase
-        .from('market_intelligence_requests')
+        .from('market_intelligence_requests' as any)
         .select('*')
         .eq('company_id', userProfile.company_id)
         .order('created_at', { ascending: false })
@@ -590,7 +590,7 @@ export default function SkillsOverview() {
     try {
       // Create new market intelligence request
       const { data: newRequest, error: createError } = await supabase
-        .from('market_intelligence_requests')
+        .from('market_intelligence_requests' as any)
         .insert({
           company_id: userProfile.company_id,
           regions: selectedRegion ? [selectedRegion] : [],
@@ -606,13 +606,13 @@ export default function SkillsOverview() {
       if (createError) throw createError;
 
       // Update local state
-      setMarketRequests(prev => [newRequest, ...prev]);
-      setCurrentRequest(newRequest);
+      setMarketRequests(prev => [newRequest as any, ...prev]);
+      setCurrentRequest(newRequest as any);
 
       // Trigger market research agent
       const response = await supabase.functions.invoke('market-research-agent', {
         body: {
-          requestId: newRequest.id,
+          requestId: (newRequest as any).id,
           regions: selectedRegion ? [selectedRegion] : [],
           countries: selectedCountries,
           focusArea,
@@ -629,7 +629,7 @@ export default function SkillsOverview() {
       });
 
       // Poll for updates
-      pollForUpdates(newRequest.id);
+      pollForUpdates((newRequest as any).id);
 
     } catch (error) {
       console.error('Error submitting market intelligence request:', error);
@@ -652,21 +652,21 @@ export default function SkillsOverview() {
       
       try {
         const { data, error } = await supabase
-          .from('market_intelligence_requests')
+          .from('market_intelligence_requests' as any)
           .select('*')
           .eq('id', requestId)
           .single();
 
         if (error) throw error;
 
-        if (data.status === 'completed' || data.status === 'failed') {
+        if ((data as any).status === 'completed' || (data as any).status === 'failed') {
           clearInterval(poll);
-          setCurrentRequest(data);
+          setCurrentRequest(data as any);
           setMarketRequests(prev => 
-            prev.map(req => req.id === requestId ? data : req)
+            prev.map(req => req.id === requestId ? data as any : req)
           );
 
-          if (data.status === 'completed') {
+          if ((data as any).status === 'completed') {
             toast({
               title: 'Analysis Complete',
               description: 'Your market intelligence analysis is ready!',

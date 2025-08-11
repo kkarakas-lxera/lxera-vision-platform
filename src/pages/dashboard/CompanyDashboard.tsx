@@ -19,7 +19,7 @@ import SkillsHealthSnapshot from '@/components/dashboard/company/SkillsHealthSna
 import MarketStrip from '@/components/dashboard/company/MarketStrip';
 import TopRisks from '@/components/dashboard/company/TopRisks';
 import NextBestActions from '@/components/dashboard/company/NextBestActions';
-import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+// Removed: import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 
 interface DashboardMetrics {
   totalEmployees: number;
@@ -402,9 +402,10 @@ export default function CompanyDashboard() {
 
       // Fetch market current metrics and latest executive report
       try {
+        // Removed: Legacy market benchmark system
         const [orgCurrent, reports] = await Promise.all([
-          marketSkillsService.getOrganizationMarketMatchCurrent(userProfile.company_id as string),
-          marketSkillsService.listExecutiveReports({ limit: 1, scope: 'organization' })
+          Promise.resolve(null), // Disabled: marketSkillsService.getOrganizationMarketMatchCurrent
+          Promise.resolve([])    // Disabled: marketSkillsService.listExecutiveReports
         ]);
         if (orgCurrent) setMarketOrg(orgCurrent as MarketOrgCurrent);
         if (Array.isArray(reports) && reports.length > 0) {

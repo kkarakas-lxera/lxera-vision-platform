@@ -19,7 +19,7 @@ import {
   Brain,
   AlertCircle
 } from 'lucide-react';
-import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+// Removed: import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 import { supabase } from '@/integrations/supabase/client';
 import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import type { MarketSkillData } from '@/types/marketSkills';
@@ -139,16 +139,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
 
         // Use the cached method that stores data in employee record
         const employeeSkills = employee.skills_profile?.extracted_skills || [];
-        const marketGapData = await marketSkillsService.getEmployeeMarketGaps(
-          employee.id,
-          employee.current_position_title,
-          companyData?.settings?.industry as string | undefined,
-          employeeSkills.map(skill => ({
-            skill_name: skill.skill_name,
-            proficiency_level: skill.proficiency_level,
-            source: 'cv' as const
-          }))
-        );
+        // Removed: Market gap analysis (legacy system)
+        const marketGapData = null; // Disabled legacy market gap analysis
 
         setMarketGaps(marketGapData);
       } catch (error) {
