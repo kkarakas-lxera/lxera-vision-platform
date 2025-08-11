@@ -7,14 +7,11 @@ import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { 
   Users, 
   Target,
   TrendingUp,
   AlertTriangle,
-  BookOpen,
-  Building2,
   CheckCircle2,
   AlertCircle,
   Globe,
@@ -131,10 +128,15 @@ export default function SkillsOverview() {
   const [marketLoading, setMarketLoading] = useState(false);
   
   // Form state for new market intelligence request
-  const [selectedRegion, setSelectedRegion] = useState<string>('none');
+  const [selectedRegion, setSelectedRegion] = useState<string>('US');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [focusArea, setFocusArea] = useState<'technical' | 'all_skills'>('all_skills');
-  const [customPrompt, setCustomPrompt] = useState('');
+  const [customPrompt, setCustomPrompt] = useState(`Analyze current job market trends and in-demand skills for similar positions in our industry. Focus on:
+1. Top technical and soft skills required
+2. Emerging skill trends and future requirements
+3. Salary ranges and market competitiveness
+4. Talent availability and competition
+5. Recommendations for upskilling our workforce`);
 
   // Region and country configuration
   const regionCountries = {
@@ -849,120 +851,118 @@ export default function SkillsOverview() {
 
         <TabsContent value="market" className="space-y-6 mt-6">
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Market Intelligence</h2>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Globe className="h-4 w-4" />
-                LinkedIn Job Market Analysis
-              </div>
-            </div>
-
-            {/* Configuration Form */}
+            {/* Compact Configuration Bar */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Configure Market Analysis</CardTitle>
-                <CardDescription>
-                  Analyze job market trends and skill demands in your target regions
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Region Selection */}
-                  <div className="space-y-2">
-                    <Label>Region</Label>
-                    <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">-- Select Region --</SelectItem>
-                        {Object.keys(regionCountries).map(region => (
-                          <SelectItem key={region} value={region}>{region}</SelectItem>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  {/* Header with inline config */}
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Market Intelligence</h3>
+                        <p className="text-sm text-gray-500">LinkedIn job market analysis</p>
+                      </div>
+                    </div>
+                    
+                    {/* Inline Controls */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Select value={selectedRegion} onValueChange={(value) => {
+                        setSelectedRegion(value);
+                        // Auto-clear countries when region is selected
+                        if (value !== 'custom') {
+                          setSelectedCountries([]);
+                        }
+                      }}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="US">United States</SelectItem>
+                          <SelectItem value="Europe">Europe</SelectItem>
+                          <SelectItem value="MENA">Middle East</SelectItem>
+                          <SelectItem value="Asia/Pacific">Asia Pacific</SelectItem>
+                          <SelectItem value="custom">Custom Countries...</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={focusArea} onValueChange={(value: 'technical' | 'all_skills') => setFocusArea(value)}>
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all_skills">All Skills</SelectItem>
+                          <SelectItem value="technical">Technical Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Button 
+                        type="button"
+                        onClick={submitMarketIntelligenceRequest}
+                        disabled={marketLoading || (!selectedRegion || selectedRegion === 'none')}
+                        size="default"
+                      >
+                        {marketLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Analyzing
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            Analyze
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Custom Countries - Only show if selected */}
+                  {selectedRegion === 'custom' && (
+                    <div className="border-t pt-4">
+                      <div className="flex flex-wrap gap-2">
+                        {['United States', 'United Kingdom', 'Germany', 'UAE', 'Singapore', 'Australia'].map(country => (
+                          <label key={country} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedCountries.includes(country)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCountries(prev => [...prev, country]);
+                                } else {
+                                  setSelectedCountries(prev => prev.filter(c => c !== country));
+                                }
+                              }}
+                              className="mr-2 rounded border-gray-300"
+                            />
+                            <span className="text-sm">{country}</span>
+                          </label>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Focus Area */}
-                  <div className="space-y-2">
-                    <Label>Focus Area</Label>
-                    <Select value={focusArea} onValueChange={(value: 'technical' | 'all_skills') => setFocusArea(value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all_skills">All Skills</SelectItem>
-                        <SelectItem value="technical">Technical Skills Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Country Selection (Alternative to Region) */}
-                <div className="space-y-2">
-                  <Label>Or Select Specific Countries</Label>
-                  <div className="text-sm text-gray-500 mb-2">
-                    Leave region empty to use specific countries instead
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
-                    {allCountries.map(country => (
-                      <label key={country} className="flex items-center space-x-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={selectedCountries.includes(country)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCountries(prev => [...prev, country]);
-                            } else {
-                              setSelectedCountries(prev => prev.filter(c => c !== country));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span>{country}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {selectedCountries.length > 0 && (
-                    <div className="text-sm text-gray-600">
-                      Selected: {selectedCountries.join(', ')}
+                        <button 
+                          type="button"
+                          onClick={() => setSelectedCountries(allCountries)}
+                          className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Select all
+                        </button>
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {/* Custom Prompt */}
-                <div className="space-y-2">
-                  <Label>Custom Analysis Prompt (Optional)</Label>
-                  <Textarea
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="Enter specific questions or focus areas for the AI analysis. Leave empty for standard market intelligence report."
-                    rows={4}
-                  />
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">
-                    Analysis typically takes 2-3 minutes to complete
-                  </div>
-                  <Button 
-                    onClick={submitMarketIntelligenceRequest}
-                    disabled={marketLoading || ((!selectedRegion || selectedRegion === 'none') && selectedCountries.length === 0)}
-                    className="min-w-[140px]"
-                  >
-                    {marketLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="h-4 w-4 mr-2" />
-                        Start Analysis
-                      </>
-                    )}
-                  </Button>
+                  {/* Collapsible Prompt Editor */}
+                  <details className="border-t pt-4">
+                    <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                      Customize analysis prompt
+                    </summary>
+                    <div className="mt-3">
+                      <Textarea
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        rows={5}
+                        className="text-sm"
+                      />
+                    </div>
+                  </details>
                 </div>
               </CardContent>
             </Card>
