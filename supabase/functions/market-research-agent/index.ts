@@ -44,6 +44,7 @@ type ParsedJob = {
   title: string;
   company: string;
   location: string;
+  description: string;
   skills: string[];
   experience_level: string;
   salary_range: string;
@@ -53,54 +54,135 @@ type ParsedJob = {
 function parseLinkedInJobs(html: string, location: string, limit: number): ParsedJob[] {
   const results: ParsedJob[] = [];
 
-  const titleRegexes = [
-    /<h3[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi,
-    /<h3[^>]*class="[^"]*base-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi
-  ];
-  const companyRegexes = [
-    /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>[\s\S]*?(?:<a[^>]*>)?([\s\S]*?)<\/a>[\s\S]*?<\/h4>/gi,
-    /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/gi
-  ];
-
-  let titles: string[] = [];
-  for (const rx of titleRegexes) {
-    rx.lastIndex = 0;
-    const found: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(html)) !== null) {
-      found.push(stripHtml(m[1]));
-    }
-    if (found.length > 0) {
-      titles = found;
-      break;
-    }
+  // Extract job cards - LinkedIn typically wraps each job in a div with base-card class
+  const jobCardRegex = /<div[^>]*class="[^"]*base-card[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+  const jobCards: string[] = [];
+  let cardMatch: RegExpExecArray | null;
+  while ((cardMatch = jobCardRegex.exec(html)) !== null && jobCards.length < limit) {
+    jobCards.push(cardMatch[1]);
   }
 
-  let companies: string[] = [];
-  for (const rx of companyRegexes) {
-    rx.lastIndex = 0;
-    const found: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(html)) !== null) {
-      found.push(stripHtml(m[1]));
-    }
-    if (found.length > 0) {
-      companies = found;
-      break;
-    }
-  }
+  // If no cards found, fall back to simpler parsing
+  if (jobCards.length === 0) {
+    const titleRegexes = [
+      /<h3[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi,
+      /<h3[^>]*class="[^"]*base-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi
+    ];
+    const companyRegexes = [
+      /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>[\s\S]*?(?:<a[^>]*>)?([\s\S]*?)<\/a>[\s\S]*?<\/h4>/gi,
+      /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/gi
+    ];
 
-  const count = Math.min(limit, titles.length || 0);
-  for (let i = 0; i < count; i++) {
-    results.push({
-      title: titles[i] || 'Unknown',
-      company: companies[i] || 'Unknown Company',
-      location,
-      skills: [],
-      experience_level: 'Not specified',
-      salary_range: 'Not specified',
-      scraped_at: new Date().toISOString()
-    });
+    let titles: string[] = [];
+    for (const rx of titleRegexes) {
+      rx.lastIndex = 0;
+      const found: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = rx.exec(html)) !== null) {
+        found.push(stripHtml(m[1]));
+      }
+      if (found.length > 0) {
+        titles = found;
+        break;
+      }
+    }
+
+    let companies: string[] = [];
+    for (const rx of companyRegexes) {
+      rx.lastIndex = 0;
+      const found: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = rx.exec(html)) !== null) {
+        found.push(stripHtml(m[1]));
+      }
+      if (found.length > 0) {
+        companies = found;
+        break;
+      }
+    }
+
+    const count = Math.min(limit, titles.length || 0);
+    for (let i = 0; i < count; i++) {
+      results.push({
+        title: titles[i] || 'Unknown',
+        company: companies[i] || 'Unknown Company',
+        location,
+        description: '',
+        skills: [],
+        experience_level: 'Not specified',
+        salary_range: 'Not specified',
+        scraped_at: new Date().toISOString()
+      });
+    }
+  } else {
+    // Parse each job card for detailed information
+    for (const card of jobCards.slice(0, limit)) {
+      // Extract title
+      const titleMatch = /<h3[^>]*>([\s\S]*?)<\/h3>/i.exec(card);
+      const title = titleMatch ? stripHtml(titleMatch[1]) : 'Unknown';
+
+      // Extract company
+      const companyMatch = /<h4[^>]*>([\s\S]*?)<\/h4>/i.exec(card);
+      const company = companyMatch ? stripHtml(companyMatch[1]) : 'Unknown Company';
+
+      // Extract location (sometimes in a span with location class)
+      const locationMatch = /<span[^>]*class="[^"]*location[^"]*"[^>]*>([\s\S]*?)<\/span>/i.exec(card);
+      const jobLocation = locationMatch ? stripHtml(locationMatch[1]) : location;
+
+      // Extract description/snippet if available
+      const descMatch = /<div[^>]*class="[^"]*snippet[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(card) ||
+                       /<p[^>]*>([\s\S]*?)<\/p>/i.exec(card);
+      const description = descMatch ? stripHtml(descMatch[1]).substring(0, 500) : '';
+
+      // Try to extract salary if mentioned
+      const salaryMatch = /\$[\d,]+\s*-?\s*\$?[\d,]*|€[\d,]+\s*-?\s*€?[\d,]*|£[\d,]+\s*-?\s*£?[\d,]*/i.exec(card);
+      const salary = salaryMatch ? salaryMatch[0] : 'Not specified';
+
+      // Extract experience level from title or description
+      let experienceLevel = 'Not specified';
+      const expPatterns = {
+        'Entry': /entry|junior|graduate|intern/i,
+        'Mid': /mid|intermediate|[2-5]\+?\s*years/i,
+        'Senior': /senior|lead|principal|staff|[5-9]\+?\s*years/i,
+        'Executive': /executive|director|vp|president|c-level/i
+      };
+      
+      for (const [level, pattern] of Object.entries(expPatterns)) {
+        if (pattern.test(title) || pattern.test(description)) {
+          experienceLevel = level;
+          break;
+        }
+      }
+
+      // Extract skills from description - look for common tech keywords
+      const skillKeywords = [
+        'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
+        'SQL', 'MongoDB', 'TypeScript', 'Angular', 'Vue', 'Machine Learning', 'AI', 'DevOps',
+        'CI/CD', 'Git', 'Agile', 'Scrum', 'REST', 'API', 'Cloud', 'Azure', 'GCP',
+        'Microservices', 'Spring', 'Django', 'Flask', '.NET', 'C#', 'Ruby', 'Rails',
+        'Golang', 'Rust', 'Swift', 'iOS', 'Android', 'Mobile', 'Frontend', 'Backend',
+        'Full Stack', 'Data Science', 'Analytics', 'Tableau', 'Power BI', 'Salesforce'
+      ];
+
+      const foundSkills: string[] = [];
+      const combinedText = `${title} ${description}`.toLowerCase();
+      for (const skill of skillKeywords) {
+        if (combinedText.includes(skill.toLowerCase())) {
+          foundSkills.push(skill);
+        }
+      }
+
+      results.push({
+        title,
+        company,
+        location: jobLocation,
+        description,
+        skills: foundSkills,
+        experience_level: experienceLevel,
+        salary_range: salary,
+        scraped_at: new Date().toISOString()
+      });
+    }
   }
 
   return results;
@@ -138,7 +220,7 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    // Define tools for the market research agent
+    // Define tools for the market research and analysis agent
     const tools = [
       {
         type: "function" as const,
@@ -168,71 +250,88 @@ serve(async (req) => {
       {
         type: "function" as const,
         function: {
-          name: "analyze_market_location",
-          description: "Analyze market conditions for a specific location",
+          name: "analyze_skill_trends",
+          description: "Analyze skill trends from scraped job market data",
           parameters: {
             type: "object",
             properties: {
-              location: {
-                type: "string",
-                description: "Location to analyze"
-              },
               job_data: {
                 type: "array",
-                description: "Array of job posting data",
+                description: "Array of job postings with skills data",
                 items: {
                   type: "object",
                   properties: {
                     title: { type: "string" },
                     company: { type: "string" },
                     location: { type: "string" },
-                    skills: { type: "array", items: { type: "string" } }
+                    skills: { type: "array", items: { type: "string" } },
+                    salary_range: { type: "string" },
+                    experience_level: { type: "string" }
+                  }
+                }
+              },
+              focus_area: {
+                type: "string",
+                description: "Area to focus analysis on"
+              }
+            },
+            required: ["job_data", "focus_area"]
+          }
+        }
+      },
+      {
+        type: "function" as const,
+        function: {
+          name: "analyze_salary_trends",
+          description: "Analyze salary trends and compensation patterns",
+          parameters: {
+            type: "object",
+            properties: {
+              job_data: {
+                type: "array",
+                description: "Job postings with salary information",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    company: { type: "string" },
+                    salary_range: { type: "string" },
+                    location: { type: "string" },
+                    experience_level: { type: "string" }
                   }
                 }
               }
             },
-            required: ["location", "job_data"]
+            required: ["job_data"]
           }
         }
       },
       {
         type: "function" as const,
         function: {
-          name: "validate_scraped_data",
-          description: "Validate and clean scraped job data",
-          parameters: {
-            type: "object",
-            properties: {
-              raw_data: {
-                type: "array",
-                description: "Raw scraped data to validate",
-                items: {
-                  type: "object"
-                }
-              }
-            },
-            required: ["raw_data"]
-          }
-        }
-      },
-      {
-        type: "function" as const,
-        function: {
-          name: "handoff_to_analysis_agent",
-          description: "Hand off processed data to the analysis agent",
+          name: "generate_market_insights",
+          description: "Generate comprehensive market insights report",
           parameters: {
             type: "object",
             properties: {
               scraped_data: {
                 type: "object",
-                description: "Processed market data to analyze"
+                description: "All scraped job data"
               },
-              request_context: {
+              skill_analysis: {
                 type: "object",
-                description: "Original request context and parameters"
+                description: "Results from skill trend analysis"
+              },
+              salary_analysis: {
+                type: "object",
+                description: "Results from salary analysis"
+              },
+              request_id: {
+                type: "string",
+                description: "Original request ID"
               }
             },
-            required: ["scraped_data", "request_context"]
+            required: ["scraped_data", "request_id"]
           }
         }
       }
@@ -240,17 +339,19 @@ serve(async (req) => {
 
     // Create initial prompt based on request
     const locations = [...regions, ...countries].join(', ');
-    const systemPrompt = `You are a Market Research Agent specialized in scraping and processing job market data. 
+    const systemPrompt = `You are a Market Intelligence Agent specialized in scraping and analyzing job market data. 
     
     Your task is to:
     1. Scrape relevant job postings from LinkedIn for the specified locations: ${locations}
     2. Focus on ${focus_area} related positions
-    3. Validate and clean the scraped data
-    4. Prepare the data for analysis by the Analysis Agent
+    3. Analyze skill trends and identify the most in-demand skills
+    4. Analyze salary trends and compensation patterns
+    5. Generate comprehensive market insights and recommendations
     
-    Use the available tools to complete this research systematically.`;
+    Use the available tools to complete this research and analysis systematically. 
+    IMPORTANT: You must call scrape_linkedin_jobs first, then analyze the data, and finally generate insights.`;
 
-    const userPrompt = custom_prompt || `Research job market data for ${locations} focusing on ${focus_area}. Scrape relevant job postings and prepare the data for analysis.`;
+    const userPrompt = custom_prompt || `Research and analyze job market data for ${locations} focusing on ${focus_area}. Scrape job postings, analyze trends, and provide actionable insights.`;
 
     // Update status - calling OpenAI
     console.log('[Market Research Agent] Calling OpenAI GPT-4...');
@@ -398,32 +499,148 @@ serve(async (req) => {
             }
             break;
             
-          case "analyze_market_location":
-            result = {
-              location: functionArgs.location,
-              analysis: {
-                job_density: "High",
-                average_salary: "$85,000",
-                top_skills: ["JavaScript", "Python", "React"],
-                market_trend: "Growing"
+          case "analyze_skill_trends":
+            console.log('[Market Research Agent] Analyzing skill trends...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status: 'analyzing',
+                status_message: 'Analyzing skill trends and market demand...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_id);
+            
+            // Analyze the scraped job data for skill trends
+            const jobData = functionArgs.job_data || [];
+            const skillFrequency: Record<string, number> = {};
+            const experienceLevels: Record<string, number> = {};
+            
+            jobData.forEach((job: any) => {
+              // Count skill frequency
+              (job.skills || []).forEach((skill: string) => {
+                skillFrequency[skill] = (skillFrequency[skill] || 0) + 1;
+              });
+              
+              // Count experience levels
+              if (job.experience_level && job.experience_level !== 'Not specified') {
+                experienceLevels[job.experience_level] = (experienceLevels[job.experience_level] || 0) + 1;
               }
+            });
+            
+            // Sort skills by frequency
+            const topSkills = Object.entries(skillFrequency)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 10)
+              .map(([skill, count]) => ({
+                skill,
+                demand: count,
+                percentage: Math.round((count / jobData.length) * 100)
+              }));
+            
+            result = {
+              total_jobs_analyzed: jobData.length,
+              top_skills: topSkills,
+              experience_distribution: experienceLevels,
+              analysis_summary: `Analyzed ${jobData.length} job postings. Top skills: ${topSkills.slice(0, 3).map(s => s.skill).join(', ')}`
             };
             break;
             
-          case "validate_scraped_data":
+          case "analyze_salary_trends":
+            console.log('[Market Research Agent] Analyzing salary trends...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Analyzing compensation trends and salary ranges...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_id);
+            
+            const salaryData = functionArgs.job_data || [];
+            const salariesByLevel: Record<string, string[]> = {};
+            let salaryCount = 0;
+            
+            salaryData.forEach((job: any) => {
+              if (job.salary_range && job.salary_range !== 'Not specified') {
+                salaryCount++;
+                const level = job.experience_level || 'Unknown';
+                if (!salariesByLevel[level]) salariesByLevel[level] = [];
+                salariesByLevel[level].push(job.salary_range);
+              }
+            });
+            
             result = {
-              validated_count: functionArgs.raw_data.length,
-              cleaned_data: functionArgs.raw_data,
-              quality_score: 0.95
+              jobs_with_salary: salaryCount,
+              total_jobs: salaryData.length,
+              salary_transparency: Math.round((salaryCount / salaryData.length) * 100),
+              salaries_by_level: salariesByLevel,
+              analysis_summary: `${salaryCount} out of ${salaryData.length} jobs (${Math.round((salaryCount / salaryData.length) * 100)}%) include salary information`
             };
             break;
             
-          case "handoff_to_analysis_agent":
-            // This would trigger the analysis agent
+          case "generate_market_insights":
+            console.log('[Market Research Agent] Generating final market insights...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Generating comprehensive market insights report...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_id);
+            
+            const scrapedData = functionArgs.scraped_data || {};
+            const skillAnalysis = functionArgs.skill_analysis || {};
+            const salaryAnalysis = functionArgs.salary_analysis || {};
+            
+            // Generate comprehensive insights report
+            const insights = `# Market Intelligence Report
+
+## Executive Summary
+Based on analysis of ${scrapedData.total_scraped || 0} job postings in ${locations}, here are the key findings:
+
+## Skill Trends
+${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 5).map((s: any) => 
+  `- **${s.skill}**: ${s.percentage}% of jobs (${s.demand} postings)`
+).join('\n') : '- No skill data available'}
+
+## Experience Requirements
+${skillAnalysis.experience_distribution ? Object.entries(skillAnalysis.experience_distribution).map(([level, count]) => 
+  `- **${level}**: ${count} positions`
+).join('\n') : '- No experience level data available'}
+
+## Salary Insights
+- Salary transparency: ${salaryAnalysis.salary_transparency || 0}% of jobs include salary information
+- Jobs with salary data: ${salaryAnalysis.jobs_with_salary || 0} out of ${salaryAnalysis.total_jobs || 0}
+
+## Key Recommendations
+1. Focus on upskilling in the most in-demand technologies
+2. Consider the experience level distribution when planning hiring
+3. ${salaryAnalysis.salary_transparency > 50 ? 'Good salary transparency in this market' : 'Limited salary transparency - negotiate carefully'}
+
+## Action Items
+1. Prioritize training in top skills identified
+2. Align job descriptions with market standards
+3. Review compensation against market benchmarks
+
+*Generated on ${new Date().toISOString()}*`;
+
+            // Save insights to database
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status: 'completed',
+                status_message: 'Analysis complete! Market insights ready.',
+                ai_insights: insights,
+                scraped_data: scrapedData,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', functionArgs.request_id);
+            
+            console.log('[Market Research Agent] Analysis completed successfully');
+            
             result = {
-              handoff_successful: true,
-              analysis_request_id: `analysis_${request_id}`,
-              status: "Data handed off to Analysis Agent"
+              report_generated: true,
+              insights: insights,
+              database_updated: true
             };
             break;
             
@@ -439,14 +656,7 @@ serve(async (req) => {
       }
       
       // Update final status
-      console.log('[Market Research Agent] Completed successfully, handing off to analysis agent');
-      await supabase
-        .from('market_intelligence_requests')
-        .update({
-          status_message: 'Market data collected. Handing off to analysis agent...',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', request_id);
+      console.log('[Market Research Agent] All processing completed successfully');
       
       return new Response(JSON.stringify({
         success: true,
@@ -454,7 +664,7 @@ serve(async (req) => {
         request_id,
         ai_response: aiMessage.content,
         tool_calls: toolResults,
-        next_step: "analysis_agent"
+        status: "Analysis completed"
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
