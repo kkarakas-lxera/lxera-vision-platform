@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+// Removed unused import: Textarea
 import { 
   Users, 
   Target,
@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Globe,
   Loader2,
-  Brain
+  Brain,
+  Trash2,
+  Check
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,11 +51,13 @@ interface MarketIntelligenceRequest {
   countries: string[];
   focus_area: 'technical' | 'all_skills';
   custom_prompt?: string;
-  status: 'pending' | 'scraping' | 'analyzing' | 'completed' | 'failed';
+  status: 'pending' | 'gathering' | 'scraping' | 'analyzing' | 'completed' | 'failed';
   scraped_data?: any;
   ai_insights?: string;
   created_at: string;
   completed_at?: string;
+  status_message?: string;
+  error_details?: any;
 }
 
 function getDepartmentHealthStatus(dept: DepartmentSummary) {
@@ -131,12 +135,13 @@ export default function SkillsOverview() {
   const [selectedRegion, setSelectedRegion] = useState<string>('US');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [focusArea, setFocusArea] = useState<'technical' | 'all_skills'>('all_skills');
-  const [customPrompt, setCustomPrompt] = useState(`Analyze current job market trends and in-demand skills for similar positions in our industry. Focus on:
+  const [customPrompt] = useState(`Analyze current job market trends and in-demand skills for similar positions in our industry. Focus on:
 1. Top technical and soft skills required
 2. Emerging skill trends and future requirements
 3. Salary ranges and market competitiveness
 4. Talent availability and competition
 5. Recommendations for upskilling our workforce`);
+  // Removed unused: setCustomPrompt
 
   // Region and country configuration
   const regionCountries = {
@@ -590,7 +595,7 @@ export default function SkillsOverview() {
     setMarketLoading(true);
 
     try {
-      // Create new market intelligence request
+      // Create new market intelligence request with initial status
       const { data: newRequest, error: createError } = await supabase
         .from('market_intelligence_requests' as any)
         .insert({
@@ -599,7 +604,8 @@ export default function SkillsOverview() {
           countries: selectedCountries,
           focus_area: focusArea,
           custom_prompt: customPrompt || null,
-          status: 'pending',
+          status: 'gathering',
+          status_message: 'Initializing market research agent...',
           created_by: userProfile.id
         })
         .select()
@@ -607,37 +613,64 @@ export default function SkillsOverview() {
 
       if (createError) throw createError;
 
-      // Update local state
+      // Update local state immediately
       setMarketRequests(prev => [newRequest as any, ...prev]);
       setCurrentRequest(newRequest as any);
+
+      // Update status to show scraping in progress
+      await supabase
+        .from('market_intelligence_requests' as any)
+        .update({ 
+          status_message: 'Gathering LinkedIn job market data...'
+        })
+        .eq('id', (newRequest as any).id);
 
       // Trigger market research agent
       const response = await supabase.functions.invoke('market-research-agent', {
         body: {
-          requestId: (newRequest as any).id,
+          request_id: (newRequest as any).id,
           regions: (selectedRegion && selectedRegion !== 'none') ? [selectedRegion] : [],
           countries: selectedCountries,
-          focusArea,
-          companyId: userProfile.company_id,
-          customPrompt: customPrompt || null
+          focus_area: focusArea,
+          custom_prompt: customPrompt || null
         }
       });
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        // Update status to failed with error message
+        await supabase
+          .from('market_intelligence_requests' as any)
+          .update({ 
+            status: 'failed',
+            status_message: `Error: ${response.error.message || 'Failed to start analysis'}`,
+            error_details: response.error
+          })
+          .eq('id', (newRequest as any).id);
+        throw response.error;
+      }
+
+      // Update status to analyzing
+      await supabase
+        .from('market_intelligence_requests' as any)
+        .update({ 
+          status: 'analyzing',
+          status_message: 'Data collected. Analyzing market trends...'
+        })
+        .eq('id', (newRequest as any).id);
 
       toast({
-        title: 'AI Agents Activated',
-        description: 'Market Research Agent is gathering data, then Data Analysis Agent will generate insights.',
+        title: 'Market Analysis Started',
+        description: 'Gathering LinkedIn job data and analyzing trends...',
       });
 
-      // Poll for updates
+      // Poll for updates with more frequent checks
       pollForUpdates((newRequest as any).id);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting market intelligence request:', error);
       toast({
         title: 'Error',
-        description: 'Failed to start market intelligence analysis',
+        description: error.message || 'Failed to start market intelligence analysis',
         variant: 'destructive'
       });
     } finally {
@@ -646,7 +679,7 @@ export default function SkillsOverview() {
   };
 
   const pollForUpdates = async (requestId: string) => {
-    const maxAttempts = 30; // 5 minutes with 10-second intervals
+    const maxAttempts = 60; // 5 minutes with 5-second intervals
     let attempts = 0;
 
     const poll = setInterval(async () => {
@@ -661,12 +694,14 @@ export default function SkillsOverview() {
 
         if (error) throw error;
 
+        // Always update the current request to show real-time status
+        setCurrentRequest(data as any);
+        setMarketRequests(prev => 
+          prev.map(req => req.id === requestId ? data as any : req)
+        );
+
         if ((data as any).status === 'completed' || (data as any).status === 'failed') {
           clearInterval(poll);
-          setCurrentRequest(data as any);
-          setMarketRequests(prev => 
-            prev.map(req => req.id === requestId ? data as any : req)
-          );
 
           if ((data as any).status === 'completed') {
             toast({
@@ -676,7 +711,7 @@ export default function SkillsOverview() {
           } else {
             toast({
               title: 'Analysis Failed',
-              description: 'There was an issue with your market analysis. Please try again.',
+              description: (data as any).status_message || 'There was an issue with your market analysis. Please try again.',
               variant: 'destructive'
             });
           }
@@ -684,17 +719,58 @@ export default function SkillsOverview() {
         
         if (attempts >= maxAttempts) {
           clearInterval(poll);
+          // Update status to timeout
+          await supabase
+            .from('market_intelligence_requests' as any)
+            .update({ 
+              status: 'failed',
+              status_message: 'Analysis timed out after 5 minutes'
+            })
+            .eq('id', requestId);
+            
           toast({
-            title: 'Analysis Taking Longer',
-            description: 'Your analysis is still processing. Please refresh the page in a few minutes.',
-            variant: 'default'
+            title: 'Analysis Timeout',
+            description: 'The analysis is taking longer than expected. Please try again.',
+            variant: 'destructive'
           });
         }
       } catch (error) {
         console.error('Error polling for updates:', error);
         clearInterval(poll);
       }
-    }, 10000); // Poll every 10 seconds
+    }, 5000); // Check every 5 seconds for more responsive updates
+  };
+
+  const deleteMarketRequest = async (requestId: string) => {
+    if (!userProfile?.company_id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('market_intelligence_requests' as any)
+        .delete()
+        .eq('id', requestId)
+        .eq('company_id', userProfile.company_id);
+
+      if (error) throw error;
+
+      // Update local state
+      setMarketRequests(prev => prev.filter(req => req.id !== requestId));
+      if (currentRequest?.id === requestId) {
+        setCurrentRequest(marketRequests.find(req => req.id !== requestId) || null);
+      }
+
+      toast({
+        title: 'Analysis Deleted',
+        description: 'Market intelligence analysis has been removed.',
+      });
+    } catch (error) {
+      console.error('Error deleting market request:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete analysis',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getEmptyStateConfig = () => {
@@ -949,20 +1025,7 @@ export default function SkillsOverview() {
                     </div>
                   )}
 
-                  {/* Collapsible Prompt Editor */}
-                  <details className="border-t pt-4">
-                    <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-                      Customize analysis prompt
-                    </summary>
-                    <div className="mt-3">
-                      <Textarea
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                        rows={5}
-                        className="text-sm"
-                      />
-                    </div>
-                  </details>
+                  {/* Removed prompt editor as requested */}
                 </div>
               </CardContent>
             </Card>
@@ -974,17 +1037,31 @@ export default function SkillsOverview() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Latest Market Analysis</CardTitle>
                     <div className="flex items-center gap-2">
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
                         currentRequest.status === 'completed' ? 'bg-green-100 text-green-800' :
                         currentRequest.status === 'failed' ? 'bg-red-100 text-red-800' :
                         'bg-blue-100 text-blue-800'
                       }`}>
+                        {(currentRequest.status === 'gathering' || currentRequest.status === 'scraping') && (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        )}
+                        {currentRequest.status === 'analyzing' && (
+                          <Brain className="h-3 w-3 animate-pulse" />
+                        )}
                         {currentRequest.status === 'completed' ? 'Completed' :
                          currentRequest.status === 'failed' ? 'Failed' :
-                         currentRequest.status === 'analyzing' ? 'Analyzing...' :
-                         currentRequest.status === 'scraping' ? 'Scraping...' :
+                         currentRequest.status === 'analyzing' ? 'Analyzing' :
+                         (currentRequest.status === 'gathering' || currentRequest.status === 'scraping') ? 'Gathering Data' :
                          'Pending'}
                       </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteMarketRequest(currentRequest.id)}
+                        className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                   <CardDescription>
@@ -1015,14 +1092,117 @@ export default function SkillsOverview() {
                       )}
                     </div>
                   ) : currentRequest.status === 'failed' ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-500" />
-                      <p>Analysis failed. Please try again.</p>
+                    <div className="space-y-4">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-red-900 mb-1">Analysis Failed</h4>
+                            <p className="text-sm text-red-700">
+                              {currentRequest.status_message || 'An error occurred during analysis. Please try again.'}
+                            </p>
+                            {currentRequest.error_details && (
+                              <details className="mt-2">
+                                <summary className="text-xs text-red-600 cursor-pointer hover:text-red-700">
+                                  View error details
+                                </summary>
+                                <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-x-auto">
+                                  {JSON.stringify(currentRequest.error_details, null, 2)}
+                                </pre>
+                              </details>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={submitMarketIntelligenceRequest}
+                        disabled={marketLoading}
+                        className="w-full"
+                      >
+                        Retry Analysis
+                      </Button>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-                      <p>Processing market analysis...</p>
+                    <div className="space-y-6">
+                      {/* Progress Indicator */}
+                      <div className="flex items-center justify-center py-8">
+                        <div className="text-center space-y-4">
+                          {(currentRequest.status === 'gathering' || currentRequest.status === 'scraping') ? (
+                            <>
+                              <div className="relative">
+                                <Globe className="h-12 w-12 mx-auto text-blue-600 animate-pulse" />
+                                <Loader2 className="h-6 w-6 absolute bottom-0 right-1/2 translate-x-1/2 text-blue-600 animate-spin" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">Gathering Market Data</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {currentRequest.status_message || 'Gathering LinkedIn job market data...'}
+                                </p>
+                              </div>
+                            </>
+                          ) : currentRequest.status === 'analyzing' ? (
+                            <>
+                              <Brain className="h-12 w-12 mx-auto text-purple-600 animate-pulse" />
+                              <div>
+                                <p className="font-medium text-gray-900">Analyzing Trends</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {currentRequest.status_message || 'AI agents are processing the data...'}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Loader2 className="h-12 w-12 mx-auto text-gray-600 animate-spin" />
+                              <div>
+                                <p className="font-medium text-gray-900">Processing</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {currentRequest.status_message || 'Initializing analysis...'}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Status Timeline */}
+                      <div className="px-8">
+                        <div className="flex items-center justify-between relative">
+                          <div className="absolute left-0 right-0 top-5 h-0.5 bg-gray-200" />
+                          <div className="absolute left-0 top-5 h-0.5 bg-blue-600 transition-all duration-500" 
+                               style={{ width: (currentRequest.status === 'gathering' || currentRequest.status === 'scraping') ? '33%' : 
+                                                currentRequest.status === 'analyzing' ? '66%' : '10%' }} />
+                          
+                          <div className="relative flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              ['gathering', 'scraping', 'analyzing', 'completed'].includes(currentRequest.status) 
+                                ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'
+                            }`}>
+                              <Globe className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs mt-2 text-gray-600">Gathering</span>
+                          </div>
+                          
+                          <div className="relative flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              ['analyzing', 'completed'].includes(currentRequest.status)
+                                ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'
+                            }`}>
+                              <Brain className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs mt-2 text-gray-600">Analyzing</span>
+                          </div>
+                          
+                          <div className="relative flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              currentRequest.status === 'completed'
+                                ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-400'
+                            }`}>
+                              <Check className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs mt-2 text-gray-600">Complete</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -1043,20 +1223,37 @@ export default function SkillsOverview() {
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => setCurrentRequest(request)}
                       >
-                        <div>
+                        <div className="flex-1">
                           <div className="text-sm font-medium">
                             {request.regions?.join(', ') || request.countries?.join(', ') || 'Unknown Region'}
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(request.created_at).toLocaleString()}
+                            {request.status_message && ` • ${request.status_message}`}
                           </div>
                         </div>
-                        <div className={`px-2 py-1 rounded text-xs font-medium ${
-                          request.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          request.status === 'failed' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {request.status}
+                        <div className="flex items-center gap-2">
+                          <div className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${
+                            request.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            request.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {(request.status === 'gathering' || request.status === 'scraping' || request.status === 'analyzing') && (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            )}
+                            {request.status}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMarketRequest(request.id);
+                            }}
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     ))}

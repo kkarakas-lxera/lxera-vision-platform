@@ -50,7 +50,17 @@ serve(async (req) => {
             properties: {
               job_data: {
                 type: "array",
-                description: "Array of job postings with skills data"
+                description: "Array of job postings with skills data",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    company: { type: "string" },
+                    location: { type: "string" },
+                    skills: { type: "array", items: { type: "string" } },
+                    salary: { type: "string" }
+                  }
+                }
               },
               focus_area: {
                 type: "string",
@@ -88,7 +98,16 @@ serve(async (req) => {
             properties: {
               job_data: {
                 type: "array",
-                description: "Job postings with salary information"
+                description: "Job postings with salary information",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    company: { type: "string" },
+                    salary: { type: "string" },
+                    location: { type: "string" }
+                  }
+                }
               }
             },
             required: ["job_data"]

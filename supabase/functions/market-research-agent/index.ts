@@ -69,7 +69,16 @@ serve(async (req) => {
               },
               job_data: {
                 type: "array",
-                description: "Array of job posting data"
+                description: "Array of job posting data",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    company: { type: "string" },
+                    location: { type: "string" },
+                    skills: { type: "array", items: { type: "string" } }
+                  }
+                }
               }
             },
             required: ["location", "job_data"]
@@ -86,7 +95,10 @@ serve(async (req) => {
             properties: {
               raw_data: {
                 type: "array",
-                description: "Raw scraped data to validate"
+                description: "Raw scraped data to validate",
+                items: {
+                  type: "object"
+                }
               }
             },
             required: ["raw_data"]
