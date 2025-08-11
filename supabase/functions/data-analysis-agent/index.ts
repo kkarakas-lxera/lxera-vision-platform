@@ -26,6 +26,9 @@ serve(async (req) => {
 
   try {
     const { scraped_data, request_context } = await req.json() as AnalysisRequest;
+    
+    console.log(`[Data Analysis Agent] Starting analysis for request: ${request_context.request_id}`);
+    console.log(`[Data Analysis Agent] Processing ${JSON.stringify(scraped_data).length} bytes of data`);
 
     // Initialize OpenAI
     const openai = new OpenAI({
@@ -37,6 +40,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+    
+    // Update status to show we're analyzing
+    await supabase
+      .from('market_intelligence_requests')
+      .update({
+        status: 'analyzing',
+        status_message: 'AI agent analyzing market trends and patterns...',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', request_context.request_id);
 
     // Define tools for the data analysis agent
     const tools = [
@@ -175,6 +188,7 @@ serve(async (req) => {
       `Analyze the scraped job market data for ${locations}. Provide comprehensive insights on skill trends, market conditions, and recommendations.`;
 
     // Run the analysis agent
+    console.log('[Data Analysis Agent] Calling OpenAI for deep analysis...');
     const response = await openai.chat.completions.create({
       model: "gpt-4-turbo-preview",
       messages: [
@@ -203,8 +217,18 @@ serve(async (req) => {
         
         let result;
         
+        console.log(`[Data Analysis Agent] Executing function: ${functionName}`);
+        
         switch (functionName) {
           case "analyze_skill_trends":
+            console.log('[Data Analysis Agent] Analyzing skill trends...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Identifying trending skills and growth patterns...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_context.request_id);
             result = {
               trending_skills: ["AI/ML", "Cloud Computing", "DevOps", "Data Science"],
               declining_skills: ["Legacy Systems", "Outdated Frameworks"],
@@ -218,6 +242,14 @@ serve(async (req) => {
             break;
             
           case "compare_regional_markets":
+            console.log('[Data Analysis Agent] Comparing regional markets...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Comparing market conditions across regions...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_context.request_id);
             result = {
               regional_comparison: {
                 "North America": { job_density: "High", avg_salary: "$95k", top_skill: "JavaScript" },
@@ -229,6 +261,14 @@ serve(async (req) => {
             break;
             
           case "analyze_salary_trends":
+            console.log('[Data Analysis Agent] Analyzing salary trends...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Analyzing compensation trends and ranges...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_context.request_id);
             result = {
               salary_analysis: {
                 junior: "$45k - $65k",
@@ -241,6 +281,14 @@ serve(async (req) => {
             break;
             
           case "generate_skill_recommendations":
+            console.log('[Data Analysis Agent] Generating recommendations...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Generating actionable skill gap recommendations...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_context.request_id);
             result = {
               priority_skills: [
                 { skill: "Cloud Computing", urgency: "High", reason: "87% job growth" },
@@ -256,6 +304,14 @@ serve(async (req) => {
             break;
             
           case "create_market_insights_report":
+            console.log('[Data Analysis Agent] Creating final report...');
+            await supabase
+              .from('market_intelligence_requests')
+              .update({
+                status_message: 'Generating comprehensive market insights report...',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', request_context.request_id);
             const insights = `# Market Intelligence Report
 
 ## Executive Summary
@@ -277,14 +333,19 @@ Based on analysis of job market data for ${locations}, key findings include:
             finalInsights = insights;
             
             // Update database with results
+            console.log('[Data Analysis Agent] Saving final insights to database...');
             await supabase
               .from('market_intelligence_requests')
               .update({
                 status: 'completed',
+                status_message: 'Analysis complete! Market insights ready.',
                 ai_insights: insights,
-                scraped_data: scraped_data
+                scraped_data: scraped_data,
+                updated_at: new Date().toISOString()
               })
               .eq('id', functionArgs.request_id);
+            
+            console.log('[Data Analysis Agent] Analysis completed successfully');
             
             result = {
               report_generated: true,
@@ -329,7 +390,28 @@ Based on analysis of job market data for ${locations}, key findings include:
     });
 
   } catch (error) {
-    console.error('Data Analysis Agent error:', error);
+    console.error('[Data Analysis Agent] Fatal error:', error);
+    
+    // Try to update status on fatal error
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      );
+      
+      const requestData = await req.json();
+      await supabase
+        .from('market_intelligence_requests')
+        .update({
+          status: 'error',
+          status_message: `Analysis error: ${error.message.substring(0, 200)}`,
+          error_details: { error: error.message },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestData.request_context.request_id);
+    } catch (updateError) {
+      console.error('[Data Analysis Agent] Failed to update error status:', updateError);
+    }
     return new Response(JSON.stringify({ 
       error: error.message,
       agent: "data-analysis-agent"

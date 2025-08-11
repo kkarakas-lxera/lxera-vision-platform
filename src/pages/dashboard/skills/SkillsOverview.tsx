@@ -679,7 +679,7 @@ export default function SkillsOverview() {
   };
 
   const pollForUpdates = async (requestId: string) => {
-    const maxAttempts = 60; // 5 minutes with 5-second intervals
+    const maxAttempts = 120; // 5 minutes with 2.5-second intervals
     let attempts = 0;
 
     const poll = setInterval(async () => {
@@ -738,7 +738,7 @@ export default function SkillsOverview() {
         console.error('Error polling for updates:', error);
         clearInterval(poll);
       }
-    }, 5000); // Check every 5 seconds for more responsive updates
+    }, 2500); // Check every 2.5 seconds for more responsive updates
   };
 
   const deleteMarketRequest = async (requestId: string) => {
@@ -1138,6 +1138,12 @@ export default function SkillsOverview() {
                                 <p className="text-sm text-gray-600 mt-1">
                                   {currentRequest.status_message || 'Gathering LinkedIn job market data...'}
                                 </p>
+                                {/* Debug Info - Show scraped data count if available */}
+                                {currentRequest.scraped_data?.jobs_count && (
+                                  <p className="text-xs text-blue-600 mt-2">
+                                    Found {currentRequest.scraped_data.jobs_count} job listings
+                                  </p>
+                                )}
                               </div>
                             </>
                           ) : currentRequest.status === 'analyzing' ? (
@@ -1148,6 +1154,12 @@ export default function SkillsOverview() {
                                 <p className="text-sm text-gray-600 mt-1">
                                   {currentRequest.status_message || 'AI agents are processing the data...'}
                                 </p>
+                                {/* Debug Info - Show analysis progress */}
+                                {currentRequest.scraped_data?.jobs_count && (
+                                  <p className="text-xs text-purple-600 mt-2">
+                                    Analyzing {currentRequest.scraped_data.jobs_count} job listings...
+                                  </p>
+                                )}
                               </div>
                             </>
                           ) : (
@@ -1203,6 +1215,37 @@ export default function SkillsOverview() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Debug Panel - Show detailed logs */}
+                      <details className="mt-4">
+                        <summary className="cursor-pointer text-xs text-gray-500 hover:text-gray-700">
+                          View detailed process logs
+                        </summary>
+                        <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">
+                              <span className="font-medium">Request ID:</span> {currentRequest.id}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <span className="font-medium">Status:</span> {currentRequest.status}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <span className="font-medium">Message:</span> {currentRequest.status_message || 'Processing...'}
+                            </p>
+                            {currentRequest.scraped_data && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-medium">Scraped Data:</span>
+                                <pre className="mt-1 p-2 bg-white rounded text-xs overflow-x-auto">
+                                  {JSON.stringify(currentRequest.scraped_data, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                            <p className="text-xs text-gray-500 italic">
+                              Polling every 2.5 seconds for updates...
+                            </p>
+                          </div>
+                        </div>
+                      </details>
                     </div>
                   )}
                 </CardContent>
