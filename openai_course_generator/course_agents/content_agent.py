@@ -5,35 +5,26 @@ import logging
 from typing import Dict, Any, List, Optional
 from lxera_agents import Agent
 
-# Import agentic content generation tools
+# Import only content generation tools (following single responsibility)
 from tools.agentic_content_tools import (
     generate_module_introduction,
     generate_core_content,
     generate_practical_applications,
     generate_case_studies,
     generate_assessment_materials,
-    compile_complete_module,
-    revise_section_with_research,
-    enhance_with_current_data,
-    regenerate_section_with_research,
-    integrate_enhanced_sections
+    compile_complete_module
 )
 # Database content tools for content_id workflow
 from tools.database_content_tools import (
-    create_new_module_content, store_content_section,
-    retrieve_content_sections, retrieve_content_sections_for_regeneration,
-    get_module_metadata_db, update_module_status, get_latest_quality_assessment_db
+    create_new_module_content,
+    store_content_section,
+    retrieve_content_sections,
+    retrieve_content_sections_for_regeneration,
+    get_module_metadata_db,
+    update_module_status
 )
-# Quality assessment tools for inline validation
-from tools.quality_tools import (
-    quality_assessor, blueprint_validator, word_counter, 
-    personalization_checker, enhancement_suggester,
-    generate_enhancement_requirements
-)
-# Database quality tools for storage integration
-from tools.database_quality_tools import quality_assessor_with_storage
-# Research tools for enhancement context
-from tools.research_tools import tavily_search, fetch_course_plan
+# Course plan fetching tool
+from tools.research_tools import fetch_course_plan
 
 logger = logging.getLogger(__name__)
 
@@ -44,15 +35,18 @@ def create_content_agent() -> Agent:
     You are the Content Generation Specialist responsible for creating comprehensive, 
     personalized course content using AI-powered tools and the efficient content_id workflow.
 
-    ## DATABASE WORKFLOW (NEW)
+    ## FOCUSED RESPONSIBILITY (Following OpenAI Best Practices)
+    You ONLY generate content - quality assessment is handled by the Quality Agent.
+    
+    ## DATABASE WORKFLOW
 
     ### Mode 1: Initial Module Creation
     - If content_id is provided in the DATABASE CONTEXT, USE IT - DO NOT create a new one
     - If no content_id is provided, use create_new_module_content() to create one
-    - Generate content sections using agentic tools
+    - Generate content sections using content generation tools
     - Store each section using store_content_section(content_id, section_name, content)
-    - Update module status using update_module_status() as you progress
-    - Return content_id to next agent (98% token reduction vs JSON passing)
+    - Update module status to "ready_for_quality" when complete
+    - Return content_id for Quality Agent assessment
 
     ### Mode 2: Enhancement from Research (content_id + research_id input)
     - Receive content_id from Enhancement Agent instead of full JSON content
@@ -77,75 +71,33 @@ def create_content_agent() -> Agent:
     - Integrate enhanced sections back into structured module format
     - Maintain content quality and coherence throughout enhancement process
 
-    ## WORKFLOW MODES
+    ## SIMPLIFIED WORKFLOW (Following Single Responsibility Principle)
 
-    ### Mode 1: Enhanced Generation with Mandatory Quality Validation (DATABASE)
-    1. ALWAYS call fetch_course_plan(plan_id) first to get complete course structure and module details
-    2. CHECK if content_id is provided in the DATABASE CONTEXT section - if yes, USE IT
-    3. If no content_id provided, use create_new_module_content() to create module and get content_id
+    ### Mode 1: Content Generation (NO Quality Assessment)
+    1. Call fetch_course_plan(plan_id) to get course structure
+    2. Check if content_id is provided - if yes, USE IT
+    3. If no content_id, use create_new_module_content() to get content_id
 
-    **MANDATORY WORKFLOW - MUST FOLLOW FOR EACH SECTION:**
+    **GENERATION WORKFLOW - FOCUS ON CONTENT ONLY:**
     
-    **Step 1: Generate Section**
-    - Use appropriate generate_* tool for section (introduction, core_content, practical_applications, case_studies, assessments)
+    For each section, simply:
+    1. Generate content using appropriate tool:
+       - generate_module_introduction (800-1000 words)
+       - generate_core_content (1800-2200 words)
+       - generate_practical_applications (1200-1500 words)
+       - generate_case_studies (800-1000 words)
+       - generate_assessment_materials (600-800 words)
     
-    **Step 2: REQUIRED Quality Assessment with Database Storage**
-    - Create section-specific context with appropriate word count target:
-      * Introduction: {"word_count_target": "800-1000", "section_name": "introduction"}
-      * Core Content: {"word_count_target": "1800-2200", "section_name": "core_content"}  
-      * Practical Applications: {"word_count_target": "1200-1500", "section_name": "practical_applications"}
-      * Case Studies: {"word_count_target": "800-1000", "section_name": "case_studies"}
-      * Assessments: {"word_count_target": "600-800", "section_name": "assessments"}
-    - ALWAYS call quality_assessor_with_storage(section_content, content_id, section_name, section_context)
-    - This tool automatically stores assessment results in database
-    - Extract overall_score from result (look for "overall_score": number)
+    2. Store immediately using store_content_section(content_id, section_name, content)
     
-    **Step 3: BLOCKING Quality Decision (MANDATORY)**
-    - WAIT for quality_assessor response - DO NOT proceed until you have the result
-    - Parse the JSON response to extract "overall_score" number
-    - DECISION GATE:
-      * If overall_score ≥ 7.5: APPROVED → Go directly to Step 4 (Store)
-      * If overall_score < 7.5: REJECTED → Enter Enhancement Loop
-    
-    **Enhancement Loop (when quality < 7.5) - EXACTLY 2 ATTEMPTS MAX:**
-    
-    **Attempt 1:**
-    1. Call enhancement_suggester(quality_result, "{}")
-    2. Parse enhancement suggestions to get highest priority improvement type
-    3. Call enhance_with_current_data(section_content, improvement_type, targeted_query)
-    4. WAIT for enhanced content result
-    5. Call quality_assessor(enhanced_content, section_context) 
-    6. Parse new overall_score:
-       - If ≥ 7.5: APPROVED → Store enhanced content and proceed
-       - If < 7.5: Continue to Attempt 2
-    
-    **Attempt 2 (if still < 7.5):**
-    1. Call enhancement_suggester(latest_quality_result, "{}")
-    2. Apply DIFFERENT enhancement type from highest priority suggestions
-    3. Call enhance_with_current_data() with new improvement focus
-    4. Call quality_assessor(final_enhanced_content, section_context)
-    5. Store final version regardless of score (best effort achieved)
-    
-    **CRITICAL**: Never exceed 2 enhancement attempts per section
-    
-    **Step 4: Store Final Content (MANDATORY - DO NOT SKIP)**
-    - MUST call store_content_section(content_id, section_name, content) after:
-      * Quality score ≥ 7.5 (use original or enhanced content) OR
-      * Maximum enhancement attempts reached (2) (use best version)
-    - NEVER store without quality assessment
-    - ALWAYS store approved content before moving to next section
-    
-    **REPEAT FOR ALL 5 SECTIONS**: introduction → core_content → practical_applications → case_studies → assessments
+    3. Move to next section
     
     **FINAL STEPS**:
     - Use compile_complete_module with all sections
-    - Use update_module_status(content_id, "approved") 
-    - Return a final message: "Module generation complete. Content ID: [content_id]"
+    - Use update_module_status(content_id, "ready_for_quality")
+    - Return: "Content generation complete. Content ID: [content_id] - Ready for quality assessment."
     
-    **ABSOLUTE REQUIREMENTS**:
-    - EVERY section MUST be assessed with quality_assessor before storage
-    - NO section can be stored without quality validation
-    - If quality_assessor fails, treat as score = 6.0 and enhance
+    **KEY PRINCIPLE**: You generate content, Quality Agent assesses it
 
     ### Mode 2: Research-Driven Enhancement (DATABASE)
     1. Receive content_id + research_id from Enhancement Agent
@@ -219,38 +171,24 @@ def create_content_agent() -> Agent:
         name="Content Generation Specialist",
         instructions=content_instructions,
         tools=[
-            # Database content tools (PRIMARY - for content_id workflow)
+            # Database content tools (7 tools)
             create_new_module_content,
             store_content_section,
             retrieve_content_sections,
             retrieve_content_sections_for_regeneration,
             get_module_metadata_db,
             update_module_status,
-            get_latest_quality_assessment_db,
-            # Agentic content generation tools (SECONDARY - for actual content creation)
+            # Core content generation tools (6 tools)
             generate_module_introduction,
             generate_core_content,
             generate_practical_applications,
             generate_case_studies,
             generate_assessment_materials,
             compile_complete_module,
-            revise_section_with_research,
-            enhance_with_current_data,
-            regenerate_section_with_research,
-            integrate_enhanced_sections,
-            # Quality assessment tools (NEW - for inline validation)
-            quality_assessor,
-            quality_assessor_with_storage,
-            blueprint_validator,
-            word_counter,
-            personalization_checker,
-            enhancement_suggester,
-            generate_enhancement_requirements,
-            # Research tool for enhancement context
-            tavily_search,
-            # Course plan fetching tool
+            # Course plan fetching tool (1 tool)
             fetch_course_plan
         ],
+        # Total: 13 tools (under the 15 tool limit per OpenAI best practices)
         handoffs=["quality_agent"]  # Content agent hands off content_id to quality for validation
     )
 

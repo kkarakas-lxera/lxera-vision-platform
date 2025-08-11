@@ -310,6 +310,9 @@ class LXERADatabasePipeline:
             if generation_mode == 'first_module':
                 modules_to_generate = modules[:1]  # Only first module
                 logger.info(f"📚 Partial generation mode: generating first module only (1/{total_modules})")
+            elif generation_mode == 'resume_from_module_2':
+                modules_to_generate = modules[1:]  # Skip first module, generate rest
+                logger.info(f"📚 Resume mode: generating modules 2-{total_modules}")
             else:
                 modules_to_generate = modules  # All modules
                 logger.info(f"📚 Full generation mode: generating all {total_modules} modules")
@@ -851,7 +854,10 @@ class LXERADatabasePipeline:
                 'priority': 'high',
                 'status': 'assigned' if generation_mode == 'full' else 'partial',
                 'progress_percentage': 0,
-                'metadata': assignment_metadata
+                'metadata': assignment_metadata,
+                'plan_id': plan_id,  # Store plan_id in dedicated column
+                'is_preview': generation_mode == 'first_module',  # Mark as preview if partial
+                'approval_status': 'pending' if generation_mode == 'first_module' else None
             }).execute()
             
             assignment_id = response.data[0]['id'] if response.data else str(uuid.uuid4())

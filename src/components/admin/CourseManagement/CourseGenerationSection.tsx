@@ -42,6 +42,7 @@ export const CourseGenerationSection = () => {
   const [departments, setDepartments] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   
   // Filters
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -208,9 +209,10 @@ export const CourseGenerationSection = () => {
           failed_courses: 0,
           metadata: {
             priority: determinePriority(selectedEmployeeIds.length),
-            generation_mode: 'full',
-            estimated_duration_seconds: selectedEmployeeIds.length * 300, // Estimate 5 min per employee
-            queued_at: new Date().toISOString()
+            generation_mode: previewMode ? 'first_module' : 'full',
+            estimated_duration_seconds: previewMode ? selectedEmployeeIds.length * 60 : selectedEmployeeIds.length * 300, // Preview is faster
+            queued_at: new Date().toISOString(),
+            is_preview: previewMode
           }
         })
         .select()
@@ -219,8 +221,10 @@ export const CourseGenerationSection = () => {
       if (jobError) throw jobError;
 
       toast({
-        title: 'Course Generation Queued',
-        description: `Your request to generate courses for ${selectedEmployeeIds.length} employee${selectedEmployeeIds.length > 1 ? 's' : ''} has been queued. You'll see progress in the active jobs section shortly.`,
+        title: previewMode ? 'Preview Generation Queued' : 'Course Generation Queued',
+        description: previewMode 
+          ? `Generating preview for ${selectedEmployeeIds.length} employee${selectedEmployeeIds.length > 1 ? 's' : ''}. You'll be able to review and approve before full generation.`
+          : `Your request to generate courses for ${selectedEmployeeIds.length} employee${selectedEmployeeIds.length > 1 ? 's' : ''} has been queued. You'll see progress in the active jobs section shortly.`,
       });
 
       // Clear selection after queuing
@@ -280,7 +284,20 @@ export const CourseGenerationSection = () => {
                 Select employees to generate personalized AI courses based on their skills gaps
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="preview-mode"
+                  checked={previewMode}
+                  onCheckedChange={(checked) => setPreviewMode(checked as boolean)}
+                />
+                <label 
+                  htmlFor="preview-mode" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Preview mode
+                </label>
+              </div>
               <Badge variant="outline">
                 {selectedEmployeeIds.length} selected
               </Badge>
@@ -289,7 +306,7 @@ export const CourseGenerationSection = () => {
                 disabled={selectedEmployeeIds.length === 0 || isGenerating}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Generate Courses
+                {previewMode ? 'Generate Preview' : 'Generate Courses'}
               </Button>
             </div>
           </div>

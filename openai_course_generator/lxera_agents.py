@@ -95,11 +95,13 @@ class Agent:
                 else:
                     sdk_tools.append(tool)
             
+            # Pass handoffs to SDK agent
             self._sdk_agent = OpenAIAgent(
                 name=name,
                 instructions=instructions,
                 model=model,
-                tools=sdk_tools
+                tools=sdk_tools,
+                handoffs=self.handoffs  # Pass handoffs to SDK agent
             )
         else:
             # Convert tools to OpenAI function format for fallback

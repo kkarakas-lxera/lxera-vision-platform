@@ -29,6 +29,8 @@ import {
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CourseContentSection } from '@/components/CourseContentSection';
+import { EditableSection } from '@/components/EditableSection';
+import { cn } from '@/lib/utils';
 
 interface CourseAssignment {
   id: string;
@@ -40,6 +42,11 @@ interface CourseAssignment {
   completed_at: string | null;
   total_modules: number;
   modules_completed: number;
+  is_preview?: boolean;
+  approval_status?: string;
+  approval_feedback?: string;
+  approved_by?: string;
+  approved_at?: string;
   employee: {
     full_name: string;
     email: string;
@@ -59,6 +66,9 @@ interface CourseContent {
   practical_applications?: string;
   case_studies?: string;
   assessments?: string;
+  version_number?: number;
+  last_edited_by?: string;
+  last_edited_at?: string;
 }
 
 interface CoursePlan {
@@ -78,6 +88,7 @@ export default function CourseDetails() {
   const [content, setContent] = useState<CourseContent | null>(null);
   const [coursePlan, setCoursePlan] = useState<CoursePlan | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [contentVersion, setContentVersion] = useState(1);
 
   useEffect(() => {
     if (userProfile?.company_id && courseId) {
@@ -166,6 +177,7 @@ export default function CourseDetails() {
 
         if (!contentError && contentData && contentData.length > 0) {
           setContent(contentData[0]);
+          setContentVersion(contentData[0].version_number || 1);
           console.log('Content set successfully:', contentData[0].module_name);
         } else {
           console.log('No content found or error:', contentError);
@@ -235,6 +247,44 @@ export default function CourseDetails() {
 
   const metrics = calculateMetrics();
 
+  const isPreviewCourse = assignments.some(a => a.is_preview);
+  const isAwaitingApproval = assignments.some(a => a.is_preview && a.approval_status === 'pending');
+
+  const handleApprove = async () => {
+    if (!courseId || !userProfile?.id) return;
+    
+    try {
+      // Update approval status
+      const { error } = await supabase
+        .from('course_assignments')
+        .update({
+          approval_status: 'approved',
+          approved_by: userProfile.id,
+          approved_at: new Date().toISOString()
+        })
+        .eq('course_id', courseId)
+        .eq('is_preview', true);
+
+      if (error) throw error;
+
+      // Trigger resume generation
+      const { error: resumeError } = await supabase.functions.invoke('resume-course-generation', {
+        body: { 
+          course_id: courseId,
+          plan_id: coursePlan?.plan_id
+        }
+      });
+
+      if (resumeError) throw resumeError;
+
+      toast.success('Course approved! Full generation has been queued.');
+      await fetchCourseData();
+    } catch (error) {
+      console.error('Error approving course:', error);
+      toast.error('Failed to approve course');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -247,6 +297,38 @@ export default function CourseDetails() {
 
   return (
     <div className="space-y-6">
+      {/* Preview/Approval Banner */}
+      {isPreviewCourse && (
+        <div className={cn(
+          "border rounded-lg p-4",
+          isAwaitingApproval ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800" : "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+        )}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className={cn(
+                "h-5 w-5",
+                isAwaitingApproval ? "text-yellow-600 dark:text-yellow-400" : "text-green-600 dark:text-green-400"
+              )} />
+              <div>
+                <p className="font-medium">
+                  {isAwaitingApproval ? 'Preview Course - Awaiting Approval' : 'Preview Course - Approved'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {isAwaitingApproval 
+                    ? 'Review the course content below. You can edit sections inline before approving.'
+                    : 'This preview has been approved. Full course generation is in progress.'}
+                </p>
+              </div>
+            </div>
+            {isAwaitingApproval && (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') && (
+              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve & Generate Full Course
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -483,48 +565,109 @@ export default function CourseDetails() {
 
               {/* Introduction Section */}
               {content.introduction && (
-                <CourseContentSection
-                  title="Introduction"
-                  content={content.introduction}
-                  icon={<BookOpen className="h-5 w-5" />}
-                  defaultExpanded={true}
-                />
+                userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin' ? (
+                  <EditableSection
+                    title="Introduction"
+                    content={content.introduction}
+                    contentId={content.content_id}
+                    sectionKey="introduction"
+                    icon={<BookOpen className="h-5 w-5" />}
+                    defaultExpanded={true}
+                    versionNumber={contentVersion}
+                    onVersionUpdate={setContentVersion}
+                  />
+                ) : (
+                  <CourseContentSection
+                    title="Introduction"
+                    content={content.introduction}
+                    icon={<BookOpen className="h-5 w-5" />}
+                    defaultExpanded={true}
+                  />
+                )
               )}
 
               {/* Core Content Section */}
               {content.core_content && (
-                <CourseContentSection
-                  title="Core Content"
-                  content={content.core_content}
-                  icon={<FileText className="h-5 w-5" />}
-                />
+                userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin' ? (
+                  <EditableSection
+                    title="Core Content"
+                    content={content.core_content}
+                    contentId={content.content_id}
+                    sectionKey="core_content"
+                    icon={<FileText className="h-5 w-5" />}
+                    versionNumber={contentVersion}
+                    onVersionUpdate={setContentVersion}
+                  />
+                ) : (
+                  <CourseContentSection
+                    title="Core Content"
+                    content={content.core_content}
+                    icon={<FileText className="h-5 w-5" />}
+                  />
+                )
               )}
 
               {/* Practical Applications Section */}
               {content.practical_applications && (
-                <CourseContentSection
-                  title="Practical Applications"
-                  content={content.practical_applications}
-                  icon={<Target className="h-5 w-5" />}
-                />
+                userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin' ? (
+                  <EditableSection
+                    title="Practical Applications"
+                    content={content.practical_applications}
+                    contentId={content.content_id}
+                    sectionKey="practical_applications"
+                    icon={<Target className="h-5 w-5" />}
+                    versionNumber={contentVersion}
+                    onVersionUpdate={setContentVersion}
+                  />
+                ) : (
+                  <CourseContentSection
+                    title="Practical Applications"
+                    content={content.practical_applications}
+                    icon={<Target className="h-5 w-5" />}
+                  />
+                )
               )}
 
               {/* Case Studies Section */}
               {content.case_studies && (
-                <CourseContentSection
-                  title="Case Studies"
-                  content={content.case_studies}
-                  icon={<BarChart3 className="h-5 w-5" />}
-                />
+                userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin' ? (
+                  <EditableSection
+                    title="Case Studies"
+                    content={content.case_studies}
+                    contentId={content.content_id}
+                    sectionKey="case_studies"
+                    icon={<BarChart3 className="h-5 w-5" />}
+                    versionNumber={contentVersion}
+                    onVersionUpdate={setContentVersion}
+                  />
+                ) : (
+                  <CourseContentSection
+                    title="Case Studies"
+                    content={content.case_studies}
+                    icon={<BarChart3 className="h-5 w-5" />}
+                  />
+                )
               )}
 
               {/* Assessments Section */}
               {content.assessments && (
-                <CourseContentSection
-                  title="Assessments"
-                  content={content.assessments}
-                  icon={<CheckCircle className="h-5 w-5" />}
-                />
+                userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin' ? (
+                  <EditableSection
+                    title="Assessments"
+                    content={content.assessments}
+                    contentId={content.content_id}
+                    sectionKey="assessments"
+                    icon={<CheckCircle className="h-5 w-5" />}
+                    versionNumber={contentVersion}
+                    onVersionUpdate={setContentVersion}
+                  />
+                ) : (
+                  <CourseContentSection
+                    title="Assessments"
+                    content={content.assessments}
+                    icon={<CheckCircle className="h-5 w-5" />}
+                  />
+                )
               )}
             </div>
           ) : (
