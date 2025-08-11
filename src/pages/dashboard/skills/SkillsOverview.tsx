@@ -1,52 +1,34 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   Users, 
   Target,
   TrendingUp,
   AlertTriangle,
   BookOpen,
-  ArrowRight,
   Building2,
-  Brain,
-  FileText,
-  CheckCircle,
   CheckCircle2,
   AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  HelpCircle,
-  Info,
-  RefreshCcw,
-  Clock
+  Globe,
+  Loader2,
+  Brain
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { parseGapSeverity, parseSkillsArray } from '@/utils/typeGuards';
+import { parseGapSeverity } from '@/utils/typeGuards';
 import type { CriticalSkillsGap } from '@/types/common';
-import type { DepartmentMarketGap } from '@/types/marketSkills';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
-import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
-import { MarketBenchmarkVerticalLoader } from '@/components/dashboard/skills/MarketBenchmarkVerticalLoader';
 import { cn } from '@/lib/utils';
-import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
-import { UnifiedSkillsService } from '@/services/UnifiedSkillsService';
-import { RegenerateAnalysisButton } from '@/components/dashboard/skills/RegenerateAnalysisButton';
-import { Code, LayoutGrid, Grid3x3 } from 'lucide-react';
+import { LayoutGrid, Grid3x3 } from 'lucide-react';
 import OrgSkillsHealth from '@/components/dashboard/skills/OrgSkillsHealth';
 import DepartmentAnalysisPanel from '@/components/dashboard/skills/DepartmentAnalysisPanel';
 import CriticalSkillsPanel from '@/components/dashboard/skills/CriticalSkillsPanel';
@@ -64,12 +46,21 @@ interface DepartmentSummary {
   exceeding_targets: number;
 }
 
+interface MarketIntelligenceRequest {
+  id: string;
+  regions: string[];
+  countries: string[];
+  focus_area: 'technical' | 'all_skills';
+  custom_prompt?: string;
+  status: 'pending' | 'scraping' | 'analyzing' | 'completed' | 'failed';
+  scraped_data?: any;
+  ai_insights?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
 function getDepartmentHealthStatus(dept: DepartmentSummary) {
-  const { critical_gaps, moderate_gaps, analyzed_employees, total_employees } = dept;
-  
-  // Coverage penalty
-  const coverageRatio = total_employees > 0 ? analyzed_employees / total_employees : 0;
-  const hasLowCoverage = coverageRatio < 0.5;
+  const { critical_gaps, moderate_gaps } = dept;
   
   if (critical_gaps === 0 && moderate_gaps < 5) {
     return {
@@ -111,7 +102,6 @@ function getDepartmentHealthStatus(dept: DepartmentSummary) {
 }
 
 export default function SkillsOverview() {
-  const navigate = useNavigate();
   const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [departmentSummaries, setDepartmentSummaries] = useState<DepartmentSummary[]>([]);
@@ -127,23 +117,7 @@ export default function SkillsOverview() {
   const [positionsCount, setPositionsCount] = useState(0);
   const [employeesCount, setEmployeesCount] = useState(0);
   const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
-  const [departmentMarketGaps, setDepartmentMarketGaps] = useState<Record<string, DepartmentMarketGap>>({});
-  const [expandedDepartments, setExpandedDepartments] = useState<Set<string>>(new Set());
-  
-  // Market Benchmark data states
-  const [organizationBenchmark, setOrganizationBenchmark] = useState<any>(null);
-  const [departmentsBenchmark, setDepartmentsBenchmark] = useState<any[]>([]);
-  const [employeesBenchmark, setEmployeesBenchmark] = useState<any[]>([]);
-  const [benchmarkLoading, setBenchmarkLoading] = useState(false);
-  const [benchmarkRefreshing, setBenchmarkRefreshing] = useState(false);
-  const [lastBenchmarkUpdate, setLastBenchmarkUpdate] = useState<Date | null>(null);
-  const [companyIndustry, setCompanyIndustry] = useState<string>('industry');
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [activeTab, setActiveTab] = useState('internal');
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
-  const [auditLog, setAuditLog] = useState<Array<{ timestamp: Date; step: string; data: any }>>([]);
-  const [reports, setReports] = useState<Array<{ id: string; scope: string; scope_id?: string; generated_at: string; pdf_path?: string; pdf_url?: string; version: number }>>([]);
-  const [reportLoading, setReportLoading] = useState(false);
   
   // Internal Readiness view state
   const [internalView, setInternalView] = useState<'cards' | 'heatmap' | 'trends'>('cards');
@@ -151,187 +125,43 @@ export default function SkillsOverview() {
   const [historicalSnapshots, setHistoricalSnapshots] = useState<any[]>([]);
   const [skillsMomentum, setSkillsMomentum] = useState<any[]>([]);
 
+  // Market Intelligence state
+  const [marketRequests, setMarketRequests] = useState<MarketIntelligenceRequest[]>([]);
+  const [currentRequest, setCurrentRequest] = useState<MarketIntelligenceRequest | null>(null);
+  const [marketLoading, setMarketLoading] = useState(false);
+  
+  // Form state for new market intelligence request
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [focusArea, setFocusArea] = useState<'technical' | 'all_skills'>('all_skills');
+  const [customPrompt, setCustomPrompt] = useState('');
+
+  // Region and country configuration
+  const regionCountries = {
+    'US': ['United States'],
+    'Europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Sweden', 'Switzerland', 'Spain', 'Italy'],
+    'MENA': ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Jordan', 'Lebanon', 'Egypt'],
+    'Asia/Pacific': ['Singapore', 'Australia', 'Japan', 'South Korea', 'Hong Kong', 'Malaysia', 'India', 'Thailand']
+  };
+
+  const allCountries = Object.values(regionCountries).flat().sort();
+
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchSkillsOverview();
-    }
-  }, [userProfile?.company_id]);
-
-  useEffect(() => {
-    // Fetch market gaps for departments after department data is loaded
-    if (departmentSummaries.length > 0) {
-      fetchMarketGapsForDepartments();
-    }
-  }, [departmentSummaries]);
-
-  // Refresh stale benchmarks on component mount
-  useEffect(() => {
-    const refreshBenchmarks = async () => {
-      try {
-        await marketSkillsService.refreshStaleBenchmarks();
-      } catch (error) {
-        console.error('Error refreshing benchmarks:', error);
+      if (activeTab === 'market') {
+        fetchMarketRequests();
       }
-    };
-    
-    // Only refresh if user is admin
-    if (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') {
-      refreshBenchmarks();
     }
-  }, [userProfile?.role]);
+  }, [userProfile?.company_id, activeTab]);
 
-  // When Market Benchmark tab becomes active, load from current tables (primary path)
-  useEffect(() => {
-    if (activeTab === 'market') {
-      // Prefer current-state tables over legacy RPCs
-      // This avoids stale "cached" labels and missing RPCs
-      (async () => {
-        await loadExecutiveReports();
-      })();
-    }
-  }, [activeTab]);
+  // Removed: market gaps fetching effect tied to department summaries
 
-  // Load current-state market data and subscribe to realtime changes
-  useEffect(() => {
-    if (activeTab !== 'market' || !userProfile?.company_id) return;
+  // Removed: benchmark refresh on mount
 
-    const loadCurrentMarketData = async () => {
-      try {
-        const companyId = userProfile.company_id as string;
-        const [orgCurrent, deptCurrent, empCurrent] = await Promise.all([
-          marketSkillsService.getOrganizationMarketMatchCurrent(companyId),
-          marketSkillsService.getDepartmentsMarketMatchCurrent(companyId),
-          marketSkillsService.getEmployeesMarketMatchCurrent(companyId)
-        ]);
+  // Removed: market tab activation effect
 
-        // Enrich employees with name/department/position
-        const { data: employeeMeta } = await supabase
-          .from('employees')
-          .select('id, department, user_id, current_position_id')
-          .eq('company_id', companyId);
-        
-        // Fetch user details separately
-        const userIds = employeeMeta?.map(e => e.user_id).filter(Boolean) || [];
-        const { data: usersData } = userIds.length > 0 ? await supabase
-          .from('users')
-          .select('id, full_name, email')
-          .in('id', userIds) : { data: [] };
-        
-        // Fetch position details separately  
-        const positionIds = employeeMeta?.map(e => e.current_position_id).filter(Boolean) || [];
-        const { data: positionsData } = positionIds.length > 0 ? await supabase
-          .from('st_company_positions')
-          .select('id, position_title')
-          .in('id', positionIds) : { data: [] };
-        
-        // Create maps for quick lookup
-        type UserRow = { id: string; full_name?: string | null; email?: string | null };
-        type PositionRow = { id: string; position_title?: string | null };
-        const usersEntries: Array<[string, UserRow]> = Array.isArray(usersData)
-          ? (usersData as any[])
-              .filter((u) => u && typeof u.id === 'string')
-              .map((u) => [u.id as string, u as UserRow])
-          : [];
-        const positionsEntries: Array<[string, PositionRow]> = Array.isArray(positionsData)
-          ? (positionsData as any[])
-              .filter((p) => p && typeof p.id === 'string')
-              .map((p) => [p.id as string, p as PositionRow])
-          : [];
-        const usersMap = new Map<string, UserRow>(usersEntries);
-        const positionsMap = new Map<string, PositionRow>(positionsEntries);
-
-        const employeeMetaById = new Map<string, { name: string; department: string; position: string }>();
-        (employeeMeta || []).forEach((emp: any) => {
-          const user = usersMap.get(emp.user_id as string);
-          const position = positionsMap.get(emp.current_position_id as string);
-          
-          let name = 'Unknown';
-          if (user) {
-            name = user.full_name || (user.email ? (user.email as string).split('@')[0].replace(/[._]/g, ' ') : 'Unknown');
-          }
-        
-          employeeMetaById.set(emp.id, {
-            name,
-            department: emp.department || 'Unknown',
-            position: position?.position_title || 'Unknown'
-          });
-        });
-
-        // Map organization
-        const analyzedEmployees = Array.isArray(empCurrent) ? empCurrent.length : 0;
-        const departmentsCount = Array.isArray(deptCurrent) ? deptCurrent.length : 0;
-        const orgData = {
-          market_coverage_rate: orgCurrent?.market_coverage_rate || 0,
-          industry_alignment_index: orgCurrent?.industry_alignment_index || 0,
-          top_missing_skills: Array.isArray(orgCurrent?.top_missing_skills) ? (orgCurrent?.top_missing_skills as any) : [],
-          critical_skills_count: orgCurrent?.critical_skills_count ?? 0,
-          moderate_skills_count: orgCurrent?.moderate_skills_count ?? 0,
-          minor_skills_count: 0,
-          total_employees: employeesCount,
-          analyzed_employees: analyzedEmployees,
-          departments_count: departmentsCount,
-          executive_summary: organizationBenchmark?.executive_summary,
-          last_computed_at: orgCurrent?.last_computed_at || null
-        } as any;
-
-        setOrganizationBenchmark(orgData);
-
-        // Map departments
-        const deptData = (deptCurrent || []).map((d: any) => ({
-          department: d.department,
-          benchmark_health_score: Math.min(10, Math.max(0, Math.round((d.avg_market_match / 100) * 10))),
-          impact_score: Math.min(
-            10,
-            Math.round(
-              ((d.critical_gaps / 3) * 3) +
-              (((100 - (d.avg_market_match || 0)) / 100) * 4) +
-              ((Math.min(d.employee_count || 0, 20) / 20) * 3)
-            )
-          ),
-          market_skill_breakdown: { critical: d.critical_gaps || 0, emerging: d.emerging_gaps || 0, foundational: 0 },
-          employee_count: d.employee_count || 0,
-          analyzed_count: d.analyzed_count || 0,
-          avg_market_match: d.avg_market_match || 0,
-          top_gaps: Array.isArray(d.top_gaps) ? d.top_gaps : [],
-          ai_explanation: undefined
-        }));
-        setDepartmentsBenchmark(deptData);
-
-        // Map employees
-        const empData = (empCurrent || []).map((e: any) => {
-          const meta = employeeMetaById.get(e.employee_id) || { name: 'Unknown', department: 'Unknown', position: 'Unknown' };
-          return {
-            employee_id: e.employee_id,
-            name: meta.name,
-            department: meta.department,
-            position: meta.position,
-            market_match_percentage: e.market_match_percentage || 0,
-            critical_gaps_count: (Array.isArray(e.top_missing_skills) ? e.top_missing_skills : []).filter((s: any) => s.category === 'critical').length,
-            skills_by_source: e.skills_by_source || { ai: 0, cv: 0, verified: 0 },
-            top_missing_skills: Array.isArray(e.top_missing_skills) ? e.top_missing_skills : [],
-            last_analyzed: e.last_computed_at ? new Date(e.last_computed_at) : null
-          };
-        });
-        setEmployeesBenchmark(empData);
-
-        // Set last update from org current row if available
-        if (orgCurrent?.last_computed_at) {
-          setLastBenchmarkUpdate(new Date(orgCurrent.last_computed_at));
-        }
-      } catch (err) {
-        // Silent failure: the page still has fallback paths
-        console.warn('loadCurrentMarketData failed:', err);
-      }
-    };
-
-    loadCurrentMarketData();
-    const unsubscribe = marketSkillsService.subscribeMarketMatchUpdates(userProfile.company_id, () => {
-      loadCurrentMarketData();
-    });
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-    };
-  }, [activeTab, userProfile?.company_id, employeesCount]);
+  // (Removed) Market benchmark data loading effect
 
   // Fetch data for different internal views
   useEffect(() => {
@@ -344,131 +174,13 @@ export default function SkillsOverview() {
     }
   }, [activeTab, internalView, userProfile?.company_id]);
 
-  const checkCachedData = async () => {
-    if (!userProfile?.company_id) return;
-    
-    try {
-      // market_benchmark_cache table was removed; rely on function + company flag
-      setIsFirstLoad(true);
-      await fetchBenchmarkData(false);
-    } catch (error) {
-      // No cache found, proceed with first load
-      setIsFirstLoad(true);
-      await fetchBenchmarkData(false);
-    }
-  };
+  // Removed: checkCachedData for market benchmark
 
-  const fetchBenchmarkData = async (isRefresh = false) => {
-    if (!userProfile?.company_id) return;
-    
-    // Enable debug mode if panel is open
-    if (showDebugPanel) {
-      marketSkillsService.setDebugMode(true);
-    }
-    
-    if (isRefresh) {
-      setBenchmarkRefreshing(true);
-      // Clear existing data to show regenerating state
-      setOrganizationBenchmark(null);
-      setDepartmentsBenchmark([]);
-      setEmployeesBenchmark([]);
-      toast({
-        title: "Regenerating Market Benchmark",
-        description: "Analyzing latest market data and recalculating all metrics...",
-        duration: 5000,
-      });
-    } else {
-      setBenchmarkLoading(true);
-    }
-    
-    try {
-      // Fetch company industry
-      const { data: companyData } = await supabase
-        .from('companies')
-        .select('settings')
-        .eq('id', userProfile.company_id)
-        .single();
-      
-      const industry = companyData?.settings?.industry as string || 'industry';
-      setCompanyIndustry(industry);
-      
-      // Get benchmark data (only returns data if previously generated)
-      const comprehensiveData = await marketSkillsService.getComprehensiveBenchmark();
-      console.log('Comprehensive benchmark data received:', comprehensiveData);
-      
-      // Also get organization-wide gaps using UnifiedSkillsService
-      const organizationGaps = await UnifiedSkillsService.getGaps(
-        userProfile.company_id,
-        'organization',
-        isRefresh // Force refresh if user clicked regenerate
-      );
-      
-      // Check if this is the first time (never generated)
-      if ((comprehensiveData as any).never_generated) {
-        console.log('No benchmark data has been generated yet');
-        // Clear any existing data
-        setOrganizationBenchmark(null);
-        setDepartmentsBenchmark([]);
-        setEmployeesBenchmark([]);
-        setLastBenchmarkUpdate(null);
-      } else {
-        // We have data, update the state
-        // Enhance organization data with unified gaps
-        const enhancedOrgData = {
-          ...comprehensiveData.organization,
-          unifiedGaps: organizationGaps
-        };
-        setOrganizationBenchmark(enhancedOrgData);
-        setDepartmentsBenchmark(comprehensiveData.departments);
-        setEmployeesBenchmark(comprehensiveData.employees);
-        setLastBenchmarkUpdate(comprehensiveData.generated_at);
-      }
-      
-      // Update audit log if debug mode is enabled
-      if (showDebugPanel) {
-        const log = marketSkillsService.getAuditLog();
-        setAuditLog(log);
-      }
-      
-      // Set first load to false after first successful load
-      if (!isRefresh && isFirstLoad) {
-        setIsFirstLoad(false);
-      }
-      
-      // Success is handled by the regenerate button component
-    } catch (error) {
-      console.error('Error fetching benchmark data:', error);
-      toast({
-        title: isRefresh ? 'Refresh Failed' : 'Error',
-        description: isRefresh 
-          ? 'Failed to regenerate market benchmark. Please try again.' 
-          : 'Failed to load market benchmark data',
-        variant: 'destructive'
-      });
-      
-      // If refresh failed, try to restore cached data
-      if (isRefresh && !organizationBenchmark) {
-        console.log('Attempting to restore cached data after refresh failure...');
-        await fetchBenchmarkData(false);
-      }
-    } finally {
-      setBenchmarkLoading(false);
-      setBenchmarkRefreshing(false);
-    }
-  };
+  // Removed: fetchBenchmarkData and related market logic
 
-  const loadExecutiveReports = async () => {
-    try {
-      const items = await marketSkillsService.listExecutiveReports({ limit: 5 });
-      setReports(items);
-    } catch (e) {
-      // soft fail
-    }
-  };
+  // Removed: loadExecutiveReports for market benchmark
 
-  const handleRefreshBenchmark = () => {
-    fetchBenchmarkData(true);
-  };
+  // Removed: handleRefreshBenchmark
 
   const fetchSkillsOverview = async () => {
     if (!userProfile?.company_id) return;
@@ -627,7 +339,6 @@ export default function SkillsOverview() {
       // Sum up all skill gaps from department data
       const totalCriticalGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
       const totalModerateGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
-      const totalGaps = totalCriticalGaps + totalModerateGaps;
 
       setOverallStats({
         totalEmployees,
@@ -650,76 +361,7 @@ export default function SkillsOverview() {
     }
   };
 
-  const fetchMarketGapsForDepartments = async () => {
-    if (!userProfile?.company_id || departmentSummaries.length === 0) return;
-
-    try {
-      // Get company information for industry context
-      const { data: companyData } = await supabase
-        .from('companies')
-        .select('settings')
-        .eq('id', userProfile.company_id)
-        .single();
-
-      const companyIndustry = companyData?.settings?.industry as string | undefined;
-
-      // Fetch market gaps for each department
-      const gaps = await Promise.all(
-        departmentSummaries.map(async (dept) => {
-          // Get all employees' skills for this department from unified structure
-          const { data: employeesWithSkills } = await supabase
-            .from('employees')
-            .select(`
-              id,
-              department,
-              employee_skills(
-                skill_name,
-                proficiency,
-                source
-              )
-            `)
-            .eq('company_id', userProfile.company_id)
-            .ilike('department', dept.department)
-            .not('employee_skills', 'is', null);
-
-          // Aggregate all skills from employees
-          const allSkills = employeesWithSkills?.flatMap(emp => 
-            emp.employee_skills?.map(skill => ({
-              skill_name: skill.skill_name,
-              proficiency_level: skill.proficiency, // Already 0-3
-              source: skill.source
-            })) || []
-          ) || [];
-
-          // Get market gaps
-          const marketGap = await marketSkillsService.getDepartmentMarketGaps(
-            dept.department,
-            allSkills,  // employeeSkills parameter
-            companyIndustry  // industry parameter (optional)
-          );
-
-          return marketGap;
-        })
-      );
-
-      // Convert to record format for easy lookup
-      const gapsRecord = gaps.reduce((acc, gap) => {
-        acc[gap.department] = gap;
-        return acc;
-      }, {} as Record<string, DepartmentMarketGap>);
-
-      setDepartmentMarketGaps(gapsRecord);
-    } catch (error) {
-      console.error('Error fetching market gaps:', error);
-      // Don't show error toast - this is a progressive enhancement
-    }
-  };
-
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  // Removed: fetchMarketGapsForDepartments
 
   // Fetch data for heatmap view
   const fetchPositionSkillsMatrix = async () => {
@@ -905,37 +547,152 @@ export default function SkillsOverview() {
     }
   };
 
+  // Market Intelligence Functions
+  const fetchMarketRequests = async () => {
+    if (!userProfile?.company_id) return;
 
-  const getSkillSourceInfo = (skillName: string) => {
-    // In a real implementation, this would check the actual data source
-    // For now, we'll simulate based on common patterns
-    const aiKeywords = ['python', 'react', 'javascript', 'cloud', 'data'];
-    const verifiedKeywords = ['communication', 'leadership', 'project management'];
-    
-    const lowerSkill = skillName.toLowerCase();
-    
-    if (aiKeywords.some(keyword => lowerSkill.includes(keyword))) {
-      return {
-        icon: Brain,
-        label: 'AI',
-        confidence: 87,
-        className: 'text-blue-600'
-      };
-    } else if (verifiedKeywords.some(keyword => lowerSkill.includes(keyword))) {
-      return {
-        icon: CheckCircle,
-        label: '✓',
-        confidence: 100,
-        className: 'text-green-600'
-      };
-    } else {
-      return {
-        icon: FileText,
-        label: 'CV',
-        confidence: 75,
-        className: 'text-gray-600'
-      };
+    try {
+      const { data, error } = await supabase
+        .from('market_intelligence_requests')
+        .select('*')
+        .eq('company_id', userProfile.company_id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      
+      setMarketRequests(data || []);
+      
+      // Set the most recent completed request as current
+      const latestCompleted = data?.find(req => req.status === 'completed');
+      if (latestCompleted) {
+        setCurrentRequest(latestCompleted);
+      }
+    } catch (error) {
+      console.error('Error fetching market requests:', error);
     }
+  };
+
+  const submitMarketIntelligenceRequest = async () => {
+    if (!userProfile?.company_id) return;
+    
+    if (!selectedRegion && selectedCountries.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please select either a region or specific countries',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setMarketLoading(true);
+
+    try {
+      // Create new market intelligence request
+      const { data: newRequest, error: createError } = await supabase
+        .from('market_intelligence_requests')
+        .insert({
+          company_id: userProfile.company_id,
+          regions: selectedRegion ? [selectedRegion] : [],
+          countries: selectedCountries,
+          focus_area: focusArea,
+          custom_prompt: customPrompt || null,
+          status: 'pending',
+          created_by: userProfile.id
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Update local state
+      setMarketRequests(prev => [newRequest, ...prev]);
+      setCurrentRequest(newRequest);
+
+      // Trigger market research agent
+      const response = await supabase.functions.invoke('market-research-agent', {
+        body: {
+          requestId: newRequest.id,
+          regions: selectedRegion ? [selectedRegion] : [],
+          countries: selectedCountries,
+          focusArea,
+          companyId: userProfile.company_id,
+          customPrompt: customPrompt || null
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      toast({
+        title: 'AI Agents Activated',
+        description: 'Market Research Agent is gathering data, then Data Analysis Agent will generate insights.',
+      });
+
+      // Poll for updates
+      pollForUpdates(newRequest.id);
+
+    } catch (error) {
+      console.error('Error submitting market intelligence request:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start market intelligence analysis',
+        variant: 'destructive'
+      });
+    } finally {
+      setMarketLoading(false);
+    }
+  };
+
+  const pollForUpdates = async (requestId: string) => {
+    const maxAttempts = 30; // 5 minutes with 10-second intervals
+    let attempts = 0;
+
+    const poll = setInterval(async () => {
+      attempts++;
+      
+      try {
+        const { data, error } = await supabase
+          .from('market_intelligence_requests')
+          .select('*')
+          .eq('id', requestId)
+          .single();
+
+        if (error) throw error;
+
+        if (data.status === 'completed' || data.status === 'failed') {
+          clearInterval(poll);
+          setCurrentRequest(data);
+          setMarketRequests(prev => 
+            prev.map(req => req.id === requestId ? data : req)
+          );
+
+          if (data.status === 'completed') {
+            toast({
+              title: 'Analysis Complete',
+              description: 'Your market intelligence analysis is ready!',
+            });
+          } else {
+            toast({
+              title: 'Analysis Failed',
+              description: 'There was an issue with your market analysis. Please try again.',
+              variant: 'destructive'
+            });
+          }
+        }
+        
+        if (attempts >= maxAttempts) {
+          clearInterval(poll);
+          toast({
+            title: 'Analysis Taking Longer',
+            description: 'Your analysis is still processing. Please refresh the page in a few minutes.',
+            variant: 'default'
+          });
+        }
+      } catch (error) {
+        console.error('Error polling for updates:', error);
+        clearInterval(poll);
+      }
+    }, 10000); // Poll every 10 seconds
   };
 
   const getEmptyStateConfig = () => {
@@ -1007,7 +764,7 @@ export default function SkillsOverview() {
       <Tabs defaultValue="internal" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="internal">Internal Readiness</TabsTrigger>
-          <TabsTrigger value="market">Market Benchmark</TabsTrigger>
+          <TabsTrigger value="market">Market Intelligence</TabsTrigger>
         </TabsList>
 
         <TabsContent value="internal" className="space-y-6 mt-6">
@@ -1091,716 +848,221 @@ export default function SkillsOverview() {
         </TabsContent>
 
         <TabsContent value="market" className="space-y-6 mt-6">
-          {/* Market Benchmark Tab Content */}
-          <div className="relative">
-            {/* Vertical Loading State or Status Bar */}
-            <MarketBenchmarkVerticalLoader
-              isLoading={benchmarkLoading || benchmarkRefreshing}
-              refreshing={benchmarkRefreshing}
-              lastUpdate={lastBenchmarkUpdate}
-              isFirstLoad={isFirstLoad && !organizationBenchmark}
-              onRefresh={handleRefreshBenchmark}
-            />
-            
-            {/* Empty State - Never Generated */}
-            {!benchmarkLoading && !benchmarkRefreshing && !organizationBenchmark && (
-              <Card className="p-12 text-center">
-                <div className="flex flex-col items-center gap-4">
-                  <Brain className="h-12 w-12 text-gray-400" />
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Market Intelligence</h2>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Globe className="h-4 w-4" />
+                LinkedIn Job Market Analysis
+              </div>
+            </div>
+
+            {/* Configuration Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Configure Market Analysis</CardTitle>
+                <CardDescription>
+                  Analyze job market trends and skill demands in your target regions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Region Selection */}
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">No Market Benchmark Data</h3>
-                    <p className="text-sm text-gray-600 max-w-md">
-                      Generate your first market benchmark analysis to see how your organization's skills compare to industry standards.
-                    </p>
+                    <Label>Region</Label>
+                    <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a region" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">-- Select Region --</SelectItem>
+                        {Object.keys(regionCountries).map(region => (
+                          <SelectItem key={region} value={region}>{region}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <RegenerateAnalysisButton 
-                    onRegenerate={async () => {
-                      setBenchmarkRefreshing(true);
-                      try {
-                        const freshData = await marketSkillsService.forceRegenerate();
-                        setOrganizationBenchmark(freshData.organization);
-                        setDepartmentsBenchmark(freshData.departments);
-                        setEmployeesBenchmark(freshData.employees);
-                        setLastBenchmarkUpdate(freshData.generated_at);
-                      } finally {
-                        setBenchmarkRefreshing(false);
-                      }
-                    }}
-                    isLoading={benchmarkRefreshing}
+
+                  {/* Focus Area */}
+                  <div className="space-y-2">
+                    <Label>Focus Area</Label>
+                    <Select value={focusArea} onValueChange={(value: 'technical' | 'all_skills') => setFocusArea(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all_skills">All Skills</SelectItem>
+                        <SelectItem value="technical">Technical Skills Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Country Selection (Alternative to Region) */}
+                <div className="space-y-2">
+                  <Label>Or Select Specific Countries</Label>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Leave region empty to use specific countries instead
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
+                    {allCountries.map(country => (
+                      <label key={country} className="flex items-center space-x-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selectedCountries.includes(country)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCountries(prev => [...prev, country]);
+                            } else {
+                              setSelectedCountries(prev => prev.filter(c => c !== country));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span>{country}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {selectedCountries.length > 0 && (
+                    <div className="text-sm text-gray-600">
+                      Selected: {selectedCountries.join(', ')}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Prompt */}
+                <div className="space-y-2">
+                  <Label>Custom Analysis Prompt (Optional)</Label>
+                  <Textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Enter specific questions or focus areas for the AI analysis. Leave empty for standard market intelligence report."
+                    rows={4}
                   />
                 </div>
-              </Card>
-            )}
-            
-            {/* Main Content */}
-            {!benchmarkLoading && !benchmarkRefreshing && organizationBenchmark && (
-            <div className="space-y-6">
-              {/* Organization-Level Section */}
+
+                {/* Submit Button */}
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500">
+                    Analysis typically takes 2-3 minutes to complete
+                  </div>
+                  <Button 
+                    onClick={submitMarketIntelligenceRequest}
+                    disabled={marketLoading || (!selectedRegion && selectedCountries.length === 0)}
+                    className="min-w-[140px]"
+                  >
+                    {marketLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4 mr-2" />
+                        Start Analysis
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Current Analysis Results */}
+            {currentRequest && (
               <Card>
-                <CardHeader className="pb-4">
+                <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg font-medium">Organization Benchmark</CardTitle>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium">What is Market Benchmark?</p>
-                                <p className="text-xs text-gray-600">AI-powered analysis comparing your organization's skills against current market demands and industry standards. Updated weekly to reflect the latest trends.</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                        <CardDescription>
-                          Compare skills against {companyIndustry} standards
-                        </CardDescription>
-                        {organizationBenchmark?.last_computed_at && (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Last computed {new Date(organizationBenchmark.last_computed_at).toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <CardTitle className="text-lg">Latest Market Analysis</CardTitle>
                     <div className="flex items-center gap-2">
-                      <RegenerateAnalysisButton 
-                        onRegenerate={async () => {
-                          setBenchmarkRefreshing(true);
-                          try {
-                            // Force regenerate (button handles the count)
-                            const freshData = await marketSkillsService.forceRegenerate();
-                            setOrganizationBenchmark(freshData.organization);
-                            setDepartmentsBenchmark(freshData.departments);
-                            setEmployeesBenchmark(freshData.employees);
-                            setLastBenchmarkUpdate(freshData.generated_at);
-                            await loadExecutiveReports();
-                          } finally {
-                            setBenchmarkRefreshing(false);
-                          }
-                        }}
-                        isLoading={benchmarkRefreshing}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="ml-2"
-                        disabled={reportLoading}
-                        onClick={async () => {
-                          setReportLoading(true);
-                          try {
-                            await marketSkillsService.generateExecutiveReport('organization');
-                            await loadExecutiveReports();
-                            toast({ title: 'Executive report generated', duration: 3000 });
-                          } catch (e) {
-                            toast({ title: 'Failed to generate report', variant: 'destructive' });
-                          } finally {
-                            setReportLoading(false);
-                          }
-                        }}
-                      >
-                        Generate Executive Report
-                      </Button>
-                      <Brain className="h-4 w-4 text-gray-400" />
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        currentRequest.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        currentRequest.status === 'failed' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {currentRequest.status === 'completed' ? 'Completed' :
+                         currentRequest.status === 'failed' ? 'Failed' :
+                         currentRequest.status === 'analyzing' ? 'Analyzing...' :
+                         currentRequest.status === 'scraping' ? 'Scraping...' :
+                         'Pending'}
+                      </div>
                     </div>
                   </div>
+                  <CardDescription>
+                    {currentRequest.regions?.length > 0 && `Regions: ${currentRequest.regions.join(', ')}`}
+                    {currentRequest.countries?.length > 0 && `Countries: ${currentRequest.countries.join(', ')}`}
+                    {` • Focus: ${currentRequest.focus_area === 'technical' ? 'Technical Skills' : 'All Skills'}`}
+                    {` • Generated: ${new Date(currentRequest.created_at).toLocaleDateString()}`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {benchmarkLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                      {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="space-y-3">
-                          <div className="h-4 bg-gray-200 animate-pulse rounded"></div>
-                          <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
-                          <div className="h-2 bg-gray-200 animate-pulse rounded"></div>
+                  {currentRequest.status === 'completed' && currentRequest.ai_insights ? (
+                    <div className="space-y-4">
+                      <div className="prose prose-sm max-w-none">
+                        <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                          {currentRequest.ai_insights}
                         </div>
-                      ))}
+                      </div>
+                      
+                      {/* Raw Data Summary */}
+                      {currentRequest.scraped_data?.jobs && (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <h4 className="font-medium text-sm text-gray-900 mb-2">Data Summary</h4>
+                          <div className="text-sm text-gray-600">
+                            Analyzed {currentRequest.scraped_data.jobs.reduce((total: number, location: any) => 
+                              total + (location.jobs?.length || 0), 0)} job postings from LinkedIn
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : currentRequest.status === 'failed' ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-500" />
+                      <p>Analysis failed. Please try again.</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Data Reconciliation Warning */}
-                      {organizationBenchmark && (
-                        (() => {
-                          const coverage = organizationBenchmark.market_coverage_rate || 0;
-                          const alignment = organizationBenchmark.industry_alignment_index || 0;
-                          const criticalCount = organizationBenchmark.critical_skills_count ?? 
-                            organizationBenchmark.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0;
-                          const totalMissing = organizationBenchmark.top_missing_skills?.length || 0;
-                          
-                          // Check for data inconsistencies
-                          const hasInconsistency = 
-                            (coverage === 100 && alignment === 0) ||
-                            (coverage === 100 && totalMissing > 0) ||
-                            (coverage > 80 && alignment < 2) ||
-                            (alignment > 8 && criticalCount > 5);
-                          
-                          if (hasInconsistency) {
-                            return (
-                              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
-                                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                                <div className="text-sm text-yellow-800">
-                                  <span className="font-medium">Data Reconciliation Notice:</span> Some metrics may need recalculation. 
-                                  {organizationBenchmark.analyzed_employees < organizationBenchmark.total_employees && (
-                                    <span> Only {Math.round((organizationBenchmark.analyzed_employees / organizationBenchmark.total_employees) * 100)}% of employees have been analyzed.</span>
-                                  )}
-                                  <span className="text-gray-700"> Consider regenerating the analysis for updated metrics.</span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()
-                      )}
-                      
-                      {/* Stats Grid - Consistent Layout */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Market Coverage Rate */}
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          {/* Title Row */}
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Market Coverage</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="text-sm font-medium mb-1">How we calculate this:</p>
-                                  <p className="text-sm">% of analyzed employees with adequate skills (avg proficiency ≥3/5).</p>
-                                  <p className="text-sm mt-1 text-gray-400">Based on: {organizationBenchmark?.analyzed_employees || 0} employees analyzed</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          
-                          {/* Value Row */}
-                          <div className="flex items-baseline gap-1 mb-3">
-                            <span className="text-3xl font-bold text-gray-900">{organizationBenchmark?.market_coverage_rate || 0}</span>
-                            <span className="text-sm text-gray-500">%</span>
-                          </div>
-                          
-                          {/* Visual Indicator */}
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div className={`h-2 rounded-full transition-all duration-500 ${
-                              organizationBenchmark?.market_coverage_rate >= 75 ? 'bg-green-500' :
-                              organizationBenchmark?.market_coverage_rate >= 50 ? 'bg-blue-500' :
-                              organizationBenchmark?.market_coverage_rate >= 25 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`} style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
-                          </div>
-                          
-                          {/* Context Row */}
-                          <div className="flex items-center justify-between text-xs">
-                            <span className={`font-medium ${
-                              organizationBenchmark?.market_coverage_rate >= 75 ? 'text-green-600' :
-                              organizationBenchmark?.market_coverage_rate >= 50 ? 'text-blue-600' :
-                              organizationBenchmark?.market_coverage_rate >= 25 ? 'text-yellow-600' :
-                              'text-red-600'
-                            }`}>{
-                              organizationBenchmark?.market_coverage_rate >= 75 ? 'Excellent' :
-                              organizationBenchmark?.market_coverage_rate >= 50 ? 'Good' :
-                              organizationBenchmark?.market_coverage_rate >= 25 ? 'Developing' :
-                              'Needs Focus'
-                            }</span>
-                            <span className="text-gray-400">vs Industry: 65%</span>
-                          </div>
-                        </div>
-
-                        {/* Industry Alignment Index */}
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          {/* Title Row */}
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Alignment Index</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="text-sm font-medium mb-1">How we calculate this:</p>
-                                  <p className="text-sm">Average skills match score across all analyzed employees (0-10 scale).</p>
-                                  <p className="text-sm mt-1 text-gray-400">Based on position-specific requirements</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          
-                          {/* Value Row */}
-                          <div className="flex items-baseline gap-1 mb-3">
-                            <span className="text-3xl font-bold text-gray-900">{(organizationBenchmark?.industry_alignment_index || 0).toFixed(1)}</span>
-                            <span className="text-sm text-gray-500">/ 10</span>
-                          </div>
-                          
-                          {/* Visual Indicator */}
-                          <div className="flex items-center gap-0.5 mb-2">
-                            {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                              <div key={i} className={`flex-1 h-2 rounded-full ${
-                                i <= (organizationBenchmark?.industry_alignment_index || 0) 
-                                  ? organizationBenchmark?.industry_alignment_index >= 7 ? 'bg-green-500' :
-                                    organizationBenchmark?.industry_alignment_index >= 4 ? 'bg-yellow-500' :
-                                    'bg-red-500'
-                                  : 'bg-gray-200'
-                              }`}></div>
-                            ))}
-                          </div>
-                          
-                          {/* Context Row */}
-                          <div className="flex items-center justify-between text-xs">
-                            <span className={`font-medium ${
-                              organizationBenchmark?.industry_alignment_index >= 7 ? 'text-green-600' :
-                              organizationBenchmark?.industry_alignment_index >= 4 ? 'text-yellow-600' :
-                              'text-red-600'
-                            }`}>{
-                              organizationBenchmark?.industry_alignment_index >= 8 ? 'Excellent' :
-                              organizationBenchmark?.industry_alignment_index >= 6 ? 'Good' :
-                              organizationBenchmark?.industry_alignment_index >= 4 ? 'Moderate' :
-                              'Low'
-                            }</span>
-                            <span className="text-gray-400">vs Industry: 6.2</span>
-                          </div>
-                        </div>
-
-                        {/* Critical Gaps */}
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          {/* Title Row */}
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Critical Gaps</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="text-sm font-medium mb-1">What are critical gaps?</p>
-                                  <p className="text-sm">High-priority skills missing in your organization but essential for your positions. Based on position requirements vs actual employee skills.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          
-                          {/* Value Row */}
-                          <div className="flex items-baseline gap-1 mb-3">
-                            <span className="text-3xl font-bold text-gray-900">
-                              {organizationBenchmark?.critical_skills_count ?? 
-                               organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 
-                               0}
-                            </span>
-                            <span className="text-sm text-gray-500">skills</span>
-                          </div>
-                          
-                          {/* Skills List */}
-                          <div className="space-y-1.5 mb-2">
-                            {(organizationBenchmark?.top_missing_skills || []).slice(0, 5).map((skill, i) => {
-                              // Handle both string and object formats
-                              const skillName = typeof skill === 'string' ? skill : skill.skill_name;
-                              const severity = typeof skill === 'string' ? 
-                                (i < (organizationBenchmark?.critical_skills_count || 5) ? 'critical' : 'moderate') : 
-                                skill.severity;
-                                
-                              return (
-                                <div key={i} className="flex items-center gap-2">
-                                  <div className={`w-1.5 h-1.5 rounded-full ${
-                                    severity === 'critical' ? 'bg-red-500' :
-                                    severity === 'moderate' ? 'bg-yellow-500' :
-                                    'bg-gray-400'
-                                  }`}></div>
-                                  <span className="text-xs text-gray-700 truncate">{skillName}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Context Row */}
-                          <div className="flex items-center justify-between text-xs">
-                            <span className={`font-medium ${
-                              (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 5 ? 'text-red-600' :
-                              (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 2 ? 'text-yellow-600' :
-                              'text-green-600'
-                            }`}>
-                              {(organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 5 ? 'High Priority' :
-                               (organizationBenchmark?.critical_skills_count ?? organizationBenchmark?.top_missing_skills?.filter(s => s.severity === 'critical')?.length ?? 0) > 2 ? 'Moderate' :
-                               'Managing Well'}
-                            </span>
-                            {organizationBenchmark?.top_missing_skills?.length > 5 && (
-                              <span className="text-gray-400">+{organizationBenchmark.top_missing_skills.length - 5} more</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Executive Summary - Horizontal */}
-                      {organizationBenchmark?.executive_summary && (
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
-                          <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <h4 className="text-sm font-medium text-gray-900 mb-1">Executive Summary</h4>
-                              <p className="text-xs text-gray-600 leading-relaxed">
-                                {organizationBenchmark.executive_summary}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Executive Reports History */}
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-medium text-gray-900">Recent Executive Reports</h4>
-                          <Button variant="ghost" size="sm" onClick={loadExecutiveReports}>Refresh</Button>
-                        </div>
-                        {reports.length === 0 ? (
-                          <div className="text-xs text-gray-500">No reports yet. Generate one to get started.</div>
-                        ) : (
-                          <ul className="space-y-1">
-                            {reports.map((r) => (
-                              <li key={r.id} className="flex items-center justify-between text-xs bg-white border border-gray-200 rounded px-2 py-1">
-                                <span>Report • {new Date(r.generated_at).toLocaleString()}</span>
-                                {r.pdf_url ? (
-                                  <a
-                                    className="text-blue-600 hover:underline"
-                                    href={r.pdf_url as unknown as string}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    View PDF
-                                  </a>
-                                ) : (
-                                  <span className="text-gray-400">Processing…</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
+                    <div className="text-center py-8 text-gray-500">
+                      <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+                      <p>Processing market analysis...</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
+            )}
 
-              {/* Department-Level Section */}
+            {/* Recent Requests */}
+            {marketRequests.length > 0 && (
               <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">Departments</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/dashboard/skills/employees')}
-                      className="text-xs h-7 px-2"
-                    >
-                      View All <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                          {benchmarkLoading ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg"></div>
-                      ))}
-                    </div>
-                          ) : (
-                    <div className="space-y-4">
-                      {departmentsBenchmark.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                          No department benchmark data available
-                        </div>
-                      ) : (
-                        // Department cards with expandable market gaps
-                        departmentsBenchmark.slice(0, 5).map((dept, index) => {
-                          const healthScore = dept.benchmark_health_score || 0;
-                          const matchPercentage = dept.avg_market_match || 0;
-                          const topGap = dept.top_gaps?.[0];
-                          const isExpanded = expandedDepartments.has(dept.department);
-                          const marketGap = departmentMarketGaps[dept.department];
-                          
-                          const getBadgeColor = (score: number) => {
-                            if (score >= 80) return 'bg-green-50 text-green-700 border-green-200';
-                            if (score >= 60) return 'bg-orange-50 text-orange-700 border-orange-200';
-                            return 'bg-red-50 text-red-700 border-red-200';
-                          };
-                          
-                          const getHealthColor = (score: number) => {
-                            if (score >= 8) return { bg: 'bg-green-200', fill: 'bg-green-500', text: 'text-green-600' };
-                            if (score >= 6) return { bg: 'bg-orange-200', fill: 'bg-orange-500', text: 'text-orange-600' };
-                            return { bg: 'bg-red-200', fill: 'bg-red-500', text: 'text-red-600' };
-                          };
-                          
-                          const healthColors = getHealthColor(healthScore);
-                          const criticalGaps = dept.market_skill_breakdown?.critical || 0;
-                          const moderateGaps = dept.market_skill_breakdown?.emerging || 0;
-                          
-                          return (
-                            <Card key={index} className="border border-gray-200 hover:shadow-md transition-all">
-                              <CardContent className="p-4">
-                                {/* Department Header */}
-                                <div 
-                                  className="flex items-center justify-between mb-3 cursor-pointer"
-                                  onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
-                                >
-                                  <h4 className="font-medium text-sm">{dept.department}</h4>
-                                  <div className="flex items-center gap-2">
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger>
-                                          <Badge className={`px-2 py-1 text-xs ${getBadgeColor(matchPercentage)}`}>
-                                            {matchPercentage.toFixed(0)}% Match
-                                          </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p className="text-sm">Market skill match: {matchPercentage.toFixed(0)}% ({dept.analyzed_count} of {dept.employee_count} employees analyzed)</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <ArrowRight className="h-4 w-4 text-gray-400" />
-                                  </div>
-                                </div>
-                                
-                                {/* Department Metrics */}
-                                <div className="grid grid-cols-3 gap-4 mb-4 text-xs">
-                                  <div className="text-center">
-                                    <div className={`font-semibold ${
-                                      criticalGaps > 5 ? 'text-red-600' : 
-                                      criticalGaps > 0 || moderateGaps > 3 ? 'text-orange-600' : 
-                                      'text-green-600'
-                                    }`}>
-                                      {criticalGaps > 0 ? `${criticalGaps} critical` : 
-                                       moderateGaps > 0 ? `${moderateGaps} moderate` : 
-                                       'No gaps'}
-                                    </div>
-                                    <div className="text-gray-500">Market Gaps</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <div className="cursor-help">
-                                            <div className="flex items-center justify-center gap-1">
-                                              <div className={`w-8 h-1.5 ${healthColors.bg} rounded-full`}>
-                                                <div className={`h-1.5 ${healthColors.fill} rounded-full`} style={{width: `${(healthScore / 10) * 100}%`}}></div>
-                                              </div>
-                                              <span className={`${healthColors.text} font-semibold`}>{healthScore.toFixed(1)}</span>
-                                            </div>
-                                            <div className="text-gray-500">Health Score</div>
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p className="text-sm">Overall department readiness (0-10). Combines skills coverage, gap severity, and employee analysis rate.</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="font-semibold text-gray-900">{dept.analyzed_count}/{dept.employee_count}</div>
-                                    <div className="text-gray-500">Analyzed</div>
-                                  </div>
-                                </div>
-                                <div className="mt-1 text-[10px] text-gray-400">
-                                  Last computed {dept.last_computed_at ? new Date(dept.last_computed_at).toLocaleString() : '—'}
-                                </div>
-                                
-                                {/* Market Gap Toggle */}
-                                {marketGap && marketGap.skills.length > 0 && (
-                                  <>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setExpandedDepartments(prev => {
-                                          const newSet = new Set(prev);
-                                          if (newSet.has(dept.department)) {
-                                            newSet.delete(dept.department);
-                                          } else {
-                                            newSet.add(dept.department);
-                                          }
-                                          return newSet;
-                                        });
-                                      }}
-                                      className="w-full flex items-center justify-between p-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                                    >
-                                      <span className="flex items-center gap-1">
-                                        <Brain className="h-3 w-3" />
-                                        Market Skills Gap ({marketGap.skills.length} skills)
-                                      </span>
-                                      {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                    </button>
-                                    
-                                    {/* Expandable Market Gap Section */}
-                                    {isExpanded && (
-                                      <div className="mt-3 pt-3 border-t border-gray-100">
-                                        <MarketGapBars
-                                          skills={marketGap.skills}
-                                          industry={marketGap.industry}
-                                          className="text-xs"
-                                        />
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                                
-                                {/* AI Insights */}
-                                {dept.ai_explanation && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1 text-xs text-blue-600 cursor-help mt-2 p-2 bg-blue-50 rounded-lg">
-                                          <Info className="h-3 w-3" />
-                                          <span>Impact Score: {dept.impact_score?.toFixed(1) || 'N/A'}/10</span>
-                                        </div>
-                                      </TooltipTrigger>
-                                      <TooltipContent className="max-w-xs">
-                                        <p className="text-sm">{dept.ai_explanation}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </CardContent>
-                            </Card>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Employee-Level Section */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">Employee Readiness</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/dashboard/skills/employees')}
-                      className="text-xs h-7 px-2"
-                    >
-                      View All <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </div>
+                <CardHeader>
+                  <CardTitle className="text-lg">Recent Analyses</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Employee</th>
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Department</th>
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Market Match</th>
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Skill Sources</th>
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Priority Gap</th>
-                          <th className="text-left py-2 text-xs font-medium text-gray-600">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {benchmarkLoading ? (
-                          /* Loading Skeleton Rows */
-                          [1, 2, 3, 4, 5].map(i => (
-                            <tr key={i} className="border-b border-gray-100">
-                              <td className="py-3"><div className="h-4 bg-gray-200 animate-pulse rounded w-24"></div></td>
-                              <td className="py-3"><div className="h-4 bg-gray-200 animate-pulse rounded w-16"></div></td>
-                              <td className="py-3"><div className="h-4 bg-gray-200 animate-pulse rounded w-20"></div></td>
-                              <td className="py-3"><div className="h-4 bg-gray-200 animate-pulse rounded w-12"></div></td>
-                              <td className="py-3"><div className="h-4 bg-gray-200 animate-pulse rounded w-16"></div></td>
-                              <td className="py-3"><div className="h-6 bg-gray-200 animate-pulse rounded w-16"></div></td>
-                            </tr>
-                          ))
-                        ) : employeesBenchmark.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="py-8 text-center text-gray-500">
-                              {/* Empty state message */}
-                              No employee benchmark data available
-                            </td>
-                          </tr>
-                        ) : (
-                          employeesBenchmark.slice(0, 10).map((employee, i) => {
-                            const matchPercentage = employee.market_match_percentage || 0;
-                            const topGap = employee.top_missing_skills?.[0];
-                            const primarySource = Object.entries(employee.skills_by_source as Record<string, number>)
-                              .reduce((max, [key, value]) => (Number(value) > Number(max.value) ? { key, value: Number(value) } : max), { key: 'ai', value: 0 });
-                            
-                            return (
-                              <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-3">
-                                  <div className="font-medium text-gray-900">{employee.name}</div>
-                                </td>
-                                <td className="py-3 text-gray-600">{employee.department}</td>
-                                <td className="py-3">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 max-w-20">
-                                      <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div 
-                                          className={`h-2 rounded-full transition-all duration-500 ${
-                                            matchPercentage >= 75 ? 'bg-green-500' : 
-                                            matchPercentage >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                                          }`}
-                                          style={{width: `${matchPercentage}%`}}
-                                        ></div>
-                                      </div>
-                                    </div>
-                                    <span className={`text-xs font-medium ${
-                                      matchPercentage >= 75 ? 'text-green-600' : 
-                                      matchPercentage >= 40 ? 'text-yellow-600' : 'text-red-600'
-                                    }`}>
-                                      {matchPercentage.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="py-3">
-                                  <div className="flex items-center gap-1">
-                                    {primarySource.key === 'ai' && <Brain className="h-3 w-3 text-blue-600" />}
-                                    {primarySource.key === 'cv' && <FileText className="h-3 w-3 text-gray-600" />}
-                                    {primarySource.key === 'verified' && <CheckCircle className="h-3 w-3 text-green-600" />}
-                                    <span className="text-xs text-gray-600 capitalize">{primarySource.key}</span>
-                                    <span className="text-xs text-gray-400">({primarySource.value})</span>
-                                  </div>
-                                </td>
-                                <td className="py-3">
-                                  {topGap ? (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-900 text-xs truncate max-w-20">{topGap.skill_name}</span>
-                                      <Badge 
-                                        className={`text-xs px-1.5 py-0 ${
-                                          topGap.category === 'critical' ? 'bg-red-100 text-red-700 border-red-200' :
-                                          topGap.category === 'emerging' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                          'bg-yellow-100 text-yellow-700 border-yellow-200'
-                                        }`}
-                                      >
-                                        {topGap.category}
-                                      </Badge>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-gray-400">No gaps</span>
-                                  )}
-                                </td>
-                                <td className="py-3 text-[10px] text-gray-400">
-                                  {employee.last_analyzed ? `Last computed ${new Date(employee.last_analyzed).toLocaleString()}` : '—'}
-                                </td>
-                                <td className="py-3">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-xs h-6 px-2"
-                                    onClick={() => navigate(`/dashboard/employees/${employee.employee_id}`)}
-                                  >
-                                    View Profile
-                                  </Button>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
+                  <div className="space-y-3">
+                    {marketRequests.slice(0, 5).map(request => (
+                      <div 
+                        key={request.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setCurrentRequest(request)}
+                      >
+                        <div>
+                          <div className="text-sm font-medium">
+                            {request.regions?.join(', ') || request.countries?.join(', ') || 'Unknown Region'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(request.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className={`px-2 py-1 rounded text-xs font-medium ${
+                          request.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          request.status === 'failed' ? 'bg-red-100 text-red-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
+                          {request.status}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            </div>
             )}
           </div>
         </TabsContent>
