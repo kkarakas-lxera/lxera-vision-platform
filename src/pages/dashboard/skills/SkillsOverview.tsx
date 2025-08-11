@@ -131,7 +131,7 @@ export default function SkillsOverview() {
   const [marketLoading, setMarketLoading] = useState(false);
   
   // Form state for new market intelligence request
-  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedRegion, setSelectedRegion] = useState<string>('none');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [focusArea, setFocusArea] = useState<'technical' | 'all_skills'>('all_skills');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -235,7 +235,7 @@ export default function SkillsOverview() {
 
       let effectiveDeptSummaries: DepartmentSummary[] = [];
       if (deptData && deptData.length > 0) {
-        effectiveDeptSummaries = deptData.map(dept => ({
+        effectiveDeptSummaries = deptData.map((dept: any) => ({
           department: dept.department || 'Unassigned',
           total_employees: Number(dept.total_employees) || 0,
           analyzed_employees: Number(dept.analyzed_employees) || 0,
@@ -303,7 +303,7 @@ export default function SkillsOverview() {
         .limit(10);
 
       if (gapsData) {
-        const typedGaps: CriticalSkillsGap[] = gapsData.map(gap => ({
+        const typedGaps: CriticalSkillsGap[] = gapsData.map((gap: any) => ({
           skill_name: gap.skill_name || 'Unknown Skill',
           gap_severity: parseGapSeverity(gap.gap_severity || 'moderate'),
           department: gap.department || 'Unknown',
@@ -486,14 +486,14 @@ export default function SkillsOverview() {
       if (error) throw error;
 
       // Transform data for the chart
-      const formattedSnapshots = snapshots?.map(snapshot => ({
+      const formattedSnapshots = snapshots?.map((snapshot: any) => ({
         date: snapshot.snapshot_date,
-        organization: snapshot.metrics?.average_match || 0,
-        departments: snapshot.metrics?.department_scores || {},
-        positions: snapshot.metrics?.position_scores || {},
-        critical_gaps: snapshot.metrics?.critical_gaps || 0,
-        moderate_gaps: snapshot.metrics?.moderate_gaps || 0,
-        skills_proficiency: snapshot.metrics?.skills_proficiency || {}
+        organization: (snapshot.metrics as any)?.average_match || 0,
+        departments: (snapshot.metrics as any)?.department_scores || {},
+        positions: (snapshot.metrics as any)?.position_scores || {},
+        critical_gaps: (snapshot.metrics as any)?.critical_gaps || 0,
+        moderate_gaps: (snapshot.metrics as any)?.moderate_gaps || 0,
+        skills_proficiency: (snapshot.metrics as any)?.skills_proficiency || {}
       })) || [];
 
       setHistoricalSnapshots(formattedSnapshots);
@@ -561,10 +561,10 @@ export default function SkillsOverview() {
 
       if (error) throw error;
       
-      setMarketRequests(data || []);
+      setMarketRequests((data as any) || []);
       
       // Set the most recent completed request as current
-      const latestCompleted = data?.find(req => req.status === 'completed');
+      const latestCompleted = (data as any)?.find((req: any) => req.status === 'completed');
       if (latestCompleted) {
         setCurrentRequest(latestCompleted);
       }
@@ -576,7 +576,7 @@ export default function SkillsOverview() {
   const submitMarketIntelligenceRequest = async () => {
     if (!userProfile?.company_id) return;
     
-    if (!selectedRegion && selectedCountries.length === 0) {
+    if ((!selectedRegion || selectedRegion === 'none') && selectedCountries.length === 0) {
       toast({
         title: 'Error',
         description: 'Please select either a region or specific countries',
@@ -593,7 +593,7 @@ export default function SkillsOverview() {
         .from('market_intelligence_requests' as any)
         .insert({
           company_id: userProfile.company_id,
-          regions: selectedRegion ? [selectedRegion] : [],
+          regions: (selectedRegion && selectedRegion !== 'none') ? [selectedRegion] : [],
           countries: selectedCountries,
           focus_area: focusArea,
           custom_prompt: customPrompt || null,
@@ -613,7 +613,7 @@ export default function SkillsOverview() {
       const response = await supabase.functions.invoke('market-research-agent', {
         body: {
           requestId: (newRequest as any).id,
-          regions: selectedRegion ? [selectedRegion] : [],
+          regions: (selectedRegion && selectedRegion !== 'none') ? [selectedRegion] : [],
           countries: selectedCountries,
           focusArea,
           companyId: userProfile.company_id,
@@ -875,7 +875,7 @@ export default function SkillsOverview() {
                         <SelectValue placeholder="Select a region" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">-- Select Region --</SelectItem>
+                        <SelectItem value="none">-- Select Region --</SelectItem>
                         {Object.keys(regionCountries).map(region => (
                           <SelectItem key={region} value={region}>{region}</SelectItem>
                         ))}
@@ -948,7 +948,7 @@ export default function SkillsOverview() {
                   </div>
                   <Button 
                     onClick={submitMarketIntelligenceRequest}
-                    disabled={marketLoading || (!selectedRegion && selectedCountries.length === 0)}
+                    disabled={marketLoading || ((!selectedRegion || selectedRegion === 'none') && selectedCountries.length === 0)}
                     className="min-w-[140px]"
                   >
                     {marketLoading ? (
