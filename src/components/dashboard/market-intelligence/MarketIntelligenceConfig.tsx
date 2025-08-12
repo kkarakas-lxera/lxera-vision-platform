@@ -47,7 +47,7 @@ export default function MarketIntelligenceConfig({
   const [positions, setPositions] = useState<Array<{ 
     id: string; 
     position_title: string; 
-    position_description?: string; 
+    description?: string; 
     required_skills?: any[]; 
     nice_to_have_skills?: any[];
     company_id?: string;
@@ -74,7 +74,7 @@ export default function MarketIntelligenceConfig({
           .select(`
             id, 
             position_title, 
-            position_description, 
+            description, 
             required_skills, 
             nice_to_have_skills, 
             company_id,
@@ -97,7 +97,7 @@ export default function MarketIntelligenceConfig({
         
         const { data, error } = await supabase
           .from('st_company_positions')
-          .select('id, position_title, position_description, required_skills, nice_to_have_skills, company_id')
+          .select('id, position_title, description, required_skills, nice_to_have_skills, company_id')
           .eq('company_id', userProfile.company_id)
           .order('position_title');
 
@@ -195,7 +195,7 @@ export default function MarketIntelligenceConfig({
                 ...prev,
                 positionId: value,
                 positionTitle: position?.position_title || '',
-                positionDescription: position?.position_description || ''
+                positionDescription: position?.description || ''
               }));
             }}
           >
