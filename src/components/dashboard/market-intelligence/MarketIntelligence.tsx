@@ -73,11 +73,14 @@ export default function MarketIntelligence() {
   const [config, setConfig] = useState({
     positionId: '',
     positionTitle: '',
+    positionDescription: '',
+    requiredSkills: [] as any[],
+    niceToHaveSkills: [] as any[],
     regions: [] as string[],
     countries: [] as string[],
     dateWindow: '30d' as '24h' | '7d' | '30d' | '90d' | 'custom',
     sinceDate: '',
-    keywordsOverride: '',
+    source: 'linkedin' as 'linkedin',
     focusArea: 'all_skills' as 'technical' | 'all_skills'
   });
   

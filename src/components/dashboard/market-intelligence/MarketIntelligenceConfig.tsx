@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Brain, Globe, Calendar, Search } from 'lucide-react';
+import { Brain, Globe, Calendar, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,11 +13,12 @@ interface MarketIntelligenceConfigProps {
   config: {
     positionId: string;
     positionTitle: string;
+    positionDescription: string;
     regions: string[];
     countries: string[];
     dateWindow: '24h' | '7d' | '30d' | '90d' | 'custom';
     sinceDate: string;
-    keywordsOverride: string;
+    source: 'linkedin';
     focusArea: 'technical' | 'all_skills';
   };
   setConfig: React.Dispatch<React.SetStateAction<any>>;
@@ -43,12 +44,13 @@ export default function MarketIntelligenceConfig({
   isLoading
 }: MarketIntelligenceConfigProps) {
   const { userProfile } = useAuth();
-  const [positions, setPositions] = useState<Array<{ id: string; position_title: string }>>([]);
+  const [positions, setPositions] = useState<Array<{ id: string; position_title: string; position_description?: string; required_skills?: any[]; nice_to_have_skills?: any[] }>>([]);
   const [showCustomCountries, setShowCustomCountries] = useState(false);
-  const [showKeywords, setShowKeywords] = useState(false);
+  const [companyIndustry, setCompanyIndustry] = useState<string>('');
 
   useEffect(() => {
     fetchPositions();
+    fetchCompanyIndustry();
   }, [userProfile?.company_id]);
 
   const fetchPositions = async () => {
@@ -57,7 +59,7 @@ export default function MarketIntelligenceConfig({
     try {
       const { data, error } = await supabase
         .from('st_company_positions')
-        .select('id, position_title')
+        .select('id, position_title, position_description, required_skills, nice_to_have_skills')
         .eq('company_id', userProfile.company_id)
         .order('position_title');
 
@@ -65,6 +67,24 @@ export default function MarketIntelligenceConfig({
       setPositions(data || []);
     } catch (error) {
       console.error('Error fetching positions:', error);
+    }
+  };
+
+  const fetchCompanyIndustry = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('industry')
+        .eq('id', userProfile.company_id)
+        .single();
+
+      if (error) throw error;
+      setCompanyIndustry(data?.industry || 'Technology');
+    } catch (error) {
+      console.error('Error fetching company industry:', error);
+      setCompanyIndustry('Technology'); // Default fallback
     }
   };
 
@@ -114,7 +134,7 @@ export default function MarketIntelligenceConfig({
           Market Intelligence Configuration
         </CardTitle>
         <CardDescription>
-          Analyze current job market demand for a specific role and date range
+          Analyze current job market demand vs. your position requirements{companyIndustry && ` in ${companyIndustry}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -130,7 +150,8 @@ export default function MarketIntelligenceConfig({
               setConfig((prev: any) => ({
                 ...prev,
                 positionId: value,
-                positionTitle: position?.position_title || ''
+                positionTitle: position?.position_title || '',
+                positionDescription: position?.position_description || ''
               }));
             }}
           >
@@ -255,23 +276,31 @@ export default function MarketIntelligenceConfig({
           </div>
         )}
 
-        {/* Optional Keywords Override */}
+        {/* Data Source */}
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setShowKeywords(!showKeywords)}
-            className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          <Label htmlFor="source">
+            Data Source <span className="text-red-500">*</span>
+          </Label>
+          <Select
+            value={config.source}
+            onValueChange={(value: any) => setConfig((prev: any) => ({ ...prev, source: value }))}
+            disabled
           >
-            <Search className="h-3 w-3" />
-            {showKeywords ? 'Hide' : 'Show'} keywords override (optional)
-          </button>
-          {showKeywords && (
-            <Input
-              placeholder="Optional: Override search keywords..."
-              value={config.keywordsOverride}
-              onChange={(e) => setConfig((prev: any) => ({ ...prev, keywordsOverride: e.target.value }))}
-            />
-          )}
+            <SelectTrigger id="source" className="opacity-60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="linkedin">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-blue-600" />
+                  LinkedIn Jobs
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500">
+            Additional sources coming soon
+          </p>
         </div>
 
         {/* Focus Area */}
@@ -313,7 +342,7 @@ export default function MarketIntelligenceConfig({
             Analyze Market
           </Button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            We analyze recent LinkedIn postings in your selected market
+            We analyze recent job postings and compare them against your position requirements{companyIndustry && ` in the ${companyIndustry} industry`}
           </p>
         </div>
       </CardContent>

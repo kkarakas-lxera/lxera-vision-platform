@@ -140,7 +140,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         // Use the cached method that stores data in employee record
         const employeeSkills = employee.skills_profile?.extracted_skills || [];
         // Removed: Market gap analysis (legacy system)
-        const marketGapData = null; // Disabled legacy market gap analysis
+        const marketGapData: MarketSkillData[] = []; // Disabled legacy market gap analysis
 
         setMarketGaps(marketGapData);
       } catch (error) {
@@ -351,7 +351,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         </div>
 
         {/* Market Skills Gap Analysis */}
-        {marketGaps.length > 0 && (
+        {marketGaps && marketGaps.length > 0 && (
           <Card className="border-gray-200">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
