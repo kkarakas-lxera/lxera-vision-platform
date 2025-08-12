@@ -44,29 +44,73 @@ export default function MarketIntelligenceConfig({
   isLoading
 }: MarketIntelligenceConfigProps) {
   const { userProfile } = useAuth();
-  const [positions, setPositions] = useState<Array<{ id: string; position_title: string; position_description?: string; required_skills?: any[]; nice_to_have_skills?: any[] }>>([]);
+  const [positions, setPositions] = useState<Array<{ 
+    id: string; 
+    position_title: string; 
+    position_description?: string; 
+    required_skills?: any[]; 
+    nice_to_have_skills?: any[];
+    company_id?: string;
+    company_name?: string;
+  }>>([]);
   const [showCustomCountries, setShowCustomCountries] = useState(false);
   const [companyIndustry, setCompanyIndustry] = useState<string>('');
 
   useEffect(() => {
     fetchPositions();
     fetchCompanyIndustry();
-  }, [userProfile?.company_id]);
+  }, [userProfile?.company_id, userProfile?.role]);
 
   const fetchPositions = async () => {
-    if (!userProfile?.company_id) return;
-
+    console.log('[Market Intelligence] Fetching positions for user:', userProfile);
+    
     try {
-      const { data, error } = await supabase
-        .from('st_company_positions')
-        .select('id, position_title, position_description, required_skills, nice_to_have_skills')
-        .eq('company_id', userProfile.company_id)
-        .order('position_title');
+      // Super admins can see all positions with company names
+      if (userProfile?.role === 'super_admin') {
+        console.log('[Market Intelligence] Super admin - fetching all positions with company names');
+        
+        const { data, error } = await supabase
+          .from('st_company_positions')
+          .select(`
+            id, 
+            position_title, 
+            position_description, 
+            required_skills, 
+            nice_to_have_skills, 
+            company_id,
+            companies(name)
+          `)
+          .order('position_title');
 
-      if (error) throw error;
-      setPositions(data || []);
+        if (error) throw error;
+        
+        // Transform data to include company_name
+        const transformedData = data?.map((pos: any) => ({
+          ...pos,
+          company_name: pos.companies?.name || 'Unknown Company'
+        })) || [];
+        
+        console.log('[Market Intelligence] Fetched positions:', transformedData);
+        setPositions(transformedData);
+      } else if (userProfile?.company_id) {
+        console.log('[Market Intelligence] Fetching positions for company_id:', userProfile.company_id);
+        
+        const { data, error } = await supabase
+          .from('st_company_positions')
+          .select('id, position_title, position_description, required_skills, nice_to_have_skills, company_id')
+          .eq('company_id', userProfile.company_id)
+          .order('position_title');
+
+        if (error) throw error;
+        
+        console.log('[Market Intelligence] Fetched positions:', data);
+        setPositions(data || []);
+      } else {
+        console.warn('[Market Intelligence] No company_id found in userProfile:', userProfile);
+        return;
+      }
     } catch (error) {
-      console.error('Error fetching positions:', error);
+      console.error('[Market Intelligence] Error fetching positions:', error);
     }
   };
 
@@ -162,6 +206,9 @@ export default function MarketIntelligenceConfig({
               {positions.map(position => (
                 <SelectItem key={position.id} value={position.id}>
                   {position.position_title}
+                  {userProfile?.role === 'super_admin' && position.company_name && (
+                    <span className="text-gray-500 ml-2">({position.company_name})</span>
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
