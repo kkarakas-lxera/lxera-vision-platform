@@ -220,26 +220,20 @@ async function executeScraping(
   const geoCode = resolveGeoCode(location);
   const encodedUrl = encodeURIComponent(linkedinSearchUrl);
   
+  // Scrape.do Hobby plan - basic features only
   const params = new URLSearchParams({
-    token: apiKey,
-    // Removed JS render to work with basic plan
-    // render: 'true',
-    // waitUntil: 'networkidle2',
-    super: 'true',
-    timeout: '40000',
-    customHeaders: 'true'
+    token: apiKey
+    // Hobby plan doesn't include: JS render, super proxy, or geotargeting
   });
-  if (geoCode) params.set('geocode', geoCode);
+  // Note: geocode/geotargeting not available in Hobby plan
+  // if (geoCode) params.set('geocode', geoCode);
   
   const scrapeEndpoint = `https://api.scrape.do?${params.toString()}&url=${encodedUrl}`;
 
-  console.log(`[Market Research Agent] Calling Scrape.do API...`);
+  console.log(`[Market Research Agent] Calling Scrape.do API (Hobby plan)...`);
   const scrapeResponse = await fetch(scrapeEndpoint, {
-    method: 'GET',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9'
-    }
+    method: 'GET'
+    // Custom headers not supported in Hobby plan
   });
 
   if (!scrapeResponse.ok) {
