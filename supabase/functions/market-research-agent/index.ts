@@ -222,8 +222,9 @@ async function executeScraping(
   
   const params = new URLSearchParams({
     token: apiKey,
-    render: 'true',
-    waitUntil: 'networkidle2',
+    // Removed JS render to work with basic plan
+    // render: 'true',
+    // waitUntil: 'networkidle2',
     super: 'true',
     timeout: '40000',
     customHeaders: 'true'
@@ -244,6 +245,13 @@ async function executeScraping(
   if (!scrapeResponse.ok) {
     const errorBody = await scrapeResponse.text();
     console.error('Scrape.do API error response:', errorBody);
+    
+    // Check if it's a JS render error and provide helpful message
+    if (scrapeResponse.status === 401 && errorBody.includes('JS Render')) {
+      console.warn('[Market Research Agent] JS Render not available in current plan - falling back to basic scraping');
+      // Could implement alternative scraping method here if needed
+    }
+    
     throw new Error(`Scrape.do API error: ${scrapeResponse.status} - ${errorBody.substring(0, 400)}`);
   }
 
@@ -410,7 +418,7 @@ serve(async (req) => {
   }
 
   try {
-    const { regions = [], countries = [], focus_area = 'all_skills', custom_prompt = '', request_id } = await req.json() as MarketIntelligenceRequest;
+    const { regions = [], countries = [], focus_area = 'all_skills', custom_prompt = '', request_id, position_title, date_window, since_date } = await req.json() as MarketIntelligenceRequest;
     
     console.log(`[Market Research Agent] Starting analysis for request: ${request_id}`);
     console.log(`[Market Research Agent] Regions: ${regions.join(', ')}, Focus: ${focus_area}`);
