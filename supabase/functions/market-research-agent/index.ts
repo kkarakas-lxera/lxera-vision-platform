@@ -54,6 +54,116 @@ type ParsedJob = {
   scraped_at: string;
 };
 
+function parseKariyerJobs(html: string, location: string, limit: number): ParsedJob[] {
+  const results: ParsedJob[] = [];
+  
+  console.log(`[Market Research Agent] Parsing kariyer.net HTML...`);
+  
+  // Kariyer.net job listing structure
+  // Jobs are typically in divs with class "list-items" or similar
+  // Title in <a> tags with class containing "position"
+  // Company in <span> or <a> with class containing "company"
+  
+  // Try to extract job cards - kariyer.net uses different structure
+  const jobCardRegex = /<div[^>]*class="[^"]*list-items[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+  const jobCards: string[] = [];
+  let cardMatch: RegExpExecArray | null;
+  
+  while ((cardMatch = jobCardRegex.exec(html)) !== null && jobCards.length < limit) {
+    jobCards.push(cardMatch[1]);
+  }
+  
+  // If no cards found with that pattern, try another common pattern
+  if (jobCards.length === 0) {
+    // Try to find job titles directly
+    const titleRegex = /<a[^>]*class="[^"]*k-ad-card[^"]*"[^>]*title="([^"]+)"/gi;
+    const companyRegex = /<span[^>]*class="[^"]*company[^"]*"[^>]*>([^<]+)</gi;
+    
+    const titles: string[] = [];
+    const companies: string[] = [];
+    
+    let match: RegExpExecArray | null;
+    while ((match = titleRegex.exec(html)) !== null && titles.length < limit) {
+      titles.push(match[1].trim());
+    }
+    
+    while ((match = companyRegex.exec(html)) !== null && companies.length < limit) {
+      companies.push(stripHtml(match[1]));
+    }
+    
+    // Create jobs from what we found
+    const count = Math.min(limit, titles.length);
+    for (let i = 0; i < count; i++) {
+      results.push({
+        title: titles[i] || 'Unknown Position',
+        company: companies[i] || 'Unknown Company',
+        location: 'Turkey',
+        description: '',
+        skills: extractSkillsFromTitle(titles[i] || ''),
+        experience_level: determineExperienceLevel(titles[i] || ''),
+        salary_range: 'Not specified',
+        scraped_at: new Date().toISOString()
+      });
+    }
+  } else {
+    // Parse each job card
+    for (const card of jobCards.slice(0, limit)) {
+      const titleMatch = /<a[^>]*>([^<]+)<\/a>/i.exec(card);
+      const title = titleMatch ? stripHtml(titleMatch[1]) : 'Unknown Position';
+      
+      const companyMatch = /<span[^>]*class="[^"]*company[^"]*"[^>]*>([^<]+)</i.exec(card);
+      const company = companyMatch ? stripHtml(companyMatch[1]) : 'Unknown Company';
+      
+      results.push({
+        title,
+        company,
+        location: 'Turkey',
+        description: '',
+        skills: extractSkillsFromTitle(title),
+        experience_level: determineExperienceLevel(title),
+        salary_range: 'Not specified',
+        scraped_at: new Date().toISOString()
+      });
+    }
+  }
+  
+  return results;
+}
+
+function extractSkillsFromTitle(title: string): string[] {
+  const skills: string[] = [];
+  const titleLower = title.toLowerCase();
+  
+  const skillKeywords = [
+    'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
+    'SQL', 'MongoDB', 'TypeScript', 'Angular', 'Vue', 'Machine Learning', 'AI', 'DevOps',
+    'CI/CD', 'Git', 'Agile', 'Scrum', 'REST', 'API', 'Cloud', 'Azure', 'GCP',
+    '.NET', 'C#', 'PHP', 'Laravel', 'Frontend', 'Backend', 'Full Stack'
+  ];
+  
+  for (const skill of skillKeywords) {
+    if (titleLower.includes(skill.toLowerCase())) {
+      skills.push(skill);
+    }
+  }
+  
+  return skills;
+}
+
+function determineExperienceLevel(title: string): string {
+  const titleLower = title.toLowerCase();
+  
+  if (titleLower.includes('senior') || titleLower.includes('lead') || titleLower.includes('principal')) {
+    return 'Senior';
+  } else if (titleLower.includes('junior') || titleLower.includes('entry')) {
+    return 'Entry';
+  } else if (titleLower.includes('mid') || titleLower.includes('intermediate')) {
+    return 'Mid';
+  }
+  
+  return 'Not specified';
+}
+
 function parseLinkedInJobs(html: string, location: string, limit: number): ParsedJob[] {
   const results: ParsedJob[] = [];
 
@@ -198,47 +308,79 @@ async function executeScraping(
   count: number = 20,
   dateWindow?: string
 ): Promise<any> {
-  console.log(`[Market Research Agent] Scraping LinkedIn for: ${keywords} in ${location} (${dateWindow || '24h'})`);
+  // Check if location is Turkey - use kariyer.net instead of LinkedIn
+  const isTurkey = location.toLowerCase().includes('turkey') || 
+                   location.toLowerCase().includes('türkiye') || 
+                   location.toLowerCase() === 'tr' ||
+                   location.toLowerCase().includes('istanbul') ||
+                   location.toLowerCase().includes('ankara');
   
-  // Map date window to LinkedIn time posted filter
-  let timeFilter = 'r86400'; // Default to 24 hours
-  if (dateWindow === '24h') {
-    timeFilter = 'r86400'; // Past 24 hours
-  } else if (dateWindow === '7d') {
-    timeFilter = 'r604800'; // Past week
-  } else if (dateWindow === '30d' || dateWindow === '90d') {
-    timeFilter = 'r2592000'; // Past month (LinkedIn doesn't have 90 days, so we use month)
+  let targetUrl: string;
+  
+  if (isTurkey) {
+    console.log(`[Market Research Agent] Scraping kariyer.net for: ${keywords} in Turkey`);
+    // Kariyer.net search URL format
+    // Example: https://www.kariyer.net/is-ilanlari?kw=frontend+developer
+    const kariyerKeywords = keywords.replace(/\s+/g, '+');
+    targetUrl = `https://www.kariyer.net/is-ilanlari?kw=${encodeURIComponent(kariyerKeywords)}`;
+    
+    // Add date filter if needed (kariyer.net uses different parameters)
+    if (dateWindow === '24h') {
+      targetUrl += '&dp=1'; // Last 24 hours
+    } else if (dateWindow === '7d') {
+      targetUrl += '&dp=7'; // Last 7 days  
+    } else if (dateWindow === '30d') {
+      targetUrl += '&dp=30'; // Last 30 days
+    }
+  } else {
+    console.log(`[Market Research Agent] Scraping LinkedIn for: ${keywords} in ${location} (${dateWindow || '24h'})`);
+    
+    // Map date window to LinkedIn time posted filter
+    let timeFilter = 'r86400'; // Default to 24 hours
+    if (dateWindow === '24h') {
+      timeFilter = 'r86400'; // Past 24 hours
+    } else if (dateWindow === '7d') {
+      timeFilter = 'r604800'; // Past week
+    } else if (dateWindow === '30d' || dateWindow === '90d') {
+      timeFilter = 'r2592000'; // Past month (LinkedIn doesn't have 90 days, so we use month)
+    }
+    
+    targetUrl = `https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&f_TPR=${timeFilter}`;
   }
-  
-  const linkedinSearchUrl = `https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&f_TPR=${timeFilter}`;
 
   const apiKey = Deno.env.get('SCRAPE_DO_API_KEY');
   if (!apiKey) {
+    console.error('[Market Research Agent] SCRAPE_DO_API_KEY environment variable is not set');
     throw new Error('SCRAPE_DO_API_KEY is not configured');
   }
+  console.log(`[Market Research Agent] API Key present: ${apiKey ? 'Yes' : 'No'}, length: ${apiKey?.length}`);
 
   const geoCode = resolveGeoCode(location);
-  const encodedUrl = encodeURIComponent(linkedinSearchUrl);
   
   // Scrape.do Hobby plan - basic features only
-  const params = new URLSearchParams({
-    token: apiKey
-    // Hobby plan doesn't include: JS render, super proxy, or geotargeting
-  });
-  // Note: geocode/geotargeting not available in Hobby plan
-  // if (geoCode) params.set('geocode', geoCode);
+  // IMPORTANT: Only include token and url, no other parameters that might trigger premium features
+  const params = new URLSearchParams();
+  params.append('token', apiKey);
+  params.append('url', targetUrl);
+  // DO NOT add any of these: render, super, customHeaders, geocode, etc.
   
-  const scrapeEndpoint = `https://api.scrape.do?${params.toString()}&url=${encodedUrl}`;
+  const scrapeEndpoint = `https://api.scrape.do?${params.toString()}`;
 
   console.log(`[Market Research Agent] Calling Scrape.do API (Hobby plan)...`);
+  console.log(`[Market Research Agent] Target URL: ${targetUrl}`);
+  console.log(`[Market Research Agent] Scrape.do params: token=***${apiKey.slice(-4)}, url=${targetUrl.substring(0, 50)}...`);
+  console.log(`[Market Research Agent] Full endpoint (first 150 chars): ${scrapeEndpoint.substring(0, 150)}`);
+  
   const scrapeResponse = await fetch(scrapeEndpoint, {
     method: 'GET'
     // Custom headers not supported in Hobby plan
   });
 
+  console.log(`[Market Research Agent] Scrape.do response status: ${scrapeResponse.status}`);
+  
   if (!scrapeResponse.ok) {
     const errorBody = await scrapeResponse.text();
-    console.error('Scrape.do API error response:', errorBody);
+    console.error(`[Market Research Agent] Scrape.do API error response (${scrapeResponse.status}):`, errorBody.substring(0, 500));
     
     // Check if it's a JS render error and provide helpful message
     if (scrapeResponse.status === 401 && errorBody.includes('JS Render')) {
@@ -246,15 +388,29 @@ async function executeScraping(
       // Could implement alternative scraping method here if needed
     }
     
+    // Check if it's an auth error
+    if (scrapeResponse.status === 401 || scrapeResponse.status === 403) {
+      console.error('[Market Research Agent] Authentication error - check SCRAPE_DO_API_KEY');
+    }
+    
     throw new Error(`Scrape.do API error: ${scrapeResponse.status} - ${errorBody.substring(0, 400)}`);
   }
 
   const scrapedHtml = await scrapeResponse.text();
-  const jobListings = parseLinkedInJobs(scrapedHtml, location, count);
+  
+  // Parse based on the site we're scraping
+  let jobListings: ParsedJob[];
+  if (isTurkey) {
+    jobListings = parseKariyerJobs(scrapedHtml, location, count);
+  } else {
+    jobListings = parseLinkedInJobs(scrapedHtml, location, count);
+  }
   
   console.log(`[Market Research Agent] Successfully scraped ${jobListings.length} job listings`);
   
   if (jobListings.length === 0) {
+    // Log first 1000 chars of HTML to debug
+    console.log(`[Market Research Agent] No jobs found. HTML preview: ${scrapedHtml.substring(0, 1000)}`);
     throw new Error('No job listings found - scraping may have failed or page structure changed');
   }
 
@@ -263,7 +419,7 @@ async function executeScraping(
     data: jobListings,
     total_scraped: jobListings.length,
     scraping_method: 'scrape.do',
-    target_url: linkedinSearchUrl
+    target_url: targetUrl
   };
 }
 

@@ -30,6 +30,7 @@ interface MarketIntelligenceConfigProps {
 const REGIONS = {
   'US': ['United States'],
   'Europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Sweden', 'Switzerland', 'Spain', 'Italy'],
+  'Turkey': ['Turkey', 'Istanbul', 'Ankara', 'Izmir'],
   'MENA': ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Jordan', 'Lebanon', 'Egypt'],
   'Asia/Pacific': ['Singapore', 'Australia', 'Japan', 'South Korea', 'Hong Kong', 'Malaysia', 'India', 'Thailand']
 };
@@ -233,6 +234,7 @@ export default function MarketIntelligenceConfig({
             <SelectContent>
               <SelectItem value="US">United States</SelectItem>
               <SelectItem value="Europe">Europe</SelectItem>
+              <SelectItem value="Turkey">Turkey (kariyer.net)</SelectItem>
               <SelectItem value="MENA">Middle East & Africa</SelectItem>
               <SelectItem value="Asia/Pacific">Asia Pacific</SelectItem>
               <SelectItem value="custom">Custom Countries...</SelectItem>
