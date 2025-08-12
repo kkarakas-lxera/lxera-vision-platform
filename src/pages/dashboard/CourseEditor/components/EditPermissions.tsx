@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ const EditPermissions: React.FC<EditPermissionsProps> = ({
   companyId
 }) => {
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [permissions, setPermissions] = useState<EditPermission[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -258,46 +260,71 @@ const EditPermissions: React.FC<EditPermissionsProps> = ({
           </div>
         ) : (
           <div className="space-y-4 py-4">
-            {/* Add New Editor */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Add Editor</label>
-              <div className="flex gap-2">
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-md"
-                >
-                  <option value="">Select a user...</option>
-                  {availableUsers.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  onClick={addNewEditor}
-                  disabled={!selectedUserId}
-                  size="sm"
-                >
-                  <UserPlus className="h-4 w-4" />
-                </Button>
+            {/* Add New Editor - Only show if there are available users */}
+            {availableUsers.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Add Editor</label>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-md"
+                  >
+                    <option value="">Select a user...</option>
+                    {availableUsers.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.full_name || user.email}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    onClick={addNewEditor}
+                    disabled={!selectedUserId}
+                    size="sm"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search editors..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+            {/* Search - Only show if there are permissions to search */}
+            {permissions.length > 0 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search editors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            )}
 
             {/* Permissions List */}
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {filteredPermissions.length === 0 ? (
+              {filteredPermissions.length === 0 && availableUsers.length === 0 ? (
+                <div className="text-center py-8 space-y-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <Users className="h-12 w-12 text-muted-foreground/50" />
+                    <p className="text-muted-foreground font-medium">No other team members available</p>
+                    <p className="text-sm text-muted-foreground">
+                      You're the only admin or manager in this company
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={() => {
+                      // Navigate to team invite page
+                      navigate('/dashboard/onboarding/invite');
+                    }}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Invite Team Members
+                  </Button>
+                </div>
+              ) : filteredPermissions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No editors found
                 </div>
