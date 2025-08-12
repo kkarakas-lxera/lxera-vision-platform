@@ -100,7 +100,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'verified' | 'level' | 'alphabetical'>('verified');
   const [filters, setFilters] = useState<Set<string>>(new Set());
-  const [marketGaps, setMarketGaps] = useState<MarketSkillData[]>([]);
+  const [marketGaps, setMarketGaps] = useState<MarketSkillData[] | null>(null);
   const [loadingMarketData, setLoadingMarketData] = useState(false);
 
   const toggleExpanded = (skillName: string) => {
@@ -140,8 +140,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         // Use the cached method that stores data in employee record
         const employeeSkills = employee.skills_profile?.extracted_skills || [];
         // Removed: Market gap analysis (legacy system)
-        const marketGapData: MarketSkillData[] = []; // Disabled legacy market gap analysis
-
+        // Disabled legacy market gap analysis - set to empty array, never null
+        const marketGapData: MarketSkillData[] = [];
         setMarketGaps(marketGapData);
       } catch (error) {
         console.error('Error fetching market gaps:', error);
@@ -351,7 +351,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         </div>
 
         {/* Market Skills Gap Analysis */}
-        {marketGaps && marketGaps.length > 0 && (
+        {Array.isArray(marketGaps) && marketGaps.length > 0 && (
           <Card className="border-gray-200">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
