@@ -31,6 +31,15 @@ interface Employee {
   skills_last_analyzed?: string;
 }
 
+interface PendingOutline {
+  plan_id: string;
+  employee_id: string;
+  employee_name: string;
+  course_title: string;
+  created_at: string;
+  total_modules?: number;
+}
+
 export const CourseGenerationSection = () => {
   const { toast } = useToast();
   const { userProfile } = useAuth();
@@ -43,6 +52,7 @@ export const CourseGenerationSection = () => {
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [pendingOutlines, setPendingOutlines] = useState<PendingOutline[]>([]);
   
   // Filters
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -51,6 +61,7 @@ export const CourseGenerationSection = () => {
   useEffect(() => {
     if (companyId) {
       fetchEmployees();
+      fetchPendingOutlines();
     }
   }, [companyId]);
 
@@ -71,6 +82,66 @@ export const CourseGenerationSection = () => {
     setFilteredEmployees(filtered);
   }, [employees, departmentFilter, skillsGapFilter]);
 
+  const fetchPendingOutlines = async () => {
+    if (!companyId) return;
+    
+    try {
+      // First get employee IDs for this company
+      const { data: companyEmployees, error: empError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', companyId);
+      
+      if (empError) {
+        console.error('Error fetching company employees:', empError);
+        return;
+      }
+      
+      const employeeIds = companyEmployees?.map(e => e.id) || [];
+      
+      if (employeeIds.length === 0) {
+        setPendingOutlines([]);
+        return;
+      }
+      
+      // Fetch course outlines that don't have full courses generated yet
+      const { data: outlines, error } = await supabase
+        .from('cm_course_plans')
+        .select(`
+          plan_id,
+          employee_id,
+          employee_name,
+          course_title,
+          created_at,
+          total_modules,
+          course_structure
+        `)
+        .in('employee_id', employeeIds)  // Filter by company's employees
+        .eq('status', 'completed')
+        .is('full_course_generated_at', null)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching pending outlines:', error);
+        return;
+      }
+      
+      // Extract total modules from course_structure if not directly available
+      const processedOutlines = outlines?.map(outline => ({
+        plan_id: outline.plan_id,
+        employee_id: outline.employee_id,
+        employee_name: outline.employee_name || 'Unknown',
+        course_title: outline.course_title || 'Personalized Course',
+        created_at: outline.created_at,
+        total_modules: outline.total_modules || outline.course_structure?.modules?.length || 0
+      })) || [];
+      
+      setPendingOutlines(processedOutlines);
+    } catch (error) {
+      console.error('Error fetching pending outlines:', error);
+    }
+  };
+
   const fetchEmployees = async () => {
     if (!companyId) return;
     
@@ -85,15 +156,20 @@ export const CourseGenerationSection = () => {
           department,
           position,
           skills_last_analyzed,
+          cv_analysis_data,
+          current_position_id,
           users!inner (
             full_name,
             email
           ),
-          st_employee_skills_profile (
-            skills_match_score,
-            gap_analysis_completed_at,
-            technical_skills,
-            soft_skills
+          employee_skills (
+            skill_name,
+            proficiency,
+            source
+          ),
+          current_position:st_company_positions!employees_current_position_id_fkey (
+            required_skills,
+            nice_to_have_skills
           )
         `)
         .eq('company_id', companyId)
@@ -103,39 +179,76 @@ export const CourseGenerationSection = () => {
 
       // Transform data for display
       const transformedEmployees = employeesData?.map(emp => {
-        const profile = emp.st_employee_skills_profile?.[0];
+        const employeeSkills = emp.employee_skills || [];
+        const positionReqs = emp.current_position;
         
         // Calculate gaps from skills data
         let criticalGaps = 0;
         let moderateGaps = 0;
-        let totalGaps = 0;
+        let totalSkills = 0;
+        let matchedSkills = 0;
         
-        if (profile?.technical_skills) {
-          profile.technical_skills.forEach((skill: any) => {
-            if (skill.proficiency_level < 2) {
-              criticalGaps++;
-              totalGaps++;
-            } else if (skill.proficiency_level < 3) {
-              moderateGaps++;
-              totalGaps++;
+        // Build a map of required skills
+        const requiredSkillsMap = new Map();
+        if (positionReqs?.required_skills) {
+          positionReqs.required_skills.forEach((skill: any) => {
+            requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+              required_level: skill.proficiency_level || 3,
+              is_mandatory: skill.is_mandatory || false
+            });
+          });
+        }
+        if (positionReqs?.nice_to_have_skills) {
+          positionReqs.nice_to_have_skills.forEach((skill: any) => {
+            if (!requiredSkillsMap.has(skill.skill_name.toLowerCase())) {
+              requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+                required_level: skill.proficiency_level || 2,
+                is_mandatory: false
+              });
             }
           });
         }
         
-        if (profile?.soft_skills) {
-          profile.soft_skills.forEach((skill: any) => {
-            if (skill.proficiency_level < 2) {
-              criticalGaps++;
-              totalGaps++;
-            } else if (skill.proficiency_level < 3) {
-              moderateGaps++;
-              totalGaps++;
+        // Calculate gaps by comparing employee skills with requirements
+        employeeSkills.forEach((skill: any) => {
+          const requirement = requiredSkillsMap.get(skill.skill_name.toLowerCase());
+          if (requirement) {
+            totalSkills++;
+            const currentLevel = skill.proficiency || 0;
+            const requiredLevel = Math.min(requirement.required_level, 3);
+            
+            if (currentLevel >= requiredLevel) {
+              matchedSkills++;
+            } else {
+              const gap = requiredLevel - currentLevel;
+              if (requirement.is_mandatory && gap >= 2) {
+                criticalGaps++;
+              } else if (gap >= 1) {
+                moderateGaps++;
+              }
             }
-          });
-        }
-
-        // Get last course date
-        // This would need to be fetched from course_assignments table
+          }
+        });
+        
+        // Check for missing mandatory skills
+        requiredSkillsMap.forEach((requirement, skillName) => {
+          if (requirement.is_mandatory) {
+            const hasSkill = employeeSkills.some((s: any) => 
+              s.skill_name.toLowerCase() === skillName
+            );
+            if (!hasSkill) {
+              criticalGaps++;
+              totalSkills++;
+            }
+          }
+        });
+        
+        // Calculate match percentage
+        const skillsMatch = totalSkills > 0 ? Math.round((matchedSkills / totalSkills) * 100) : 0;
+        
+        // Use CV analysis data if available for more accurate scoring
+        const cvMatchScore = emp.cv_analysis_data?.skills_match_score;
+        const finalMatchScore = cvMatchScore !== undefined ? cvMatchScore : skillsMatch;
         
         return {
           id: emp.id,
@@ -143,7 +256,7 @@ export const CourseGenerationSection = () => {
           email: emp.users?.email || '',
           position: emp.position || 'N/A',
           department: emp.department || 'N/A',
-          skills_gap_percentage: profile?.skills_match_score ? (100 - profile.skills_match_score) : 0,
+          skills_gap_percentage: 100 - finalMatchScore,
           critical_gaps: criticalGaps,
           moderate_gaps: moderateGaps,
           skills_last_analyzed: emp.skills_last_analyzed,
@@ -194,6 +307,22 @@ export const CourseGenerationSection = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
+      // Check if any selected employees only have outlines (no Module 1 yet)
+      const outlineOnlyEmployees = pendingOutlines
+        .filter(o => selectedEmployeeIds.includes(o.employee_id));
+      const outlineOnlyEmployeeIds = outlineOnlyEmployees.map(o => o.employee_id);
+      
+      // Create a map of employee_id to plan_id for employees with outlines
+      const employeePlanIdMap: Record<string, string> = {};
+      outlineOnlyEmployees.forEach(o => {
+        employeePlanIdMap[o.employee_id] = o.plan_id;
+      });
+      
+      // For employees with only outlines, generate Module 1
+      // For employees with Module 1, generate remaining
+      // For new employees, generate based on preview mode
+      const generationMode = outlineOnlyEmployeeIds.length > 0 ? 'first_module' : (previewMode ? 'first_module' : 'full');
+      
       // Create a course generation job - backend will process this queue
       const { data: job, error: jobError } = await supabase
         .from('course_generation_jobs')
@@ -209,10 +338,13 @@ export const CourseGenerationSection = () => {
           failed_courses: 0,
           metadata: {
             priority: determinePriority(selectedEmployeeIds.length),
-            generation_mode: previewMode ? 'first_module' : 'full',
+            generation_mode: generationMode,
             estimated_duration_seconds: previewMode ? selectedEmployeeIds.length * 60 : selectedEmployeeIds.length * 300, // Preview is faster
             queued_at: new Date().toISOString(),
-            is_preview: previewMode
+            is_preview: previewMode,
+            is_approval: outlineOnlyEmployeeIds.length > 0,
+            outline_employee_ids: outlineOnlyEmployeeIds,
+            employee_plan_id_map: employeePlanIdMap  // Map of employee_id to plan_id for first_module generation
           }
         })
         .select()
@@ -271,6 +403,46 @@ export const CourseGenerationSection = () => {
 
   return (
     <div className="space-y-6">
+      {/* Pending Outlines Indicator */}
+      {pendingOutlines.length > 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                  {pendingOutlines.length} Pending
+                </Badge>
+                <span className="text-sm font-medium text-amber-900">
+                  Course Outlines Awaiting Approval
+                </span>
+              </div>
+              <p className="text-sm text-amber-700">
+                These employees completed their profiles and are waiting for course approval. Approve to generate Module 1 and start their learning journey.
+              </p>
+            </div>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="border-amber-300 hover:bg-amber-100"
+              onClick={() => {
+                // Select these employees for Module 1 generation
+                const outlineEmployeeIds = pendingOutlines.map(o => o.employee_id);
+                setSelectedEmployeeIds(prev => {
+                  const combined = [...new Set([...prev, ...outlineEmployeeIds])];
+                  toast({
+                    title: 'Employees Selected',
+                    description: `Selected ${outlineEmployeeIds.length} employees for course approval and Module 1 generation`,
+                  });
+                  return combined;
+                });
+              }}
+            >
+              Approve & Generate Module 1
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {/* Active Jobs Section */}
       <ActiveJobsDisplay />
       

@@ -45,6 +45,7 @@ export default function CourseGenerationWelcome({
   const [courseGenerated, setCourseGenerated] = useState(false);
   const [courseData, setCourseData] = useState<any>(null);
   const [employeeData, setEmployeeData] = useState<any>(null);
+  const [planId, setPlanId] = useState<string | null>(null);
 
   // Fetch employee data to get company_id
   useEffect(() => {
@@ -94,12 +95,21 @@ export default function CourseGenerationWelcome({
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-course-outline', {
-        body: { employee_id: employeeId }
+        body: { 
+          employee_id: employeeId,
+          use_agent_pipeline: true  // Use the agent pipeline for outline generation
+        }
       });
 
       if (error) throw error;
 
       console.log('Edge function response:', JSON.stringify(data, null, 2));
+
+      // Capture the plan_id for later use
+      if (data?.plan_id) {
+        setPlanId(data.plan_id);
+        console.log('Captured plan_id:', data.plan_id);
+      }
 
       if (data?.success && data.course_outline) {
         try {
@@ -157,38 +167,33 @@ export default function CourseGenerationWelcome({
     }
   };
 
-  const handleIntention = async (intention: 'accepted' | 'maybe_later' | 'rejected') => {
-    if (intention === 'accepted') {
-      // CRITICAL FIX: Actually generate the course when user accepts
-      await generateFirstModule();
-    } else {
-      // Handle other intentions without course generation
-      try {
-        await supabase
-          .from('employee_course_intentions')
-          .upsert({
-            employee_id: employeeId,
-            course_outline: rawCourseOutline || courseOutline,
-            intention: intention,
-            intended_start_date: null,
-            created_at: new Date().toISOString()
-          });
+  const handleOutlineViewed = async () => {
+    // Just save that the employee has viewed their outline
+    try {
+      await supabase
+        .from('employee_course_intentions')
+        .upsert({
+          employee_id: employeeId,
+          course_outline: rawCourseOutline || courseOutline,
+          intention: 'viewed',
+          intended_start_date: null,
+          created_at: new Date().toISOString(),
+          plan_id: planId  // Store plan_id for tracking
+        });
 
-        if (intention === 'maybe_later') {
-          toast.info('No problem! Your course will be saved for later.');
-        } else {
-          toast.info('We\'ll help you find a better match.');
-        }
-        
-        setTimeout(onClose, 1500);
-      } catch (error) {
-        console.error('Failed to save intention:', error);
-        toast.error('Failed to save your preference');
-      }
+      toast.success('Your course outline has been submitted for approval');
+      
+      // Close after a brief delay
+      setTimeout(onClose, 2000);
+    } catch (error) {
+      console.error('Failed to save outline view:', error);
+      // Still close even if save fails
+      setTimeout(onClose, 1500);
     }
   };
 
-  const generateFirstModule = async () => {
+  // Removed - course generation is now admin-controlled
+  const generateFirstModule_REMOVED = async () => {
     setStage('creating_course');
     setProgress(0);
     setCurrentStep('Saving your course preference...');
@@ -202,7 +207,8 @@ export default function CourseGenerationWelcome({
           course_outline: rawCourseOutline || courseOutline,
           intention: 'accepted',
           intended_start_date: new Date().toISOString(),
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          plan_id: planId  // Store plan_id for tracking
         });
 
       setCurrentStep('Starting course generation...');
@@ -230,7 +236,8 @@ export default function CourseGenerationWelcome({
           employee_id: employeeId,
           company_id: employeeData?.company_id || user?.app_metadata?.company_id,
           assigned_by_id: user?.id,
-          generation_mode: 'first_module'
+          generation_mode: 'first_module',
+          plan_id: planId  // Pass plan_id to track outline-to-course relationship
         }
       });
 
@@ -522,31 +529,25 @@ export default function CourseGenerationWelcome({
                 </div>
               </div>
               
-              {/* Action Buttons */}
+              {/* Next Steps */}
               <div className="space-y-3 pt-2">
-                <h4 className="text-sm font-medium text-gray-900">Ready to start your learning journey?</h4>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => handleIntention('accepted')}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Yes, start now
-                  </Button>
-                  <Button
-                    onClick={() => handleIntention('rejected')}
-                    variant="outline"
-                    className="border-gray-300"
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Different course
-                  </Button>
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">What happens next?</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Your course outline has been submitted for approval</li>
+                    <li>• Your admin will review and approve your personalized course</li>
+                    <li>• You'll be notified when your first module is ready</li>
+                    <li>• Additional modules will be unlocked as you progress</li>
+                  </ul>
                 </div>
                 
-                <div className="text-xs text-center text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  💡 <strong>New:</strong> Your first module will be ready immediately! 
-                  Additional modules unlock as they're generated in the background.
-                </div>
+                <Button
+                  onClick={handleOutlineViewed}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Got it, continue to dashboard
+                </Button>
               </div>
             </CardContent>
           </Card>

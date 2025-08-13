@@ -11,7 +11,8 @@ interface CourseGenerationRequest {
   company_id: string
   assigned_by_id: string
   job_id?: string
-  generation_mode?: 'full' | 'first_module'
+  generation_mode?: 'full' | 'first_module' | 'remaining_modules' | 'outline_only'
+  plan_id?: string // Optional plan_id for tracking outline to full course conversion
 }
 
 serve(async (req) => {
@@ -21,7 +22,7 @@ serve(async (req) => {
   }
 
   try {
-    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full' } = await req.json() as CourseGenerationRequest
+    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full', plan_id } = await req.json() as CourseGenerationRequest
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -30,6 +31,56 @@ serve(async (req) => {
 
     // Agent Pipeline API endpoint (Render deployment)
     const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'https://lxera-agent-pipeline.onrender.com/api/generate-course'
+
+    // For outline_only mode, skip directly to agent pipeline
+    if (generation_mode === 'outline_only') {
+      console.log('Outline-only mode detected, skipping skills gap analysis')
+      
+      // Call the agent pipeline directly for outline generation
+      const pipelineRequest = {
+        employee_id,
+        company_id,
+        assigned_by_id,
+        job_id,
+        generation_mode: 'outline_only'
+      }
+
+      const pipelineResponse = await fetch(agentPipelineUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pipelineRequest)
+      })
+
+      if (!pipelineResponse.ok) {
+        const errorText = await pipelineResponse.text()
+        throw new Error(`Agent pipeline failed: ${errorText}`)
+      }
+
+      const pipelineResult = await pipelineResponse.json()
+
+      if (!pipelineResult.pipeline_success) {
+        throw new Error(pipelineResult.error || 'Agent pipeline execution failed')
+      }
+
+      // Return outline-only results
+      return new Response(
+        JSON.stringify({
+          success: true,
+          plan_id: pipelineResult.plan_id,
+          course_title: pipelineResult.course_title,
+          employee_name: pipelineResult.employee_name,
+          generation_mode: 'outline_only',
+          is_outline_only: true,
+          processing_time: pipelineResult.total_processing_time
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
+    }
 
     // Update job progress helper
     const updateJobProgress = async (updates: any) => {
@@ -59,6 +110,7 @@ serve(async (req) => {
         career_goal,
         key_tools,
         company_id,
+        current_position_id,
         users!inner (
           full_name,
           email
@@ -78,71 +130,131 @@ serve(async (req) => {
       current_employee_name: employee.users?.full_name || 'Unknown'
     })
     
-    // Get skills profile with gap analysis already completed
-    const { data: profile, error: profileError } = await supabase
-      .from('st_employee_skills_profile')
+    // Get skills from employee_skills table
+    const { data: employeeSkills, error: skillsError } = await supabase
+      .from('employee_skills')
       .select('*')
       .eq('employee_id', employee_id)
-      .single()
 
-    if (profileError || !profile || !profile.gap_analysis_completed_at) {
-      throw new Error('Skills gap analysis not found. Please complete skills analysis first.')
+    if (skillsError || !employeeSkills || employeeSkills.length === 0) {
+      throw new Error('Skills data not found. Please complete skills analysis first.')
     }
 
-    // Get position requirements for context
-    const { data: positionReqs } = await supabase
-      .from('st_position_requirements')
-      .select('required_skills')
-      .eq('position', employee.position)
-      .eq('company_id', company_id)
+    // Get position requirements for gap calculation
+    const { data: currentPosition } = await supabase
+      .from('st_company_positions')
+      .select('required_skills, nice_to_have_skills')
+      .eq('id', employee.current_position_id)
       .single()
 
-    // Extract skills gaps from the existing analysis
-    const skillGaps = []
-    
-    // Process technical skills - convert array format to gap analysis
-    if (profile.technical_skills && Array.isArray(profile.technical_skills)) {
-      profile.technical_skills.forEach((skill: any) => {
-        // For testing, create mock gaps for skills where proficiency < 4
-        if (skill.proficiency_level < 4) {
-          skillGaps.push({
-            skill_name: skill.skill_name,
-            gap_severity: skill.proficiency_level < 2 ? 'critical' : skill.proficiency_level < 3 ? 'major' : 'moderate',
-            current_level: skill.proficiency_level || 2,
-            required_level: 4,
-            skill_type: 'technical'
+    // Build a map of required skill levels from position
+    const requiredSkillsMap = new Map()
+    if (currentPosition?.required_skills) {
+      currentPosition.required_skills.forEach((skill: any) => {
+        requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+          required_level: skill.proficiency_level || 3,
+          is_mandatory: skill.is_mandatory || false
+        })
+      })
+    }
+    if (currentPosition?.nice_to_have_skills) {
+      currentPosition.nice_to_have_skills.forEach((skill: any) => {
+        if (!requiredSkillsMap.has(skill.skill_name.toLowerCase())) {
+          requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+            required_level: skill.proficiency_level || 2,
+            is_mandatory: false
           })
         }
       })
     }
+
+    // Extract skills gaps by comparing employee skills with position requirements
+    const skillGaps: Array<{
+      skill_name: string
+      gap_severity: string
+      current_level: number
+      required_level: number
+      skill_type: string
+    }> = []
     
-    // Process soft skills - convert array format to gap analysis  
-    if (profile.soft_skills && Array.isArray(profile.soft_skills)) {
-      profile.soft_skills.forEach((skill: any) => {
-        // For testing, create mock gaps for skills where proficiency < 4
-        if (skill.proficiency_level < 4) {
+    // Process employee skills to identify gaps
+    employeeSkills.forEach((skill: any) => {
+      const skillKey = skill.skill_name.toLowerCase()
+      const requirement = requiredSkillsMap.get(skillKey)
+      const currentLevel = skill.proficiency || 0 // proficiency is 0-3 scale
+      
+      if (requirement) {
+        // Map 0-3 scale to required level comparison
+        const normalizedRequired = Math.min(requirement.required_level, 3)
+        
+        if (currentLevel < normalizedRequired) {
+          // Calculate gap severity based on the difference
+          let gap_severity = 'minor'
+          const gap = normalizedRequired - currentLevel
+          
+          if (requirement.is_mandatory && gap >= 2) {
+            gap_severity = 'critical'
+          } else if (requirement.is_mandatory && gap >= 1) {
+            gap_severity = 'major'
+          } else if (gap >= 2) {
+            gap_severity = 'major'
+          } else if (gap >= 1) {
+            gap_severity = 'moderate'
+          }
+          
           skillGaps.push({
             skill_name: skill.skill_name,
-            gap_severity: skill.proficiency_level < 2 ? 'critical' : skill.proficiency_level < 3 ? 'major' : 'moderate',
-            current_level: skill.proficiency_level || 2,
-            required_level: 4,
-            skill_type: 'soft'
+            gap_severity,
+            current_level: currentLevel,
+            required_level: normalizedRequired,
+            skill_type: skill.source === 'position_requirement' ? 'required' : 'general'
           })
         }
-      })
-    }
-    
-    // If no gaps from proficiency analysis, create some mock gaps for testing
-    if (skillGaps.length === 0 && profile.technical_skills && Array.isArray(profile.technical_skills)) {
-      // Create mock gaps for the first 3 technical skills for testing
-      profile.technical_skills.slice(0, 3).forEach((skill: any) => {
+      } else if (skill.proficiency < 2) {
+        // Skills not in position requirements but low proficiency
         skillGaps.push({
           skill_name: skill.skill_name,
-          gap_severity: 'moderate',
-          current_level: skill.proficiency_level || 3,
-          required_level: 5,
-          skill_type: 'technical'
+          gap_severity: skill.proficiency === 0 ? 'moderate' : 'minor',
+          current_level: skill.proficiency,
+          required_level: 2,
+          skill_type: 'general'
         })
+      }
+    })
+    
+    // Also check for missing mandatory skills
+    requiredSkillsMap.forEach((requirement, skillName) => {
+      if (requirement.is_mandatory) {
+        const hasSkill = employeeSkills.some((s: any) => 
+          s.skill_name.toLowerCase() === skillName
+        )
+        if (!hasSkill) {
+          skillGaps.push({
+            skill_name: skillName.split(' ').map((w: string) => 
+              w.charAt(0).toUpperCase() + w.slice(1)
+            ).join(' '),
+            gap_severity: 'critical',
+            current_level: 0,
+            required_level: requirement.required_level,
+            skill_type: 'required'
+          })
+        }
+      }
+    })
+    
+    // If no gaps found, create some development opportunities
+    if (skillGaps.length === 0 && employeeSkills.length > 0) {
+      // Create development opportunities for skills that could be improved
+      employeeSkills.slice(0, 3).forEach((skill: any) => {
+        if (skill.proficiency < 3) {
+          skillGaps.push({
+            skill_name: skill.skill_name,
+            gap_severity: 'minor',
+            current_level: skill.proficiency,
+            required_level: Math.min(skill.proficiency + 1, 3),
+            skill_type: 'development'
+          })
+        }
       })
     }
 
@@ -164,19 +276,16 @@ serve(async (req) => {
       .filter(g => g.gap_severity !== 'minor')
       .slice(0, 7)
 
-    const coursePlan = {
+    // Prepare course metadata for the agent pipeline
+    // This data can be sent to the pipeline if needed
+    const courseMetadata = {
       course_title: `${employee.position} Skills Development Program`,
       employee_name: employee.users?.full_name || 'Employee',
       current_role: employee.position,
       career_goal: employee.career_goal || `Senior ${employee.position}`,
-      key_tools: priorityGaps.map(g => g.skill_name).slice(0, 5),
-      personalization_level: 'advanced',
+      key_skills: priorityGaps.map(g => g.skill_name).slice(0, 5),
       priority_level: skillGaps.some(g => g.gap_severity === 'critical') ? 'high' : 'medium',
-      learning_objectives: priorityGaps.map(gap => ({
-        skill: gap.skill_name,
-        from_level: gap.current_level,
-        to_level: gap.required_level,
-      })),
+      skills_gaps: priorityGaps
     }
 
     // Phase 4: Call the Agent Pipeline
@@ -191,7 +300,10 @@ serve(async (req) => {
       company_id,
       assigned_by_id,
       job_id,
-      generation_mode
+      generation_mode,
+      plan_id,  // Pass plan_id for tracking and remaining_modules mode
+      course_metadata: courseMetadata,
+      skills_gaps: priorityGaps
     }
 
     // Call the agent pipeline API
@@ -229,6 +341,54 @@ serve(async (req) => {
       successful_courses: 1
     })
 
+    // Update cm_course_plans based on generation mode
+    if ((generation_mode === 'full' || generation_mode === 'remaining_modules') && plan_id) {
+      await supabase
+        .from('cm_course_plans')
+        .update({
+          full_course_generated_at: new Date().toISOString(),
+          metadata: {
+            content_id: content_id,
+            assignment_id: assignment_id,
+            generation_completed: true,
+            generation_mode: generation_mode
+          }
+        })
+        .eq('plan_id', plan_id)
+        
+      console.log(`Updated course plan ${plan_id} with full generation timestamp (mode: ${generation_mode})`)
+    }
+    
+    // Also check if there's a plan for this employee without plan_id
+    // (for backward compatibility with existing flows)
+    if (generation_mode === 'full' && !plan_id) {
+      const { data: existingPlan } = await supabase
+        .from('cm_course_plans')
+        .select('plan_id')
+        .eq('employee_id', employee_id)
+        .eq('status', 'completed')
+        .is('full_course_generated_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      if (existingPlan) {
+        await supabase
+          .from('cm_course_plans')
+          .update({
+            full_course_generated_at: new Date().toISOString(),
+            metadata: {
+              content_id: content_id,
+              assignment_id: assignment_id,
+              generation_completed: true
+            }
+          })
+          .eq('plan_id', existingPlan.plan_id)
+          
+        console.log(`Updated course plan ${existingPlan.plan_id} with full generation timestamp (auto-detected)`)
+      }
+    }
+
     // Return success response with pipeline results
     return new Response(
       JSON.stringify({
@@ -240,6 +400,7 @@ serve(async (req) => {
         module_count: generation_mode === 'first_module' ? 1 : (pipelineResult.total_modules || 1),
         generation_mode,
         is_partial_generation: generation_mode === 'first_module',
+        is_completion: generation_mode === 'remaining_modules',
         token_savings: pipelineResult.token_savings,
         processing_time: pipelineResult.total_processing_time
       }),

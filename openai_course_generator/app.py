@@ -39,17 +39,23 @@ logger.info("✅ Sentry initialized with profiling enabled")
 
 # Import our pipeline with detailed error reporting
 generate_course_with_agents = None
+resume_course_generation = None
 pipeline_import_error = None
 
 try:
-    from lxera_database_pipeline import generate_course_with_agents
+    from lxera_database_pipeline import generate_course_with_agents, resume_course_generation
     logger.info("Successfully imported LXERA agent pipeline")
 except ImportError as e:
     pipeline_import_error = f"Import error: {str(e)}"
     logger.error(f"Failed to import pipeline: {e}")
+    # Set to None if import fails
+    generate_course_with_agents = None
+    resume_course_generation = None
 except Exception as e:
     pipeline_import_error = f"Pipeline initialization error: {str(e)}"
     logger.error(f"Pipeline initialization failed: {e}")
+    generate_course_with_agents = None
+    resume_course_generation = None
 
 # Create Flask app
 app = Flask(__name__)
@@ -116,7 +122,8 @@ def generate_course():
                 company_id=data['company_id'],
                 assigned_by_id=data['assigned_by_id'],
                 job_id=data.get('job_id'),
-                generation_mode=data.get('generation_mode', 'full')
+                generation_mode=data.get('generation_mode', 'full'),
+                plan_id=data.get('plan_id')  # Pass plan_id for remaining_modules mode
             )
         )
         

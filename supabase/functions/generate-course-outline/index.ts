@@ -49,7 +49,6 @@ interface CourseOutline {
 interface ProfileAnalysis {
   work_experience: any
   education: any
-  current_work: any
   challenges: string[]
   growth_areas: string[]
   skills: any[]
@@ -61,9 +60,6 @@ interface CourseGenerationContext {
   position: string
   department: string
   experience_level: string
-  current_projects: string[]
-  team_size: string
-  role_in_team: string
   top_skills: string[]
   professional_challenges: string[]
   growth_priorities: string[]
@@ -84,6 +80,7 @@ serve(async (req) => {
   try {
     const requestBody = await req.json()
     employee_id = requestBody.employee_id
+    const use_agent_pipeline = requestBody.use_agent_pipeline || false
 
     if (!employee_id) {
       const context: ErrorLogContext = { requestId, functionName }
@@ -193,7 +190,6 @@ serve(async (req) => {
     const profileAnalysis: ProfileAnalysis = {
       work_experience: sections?.find(s => s.section_name === 'work_experience')?.data || {},
       education: sections?.find(s => s.section_name === 'education')?.data || {},
-      current_work: sections?.find(s => s.section_name === 'current_work')?.data || {},
       challenges: sections?.find(s => s.section_name === 'daily_tasks')?.data?.challenges || [],
       growth_areas: sections?.find(s => s.section_name === 'tools_technologies')?.data?.growthAreas || [],
       skills: employee.st_employee_skills_profile?.extracted_skills || [],
@@ -201,13 +197,13 @@ serve(async (req) => {
     }
 
     // Verify minimum profile completeness (critical sections)
-    const requiredSections = ['work_experience', 'current_work', 'daily_tasks', 'tools_technologies']
+    const requiredSections = ['work_experience', 'daily_tasks', 'tools_technologies']
     const completedSections = sections.filter(s => s.is_complete && requiredSections.includes(s.section_name))
     
-    if (completedSections.length < 3) {
+    if (completedSections.length < 2) {
       const context: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
       return createErrorResponse(
-        new Error('Insufficient profile data - please complete at least work experience, current work, and professional challenges'),
+        new Error('Insufficient profile data - please complete at least work experience and professional challenges'),
         context,
         400
       )
@@ -221,11 +217,6 @@ serve(async (req) => {
       position: employee.st_company_positions?.position_title || employee.position || 'Professional',
       department: employee.st_company_positions?.department || employee.department || 'General',
       experience_level: profileAnalysis.experience_level,
-      current_projects: Array.isArray(profileAnalysis.current_work.projects) ? 
-        profileAnalysis.current_work.projects : 
-        (profileAnalysis.current_work.projects ? [profileAnalysis.current_work.projects] : []),
-      team_size: profileAnalysis.current_work.teamSize || 'Unknown',
-      role_in_team: profileAnalysis.current_work.role || 'Individual Contributor',
       top_skills: profileAnalysis.skills.slice(0, 10).map((s: any) => s.skill_name || s.name || s),
       professional_challenges: Array.isArray(profileAnalysis.challenges) ? 
         profileAnalysis.challenges : 
@@ -238,6 +229,91 @@ serve(async (req) => {
     }
     
     console.log(`[${requestId}] Context prepared for ${context.employee_name} (${context.experience_level})`)
+
+    // If use_agent_pipeline is true, call the agent pipeline with outline_only mode
+    if (use_agent_pipeline) {
+      console.log(`[${requestId}] Using agent pipeline for outline generation`)
+      
+      const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'https://lxera-agent-pipeline.onrender.com/api/generate-course'
+      
+      const pipelineRequest = {
+        employee_id,
+        company_id: employee.company_id,
+        assigned_by_id: employee.user_id || employee_id, // Use employee's user_id or employee_id as fallback
+        generation_mode: 'outline_only'
+      }
+      
+      console.log(`[${requestId}] Calling agent pipeline with outline_only mode`)
+      
+      const pipelineResponse = await fetch(agentPipelineUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pipelineRequest)
+      })
+      
+      if (!pipelineResponse.ok) {
+        const errorText = await pipelineResponse.text()
+        console.error(`[${requestId}] Agent pipeline failed:`, errorText)
+        throw new Error(`Agent pipeline failed: ${errorText}`)
+      }
+      
+      const pipelineResult = await pipelineResponse.json()
+      
+      if (!pipelineResult.pipeline_success) {
+        throw new Error(pipelineResult.error || 'Agent pipeline execution failed')
+      }
+      
+      const planId = pipelineResult.plan_id
+      
+      if (!planId) {
+        throw new Error('No plan_id returned from agent pipeline')
+      }
+      
+      console.log(`[${requestId}] Agent pipeline completed with plan_id: ${planId}`)
+      
+      // Fetch the generated outline from the database
+      const { data: coursePlan, error: planError } = await supabase
+        .from('cm_course_plans')
+        .select('course_structure, course_title, course_duration_weeks, total_modules')
+        .eq('plan_id', planId)
+        .single()
+      
+      if (planError || !coursePlan) {
+        throw new Error(`Failed to fetch course plan: ${planError?.message || 'Plan not found'}`)
+      }
+      
+      // Return success response with outline from agent pipeline
+      const successResponse = {
+        success: true,
+        request_id: requestId,
+        plan_id: planId,
+        course_outline: coursePlan.course_structure,
+        source: 'agent_pipeline',
+        reward_message: {
+          title: "🎉 Course Outline Generated Successfully!",
+          description: `Congratulations ${context.employee_name}! Your personalized "${coursePlan.course_title}" course outline is ready.`,
+          highlights: [
+            `${coursePlan.total_modules} personalized modules`,
+            `${coursePlan.course_duration_weeks} weeks duration`,
+            `Generated by AI agents`,
+            `Direct application to your ${context.position} role`
+          ]
+        }
+      }
+      
+      return new Response(
+        JSON.stringify(successResponse),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-Request-ID': requestId
+          } 
+        }
+      )
+    }
 
     // Calculate personalization factors for advanced course customization
     const personalizationFactors = {
@@ -273,10 +349,8 @@ LEARNER PROFILE ANALYSIS:
 - Current Role: ${context.position}
 - Department: ${context.department}
 - Experience Level: ${context.experience_level}
-- Team Context: ${context.role_in_team} in a ${context.team_size} team
 - Skills Match Score: ${context.skills_match_score}%
 - Current Expertise: ${context.top_skills.slice(0, 5).join(', ')}
-- Active Projects: ${context.current_projects.slice(0, 3).join(', ')}
 
 PERSONALIZATION MAPPING:
 1. PROFESSIONAL CHALLENGES (Pain Points to Solve):
@@ -336,7 +410,7 @@ REQUIRED OUTPUT FORMAT (JSON):
       ],
       "key_topics": [
         "Topic directly related to their ${context.position} role",
-        "Application to their current project: ${context.current_projects[0] || 'daily work'}",
+        "Application to their daily work",
         "Building on their strength in ${context.top_skills[0] || 'existing skills'}"
       ],
       "difficulty_level": "beginner"
@@ -455,10 +529,11 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
 
     // Store the course outline in the existing cm_course_plans table
     console.log(`[${requestId}] Storing course outline in cm_course_plans table...`)
+    const planId = globalThis.crypto.randomUUID()
     const { error: storeError } = await supabase
       .from('cm_course_plans')
       .insert({
-        plan_id: globalThis.crypto.randomUUID(),
+        plan_id: planId,
         employee_id,
         employee_name: context.employee_name,
         session_id: `reward-${requestId}`,
@@ -512,6 +587,7 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
     const successResponse = {
       success: true,
       request_id: requestId,
+      plan_id: planId, // Include plan_id for tracking
       course_outline: {
         ...enhancedCourseOutline,
         total_duration_hours: totalHours,

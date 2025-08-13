@@ -19,7 +19,6 @@ import WorkExperienceForm from './chat/WorkExperienceForm';
 import EducationForm from './chat/EducationForm';
 import SkillsSelector from './chat/SkillsSelector';
 import MultiSelectCards from './chat/MultiSelectCards';
-import CurrentProjectsForm from './chat/CurrentProjectsForm';
 import CertificationsForm from './chat/CertificationsForm';
 import LanguagesForm from './chat/LanguagesForm';
 import ProfileSidebar from './ProfileSidebar';
@@ -39,7 +38,6 @@ const STEPS = [
   { id: 'certifications', title: 'Certifications' },
   { id: 'languages', title: 'Languages' },
   { id: 'skills', title: 'Skills Review' },
-  { id: 'current_work', title: 'Current Projects' },
   { id: 'daily_tasks', title: 'Professional Challenges' },
   { id: 'tools_technologies', title: 'Growth Opportunities' },
   { id: 'profile_verification', title: 'Profile Verification' }
@@ -256,7 +254,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       
       // Validate stepId is a valid section name
       const validSectionNames = ['cv_upload', 'basic_info', 'work_experience', 'education', 'skills', 
-        'certifications', 'languages', 'projects', 'current_work', 'daily_tasks', 'tools_technologies'];
+        'certifications', 'languages', 'projects', 'daily_tasks', 'tools_technologies'];
       if (!stepId || !validSectionNames.includes(stepId)) {
         console.error('Invalid section name:', stepId);
         return;
@@ -744,15 +742,13 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       case 'skills':
         // Can proceed if we have CV extracted skills OR manual skills
         return hasExtractedSkills() || (stepData?.skills?.length > 0);
-      case 'current_work':
-        return stepData?.projects?.length > 0;
       case 'daily_tasks':
         return stepData?.selected?.length > 0;
       case 'tools_technologies':
         return stepData?.selected?.length > 0;
       case 'profile_verification':
         // For the final step, ensure all previous steps are completed
-        const requiredSteps = ['work_experience', 'education', 'skills', 'current_work', 'daily_tasks', 'tools_technologies'];
+        const requiredSteps = ['work_experience', 'education', 'skills', 'daily_tasks', 'tools_technologies'];
         for (const step of requiredSteps) {
           const data = formData[step];
           switch (step) {
@@ -764,9 +760,6 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
               break;
             case 'skills':
               if (!hasExtractedSkills() && (!data?.skills || data.skills.length === 0)) return false;
-              break;
-            case 'current_work':
-              if (!data?.projects || data.projects.length === 0) return false;
               break;
             case 'daily_tasks':
             case 'tools_technologies':
@@ -1005,21 +998,13 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           />
         );
 
-      case 'current_work':
-        return (
-          <CurrentProjectsForm
-            initialData={formData.current_work || {}}
-            onComplete={(data) => updateStepData('current_work', data)}
-          />
-        );
-
       case 'daily_tasks':
         // Load suggestions when reaching this step
         if (personalizedSuggestions.challenges.length === 0 && !loadingSuggestions) {
           loadPersonalizedSuggestions({
-            currentProjects: formData.current_work?.projects || [],
-            teamSize: formData.current_work?.teamSize || 'Unknown',
-            roleInTeam: formData.current_work?.roleInTeam || 'Unknown'
+            currentProjects: [],
+            teamSize: 'Unknown',
+            roleInTeam: 'Unknown'
           });
         }
 
@@ -1081,16 +1066,6 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         // Extract technologies from projects and CV
         const extractTechnologies = () => {
           const techs = new Set<string>();
-          // From current projects
-          if (formData.current_work?.projects) {
-            formData.current_work.projects.forEach((project: string) => {
-              // Simple extraction of common tech keywords
-              const techKeywords = project.match(/\b(React|Node|Python|Java|AWS|Docker|Kubernetes|SQL|MongoDB|Redis|TypeScript|JavaScript|Vue|Angular|GraphQL|REST|API|CI\/CD|Git)\b/gi);
-              if (techKeywords) {
-                techKeywords.forEach(tech => techs.add(tech));
-              }
-            });
-          }
           // From CV extracted skills
           if (cvExtractedData?.skills) {
             cvExtractedData.skills.forEach((skill: any) => {
@@ -1121,15 +1096,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         const employeeContext = {
           // Basic info
           years_experience: formData.work_experience?.length || 0,
-          current_projects: formData.current_work?.projects || [],
           daily_challenges: formData.daily_tasks?.selected || [],
           education_level: formData.education?.[0]?.degree || 'Not specified',
           work_experience: formData.work_experience || [],
           
           // Enhanced context
           total_years_in_field: calculateTotalYears(),
-          team_size: formData.current_work?.teamSize || 'Not specified',
-          role_in_team: formData.current_work?.roleInTeam || 'Not specified',
           recent_technologies: extractTechnologies(),
           certifications: formData.certifications?.map((cert: any) => cert.name) || [],
           previous_positions: getPreviousPositions(),

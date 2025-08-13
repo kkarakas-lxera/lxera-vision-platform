@@ -42,7 +42,8 @@ class LXERADatabasePipeline:
         company_id: str,
         assigned_by_id: str,
         job_id: Optional[str] = None,
-        generation_mode: str = 'full'
+        generation_mode: str = 'full',
+        plan_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Generate a personalized course for an employee using their existing skills gap analysis.
@@ -52,9 +53,10 @@ class LXERADatabasePipeline:
             company_id: Company ID
             assigned_by_id: User ID who initiated the generation
             job_id: Optional job tracking ID
+            generation_mode: 'full', 'first_module', 'remaining_modules', or 'outline_only'
             
         Returns:
-            Dict containing content_id and pipeline results
+            Dict containing content_id and pipeline results (or plan_id for outline_only)
         """
         try:
             # Update job progress if tracking
@@ -84,16 +86,26 @@ class LXERADatabasePipeline:
                     'progress_percentage': 30
                 })
             
-            # Run the complete agentic pipeline with skills gaps using new SDK
-            pipeline_result = await self._run_sdk_pipeline(
-                employee_data,
-                skills_gaps,
-                job_id,
-                generation_mode
-            )
+            # Check if this is outline_only mode - just run planning agent
+            if generation_mode == 'outline_only':
+                logger.info("📝 Outline-only mode: Running Planning Agent only")
+                pipeline_result = await self._run_planning_only_pipeline(
+                    employee_data,
+                    skills_gaps,
+                    job_id
+                )
+            else:
+                # Run the complete agentic pipeline with skills gaps using new SDK
+                pipeline_result = await self._run_sdk_pipeline(
+                    employee_data,
+                    skills_gaps,
+                    job_id,
+                    generation_mode,
+                    existing_plan_id=plan_id  # Pass the plan_id if available
+                )
             
-            # If successful, create course assignment
-            if pipeline_result.get('pipeline_success') and pipeline_result.get('content_id'):
+            # If successful, create course assignment (not for outline_only)
+            if generation_mode != 'outline_only' and pipeline_result.get('pipeline_success') and pipeline_result.get('content_id'):
                 assignment_id = await self._create_course_assignment(
                     employee_id,
                     pipeline_result['content_id'],
@@ -106,10 +118,12 @@ class LXERADatabasePipeline:
             
             # Final job update
             if job_id:
-                completion_message = (
-                    'First module generated - course preview ready' if generation_mode == 'first_module' 
-                    else 'Course generation complete'
-                )
+                if generation_mode == 'outline_only':
+                    completion_message = 'Course outline generated successfully'
+                elif generation_mode == 'first_module':
+                    completion_message = 'First module generated - course preview ready'
+                else:
+                    completion_message = 'Course generation complete'
                 await self._update_job_progress(job_id, {
                     'current_phase': completion_message,
                     'progress_percentage': 100,
@@ -134,7 +148,8 @@ class LXERADatabasePipeline:
         employee_data: Dict[str, Any],
         skills_gaps: List[Dict[str, Any]],
         job_id: Optional[str] = None,
-        generation_mode: str = 'full'
+        generation_mode: str = 'full',
+        existing_plan_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Run the course generation pipeline using OpenAI SDK with automated agent handoffs.
@@ -142,66 +157,78 @@ class LXERADatabasePipeline:
         try:
             logger.info("🚀 Starting SDK-based course generation pipeline")
             
-            # Update job progress
-            if job_id:
-                await self._update_job_progress(job_id, {
-                    'current_phase': 'Running Planning Agent',
-                    'progress_percentage': 40
-                })
-            
-            # Phase 1: Planning Agent
-            from course_agents.planning_agent import create_planning_agent
-            planning_agent = create_planning_agent()
-            
-            planning_message = f"""
-            Create a comprehensive personalized course plan for {employee_data['full_name']}.
-            
-            EMPLOYEE PROFILE:
-            {json.dumps(employee_data, indent=2)}
-            
-            SKILLS GAP ANALYSIS:
-            {json.dumps(skills_gaps, indent=2)}
-            
-            Execute the 6-step planning workflow:
-            1. analyze_employee_profile
-            2. prioritize_skill_gaps  
-            3. generate_course_structure_plan
-            4. generate_research_queries
-            5. create_personalized_learning_path
-            6. store_course_plan
-            
-            Complete these steps and store the final course plan.
-            """
-            
-            # Update job progress for planning phase (adjust for generation mode)
-            if job_id:
-                planning_progress = 30 if generation_mode == 'full' else 15  # Planning takes less % in partial mode
-                await self._update_job_progress(job_id, {
-                    'current_phase': 'Planning Phase: Creating personalized course structure',
-                    'progress_percentage': planning_progress,
-                    'generation_mode': generation_mode
-                })
-            
-            plan_id = None
-            with trace("planning_phase"):
-                planning_result = await Runner.run(
-                    planning_agent,
-                    planning_message,
-                    max_turns=8  # Reduced limit - 6 steps + 2 for final response
-                )
-            
-            # Extract plan_id from planning result
-            plan_id = self._extract_plan_id(planning_result)
+            # Check if we should skip planning phase (for first_module with existing plan)
+            plan_id = existing_plan_id
             
             if not plan_id:
-                logger.error("❌ Planning phase failed - no plan_id found")
-                return {
-                    'pipeline_success': False,
-                    'error': 'Planning phase failed to produce a course plan',
-                    'content_id': None
-                }
-            
-            logger.info(f"✅ Planning phase completed with plan_id: {plan_id}")
+                # No existing plan, run Planning Agent
+                # Update job progress
+                if job_id:
+                    await self._update_job_progress(job_id, {
+                        'current_phase': 'Running Planning Agent',
+                        'progress_percentage': 40
+                    })
+                
+                # Phase 1: Planning Agent
+                from course_agents.planning_agent import create_planning_agent
+                planning_agent = create_planning_agent()
+                
+                planning_message = f"""
+                Create a comprehensive personalized course plan for {employee_data['full_name']}.
+                
+                EMPLOYEE PROFILE:
+                {json.dumps(employee_data, indent=2)}
+                
+                SKILLS GAP ANALYSIS:
+                {json.dumps(skills_gaps, indent=2)}
+                
+                Execute the 6-step planning workflow:
+                1. analyze_employee_profile
+                2. prioritize_skill_gaps  
+                3. generate_course_structure_plan
+                4. generate_research_queries
+                5. create_personalized_learning_path
+                6. store_course_plan
+                
+                Complete these steps and store the final course plan.
+                """
+                
+                # Update job progress for planning phase (adjust for generation mode)
+                if job_id:
+                    planning_progress = 30 if generation_mode == 'full' else 15  # Planning takes less % in partial mode
+                    await self._update_job_progress(job_id, {
+                        'current_phase': 'Planning Phase: Creating personalized course structure',
+                        'progress_percentage': planning_progress,
+                        'generation_mode': generation_mode
+                    })
+                
+                with trace("planning_phase"):
+                    planning_result = await Runner.run(
+                        planning_agent,
+                        planning_message,
+                        max_turns=8  # Reduced limit - 6 steps + 2 for final response
+                    )
+                
+                # Extract plan_id from planning result
+                plan_id = self._extract_plan_id(planning_result)
+                
+                if not plan_id:
+                    logger.error("❌ Planning phase failed - no plan_id found")
+                    return {
+                        'pipeline_success': False,
+                        'error': 'Planning phase failed to produce a course plan',
+                        'content_id': None
+                    }
+                
+                logger.info(f"✅ Planning phase completed with plan_id: {plan_id}")
+            else:
+                logger.info(f"✅ Using existing plan_id: {plan_id} (skipping Planning Agent)")
+                if job_id:
+                    await self._update_job_progress(job_id, {
+                        'current_phase': 'Using existing course plan',
+                        'progress_percentage': 30,
+                        'generation_mode': generation_mode
+                    })
             
             # Phase 2: Enhanced Research Agent
             if job_id:
@@ -441,6 +468,110 @@ class LXERADatabasePipeline:
                 'pipeline_success': False,
                 'error': str(e),
                 'content_id': None
+            }
+    
+    async def _run_planning_only_pipeline(
+        self,
+        employee_data: Dict[str, Any],
+        skills_gaps: List[Dict[str, Any]],
+        job_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Run only the Planning Agent to generate a course outline.
+        This is used for the outline_only generation mode.
+        
+        Args:
+            employee_data: Employee profile data
+            skills_gaps: List of skills gaps
+            job_id: Optional job tracking ID
+            
+        Returns:
+            Dict containing plan_id and pipeline results
+        """
+        try:
+            logger.info("🎯 Starting Planning-Only Pipeline (Outline Generation)")
+            
+            # Update job progress
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Planning Phase: Creating personalized course outline',
+                    'progress_percentage': 40,
+                    'generation_mode': 'outline_only'
+                })
+            
+            # Phase 1: Planning Agent Only
+            from course_agents.planning_agent import create_planning_agent
+            planning_agent = create_planning_agent()
+            
+            planning_message = f"""
+            Create a comprehensive personalized course plan for {employee_data['full_name']}.
+            
+            EMPLOYEE PROFILE:
+            {json.dumps(employee_data, indent=2)}
+            
+            SKILLS GAP ANALYSIS:
+            {json.dumps(skills_gaps, indent=2)}
+            
+            Execute the 6-step planning workflow:
+            1. analyze_employee_profile
+            2. prioritize_skill_gaps  
+            3. generate_course_structure_plan
+            4. generate_research_queries
+            5. create_personalized_learning_path
+            6. store_course_plan
+            
+            Complete these steps and store the final course plan.
+            """
+            
+            # Run planning agent
+            with trace("planning_phase_outline_only"):
+                planning_result = await Runner.run(
+                    planning_agent,
+                    planning_message,
+                    max_turns=8  # 6 steps + 2 for final response
+                )
+            
+            # Extract plan_id from planning result
+            plan_id = self._extract_plan_id(planning_result)
+            
+            if not plan_id:
+                logger.error("❌ Planning phase failed - no plan_id found")
+                return {
+                    'pipeline_success': False,
+                    'error': 'Planning phase failed to produce a course plan',
+                    'content_id': None
+                }
+            
+            logger.info(f"✅ Planning phase completed with plan_id: {plan_id}")
+            
+            # Update job progress to complete
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Course outline generated successfully',
+                    'progress_percentage': 100,
+                    'generation_mode': 'outline_only'
+                })
+            
+            # Return success with plan_id (no content_id for outline_only)
+            return {
+                'pipeline_success': True,
+                'generation_mode': 'outline_only',
+                'plan_id': plan_id,
+                'content_id': None,  # No content generated yet
+                'agent_result': f"Course outline generated successfully with plan_id: {plan_id}",
+                'agent_name': 'planning_agent',
+                'sdk_handoffs': False,  # Only one agent ran
+                'modules_generated': 0,  # No modules generated yet
+                'is_outline_only': True
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Planning-Only Pipeline failed: {e}")
+            return {
+                'pipeline_success': False,
+                'error': str(e),
+                'content_id': None,
+                'plan_id': None
             }
     
     def _extract_content_id(self, result) -> str:
@@ -1048,7 +1179,8 @@ async def generate_course_with_agents(
     company_id: str,
     assigned_by_id: str,
     job_id: Optional[str] = None,
-    generation_mode: str = 'full'
+    generation_mode: str = 'full',
+    plan_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Generate a course using the full agent pipeline with database integration.
@@ -1058,17 +1190,57 @@ async def generate_course_with_agents(
         company_id: Company ID
         assigned_by_id: User ID who initiated the generation
         job_id: Optional job tracking ID
-        generation_mode: 'full' for complete course, 'first_module' for partial generation
+        generation_mode: 'full' for complete course, 'first_module' for partial, 'remaining_modules' for completion
+        plan_id: Required for 'remaining_modules' mode to identify which course to complete
     
     This is the main entry point for the edge function to call.
     """
     pipeline = LXERADatabasePipeline()
+    
+    # Handle remaining_modules mode by calling resume function
+    if generation_mode == 'remaining_modules':
+        if not plan_id:
+            # Try to find the most recent plan for this employee
+            from supabase import create_client
+            import os
+            
+            supabase = create_client(
+                os.getenv('SUPABASE_URL'),
+                os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+            )
+            result = supabase.table('cm_course_plans').select('plan_id').eq(
+                'employee_id', employee_id
+            ).eq('status', 'completed').is_(
+                'full_course_generated_at', 'null'
+            ).order('created_at', {'ascending': False}).limit(1).execute()
+            
+            if result.data and len(result.data) > 0:
+                plan_id = result.data[0]['plan_id']
+                logger.info(f"Found plan_id {plan_id} for employee {employee_id}")
+            else:
+                raise Exception(f"No partial course plan found for employee {employee_id}")
+        
+        logger.info(f"Resuming course generation for plan {plan_id} with remaining modules")
+        return await pipeline.resume_course_generation(
+            plan_id,
+            employee_id,
+            company_id,
+            assigned_by_id,
+            job_id
+        )
+    
+    # For first_module mode with existing plan_id, or any mode that passes plan_id
+    if plan_id:
+        logger.info(f"Generation with existing plan_id: {plan_id} (mode: {generation_mode})")
+    
+    # Call the main pipeline with plan_id (if available)
     return await pipeline.generate_course_for_employee(
         employee_id,
         company_id,
         assigned_by_id,
         job_id,
-        generation_mode
+        generation_mode,
+        plan_id  # Pass the plan_id if available
     )
 
 async def resume_course_generation(
