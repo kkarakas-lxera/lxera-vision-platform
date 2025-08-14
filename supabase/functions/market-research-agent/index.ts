@@ -499,6 +499,62 @@ async function executeScraping(
   };
 }
 
+// Skill normalization function
+function normalizeSkill(skill: string): string {
+  if (!skill || typeof skill !== 'string') return skill;
+  
+  // Convert to lowercase and trim
+  let normalized = skill.toLowerCase().trim();
+  
+  // Handle plurals and variations
+  const skillMappings: Record<string, string> = {
+    'communications': 'communication',
+    'leaderships': 'leadership',
+    'managements': 'management',
+    'marketings': 'marketing',
+    'brand managements': 'brand management',
+    'problem solvings': 'problem-solving',
+    'problem solving': 'problem-solving',
+    'team work': 'teamwork',
+    'team-work': 'teamwork',
+    'project managements': 'project management',
+    'data analysis': 'data analytics',
+    'customer service': 'customer support',
+    'sales and marketing': 'sales',
+    'digital marketing': 'digital marketing'
+  };
+  
+  // Apply mappings
+  if (skillMappings[normalized]) {
+    normalized = skillMappings[normalized];
+  }
+  
+  // Capitalize first letter for display
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+// Skill categorization function
+function categorizeSkill(skill: string): string {
+  const normalizedSkill = skill.toLowerCase();
+  
+  const categories = {
+    'Core Marketing': ['marketing', 'brand management', 'digital marketing', 'content marketing', 'social media marketing', 'email marketing', 'seo', 'sem', 'advertising'],
+    'Leadership & Management': ['leadership', 'management', 'team management', 'project management', 'people management', 'strategic planning'],
+    'Communication': ['communication', 'presentation', 'public speaking', 'writing', 'storytelling', 'negotiation'],
+    'Technical Skills': ['analytics', 'data analysis', 'crm', 'marketing automation', 'html', 'css', 'javascript', 'sql'],
+    'Soft Skills': ['problem-solving', 'teamwork', 'creativity', 'critical thinking', 'adaptability', 'time management'],
+    'Sales & Business': ['sales', 'business development', 'customer support', 'relationship building', 'account management']
+  };
+  
+  for (const [category, skills] of Object.entries(categories)) {
+    if (skills.some(s => normalizedSkill.includes(s) || s.includes(normalizedSkill))) {
+      return category;
+    }
+  }
+  
+  return 'Other Skills';
+}
+
 async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<any> {
   console.log('[Market Research Agent] Analyzing skill trends and combinations...');
   
@@ -510,34 +566,36 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   jobData.forEach((job: any) => {
     const jobSkills = job.skills || [];
     
-    // Count skill frequency
+    // Normalize and count skill frequency
     jobSkills.forEach((skill: string) => {
-      skillFrequency[skill] = (skillFrequency[skill] || 0) + 1;
+      const normalizedSkill = normalizeSkill(skill);
+      skillFrequency[normalizedSkill] = (skillFrequency[normalizedSkill] || 0) + 1;
       
-      // Track skills by experience level
+      // Track skills by experience level (using normalized skill)
       const expLevel = job.experience_level || 'Not specified';
       if (!skillsByExperience[expLevel]) {
         skillsByExperience[expLevel] = {};
       }
-      skillsByExperience[expLevel][skill] = (skillsByExperience[expLevel][skill] || 0) + 1;
+      skillsByExperience[expLevel][normalizedSkill] = (skillsByExperience[expLevel][normalizedSkill] || 0) + 1;
     });
     
-    // Analyze skill combinations (pairs and triads)
-    if (jobSkills.length > 1) {
+    // Analyze skill combinations (pairs and triads) using normalized skills
+    const normalizedJobSkills = jobSkills.map((skill: string) => normalizeSkill(skill));
+    if (normalizedJobSkills.length > 1) {
       // Two-skill combinations
-      for (let i = 0; i < jobSkills.length; i++) {
-        for (let j = i + 1; j < jobSkills.length; j++) {
-          const combo = [jobSkills[i], jobSkills[j]].sort().join(' + ');
+      for (let i = 0; i < normalizedJobSkills.length; i++) {
+        for (let j = i + 1; j < normalizedJobSkills.length; j++) {
+          const combo = [normalizedJobSkills[i], normalizedJobSkills[j]].sort().join(' + ');
           skillCombinations[combo] = (skillCombinations[combo] || 0) + 1;
         }
       }
       
       // Three-skill combinations (for comprehensive patterns)
-      if (jobSkills.length > 2) {
-        for (let i = 0; i < jobSkills.length; i++) {
-          for (let j = i + 1; j < jobSkills.length; j++) {
-            for (let k = j + 1; k < jobSkills.length; k++) {
-              const trio = [jobSkills[i], jobSkills[j], jobSkills[k]].sort().join(' + ');
+      if (normalizedJobSkills.length > 2) {
+        for (let i = 0; i < normalizedJobSkills.length; i++) {
+          for (let j = i + 1; j < normalizedJobSkills.length; j++) {
+            for (let k = j + 1; k < normalizedJobSkills.length; k++) {
+              const trio = [normalizedJobSkills[i], normalizedJobSkills[j], normalizedJobSkills[k]].sort().join(' + ');
               skillCombinations[trio] = (skillCombinations[trio] || 0) + 1;
             }
           }
@@ -551,15 +609,34 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
     }
   });
   
-  // Sort skills by frequency
+  // Sort skills by frequency and add categories
   const topSkills = Object.entries(skillFrequency)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 10)
+    .slice(0, 15) // Increased from 10 to show more after deduplication
     .map(([skill, count]) => ({
       skill,
       demand: count,
-      percentage: Math.round((count / jobData.length) * 100)
+      percentage: Math.round((count / jobData.length) * 100),
+      category: categorizeSkill(skill)
     }));
+  
+  // Group skills by category
+  const skillsByCategory: Record<string, any[]> = {};
+  topSkills.forEach(skill => {
+    if (!skillsByCategory[skill.category]) {
+      skillsByCategory[skill.category] = [];
+    }
+    skillsByCategory[skill.category].push(skill);
+  });
+  
+  // Calculate category totals
+  const categoryTotals = Object.entries(skillsByCategory).map(([category, skills]) => ({
+    category,
+    skills: skills.sort((a, b) => b.demand - a.demand),
+    total_demand: skills.reduce((sum, skill) => sum + skill.demand, 0),
+    total_percentage: Math.round(skills.reduce((sum, skill) => sum + skill.percentage, 0)),
+    skill_count: skills.length
+  })).sort((a, b) => b.total_percentage - a.total_percentage);
   
   // Sort skill combinations by frequency (minimum 3 occurrences for relevance)
   const topCombinations = Object.entries(skillCombinations)
@@ -576,6 +653,7 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   return {
     total_jobs_analyzed: jobData.length,
     top_skills: topSkills,
+    skills_by_category: categoryTotals,
     experience_distribution: experienceLevels,
     skill_combinations: topCombinations,
     skills_by_experience: skillsByExperience,
@@ -616,30 +694,8 @@ function comparePositionToMarket(positionRequirements: any, marketAnalysis: any)
         mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
       )
     ),
-    trending_skills_missing: marketNotInRequirements.slice(0, 5),
-    mismatch_alerts: generateMismatchAlerts(requiredSkills, marketSkills, marketNotInRequirements)
+    trending_skills_missing: marketNotInRequirements.slice(0, 5)
   };
-}
-
-function generateMismatchAlerts(requiredSkills: any[], marketSkills: any[], missingSkills: any[]): string[] {
-  const alerts = [];
-  
-  if (missingSkills.length > 2) {
-    alerts.push(`🔥 ${missingSkills.slice(0, 3).map((s: any) => s.skill).join(', ')} are in high market demand but not in your requirements`);
-  }
-  
-  const lowDemandRequired = requiredSkills.filter((reqSkill: any) => {
-    const marketSkill = marketSkills.find((mktSkill: any) => 
-      mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
-    );
-    return marketSkill && marketSkill.percentage < 10;
-  });
-  
-  if (lowDemandRequired.length > 0) {
-    alerts.push(`⚠️ ${lowDemandRequired.slice(0, 2).map((s: any) => s.skill_name).join(', ')} required but rare in market (<10%)`);
-  }
-  
-  return alerts;
 }
 
 

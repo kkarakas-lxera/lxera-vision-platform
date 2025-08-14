@@ -194,70 +194,118 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Skills Frequency Timeline */}
-      {skillTrends.top_skills && skillTrends.top_skills.length > 0 && (
+      {/* Skills Analysis by Category */}
+      {skillTrends.skills_by_category && skillTrends.skills_by_category.length > 0 ? (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Skills Demand Ranking</h2>
-          <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="space-y-3">
-              {skillTrends.top_skills.slice(0, 10).map((skill: any, index: number) => (
-                <div key={skill.skill || index} className="flex items-center gap-4">
-                  {/* Rank Number */}
-                  <div className="flex-shrink-0 w-6 text-sm font-medium text-gray-500">
-                    {index + 1}
+          <h2 className="text-lg font-semibold text-gray-900">Skills Demand Analysis</h2>
+          <div className="space-y-4">
+            {skillTrends.skills_by_category.map((categoryData: any, categoryIndex: number) => (
+              <div key={categoryData.category} className="bg-white border border-gray-100 rounded-lg p-6">
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-base font-semibold text-gray-900">{categoryData.category}</h3>
+                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                      {categoryData.total_percentage}% demand
+                    </span>
                   </div>
-                  
-                  {/* Skill Name */}
-                  <div className="flex-shrink-0 w-32 text-sm font-medium text-gray-900 truncate">
-                    {skill.skill}
+                  <div className="text-xs text-gray-500">
+                    {categoryData.skill_count} skills • {categoryData.total_demand} jobs
                   </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="flex-1 bg-gray-100 rounded-full h-6 relative min-w-0">
-                    <div 
-                      className="bg-blue-500 h-6 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${Math.max(2, skill.percentage)}%` }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-end pr-3">
-                      <span className="text-xs font-medium text-white mix-blend-difference">
-                        {skill.percentage}%
-                      </span>
+                </div>
+                
+                {/* Skills in Category */}
+                <div className="space-y-2">
+                  {categoryData.skills.map((skill: any, skillIndex: number) => (
+                    <div key={skill.skill} className="flex items-center gap-4">
+                      {/* Skill Name */}
+                      <div className="flex-shrink-0 w-40 text-sm font-medium text-gray-900 truncate">
+                        {skill.skill}
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="flex-1 bg-gray-100 rounded-full h-5 relative min-w-0">
+                        <div 
+                          className="bg-blue-500 h-5 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${Math.max(2, skill.percentage)}%` }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-end pr-2">
+                          <span className="text-xs font-medium text-white mix-blend-difference">
+                            {skill.percentage}%
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Job Count */}
+                      <div className="flex-shrink-0 w-16 text-xs text-gray-500 text-right">
+                        {skill.demand} jobs
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Fallback to old view if categories not available */
+        skillTrends.top_skills && skillTrends.top_skills.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">Skills Demand Ranking</h2>
+            <div className="bg-white border border-gray-100 rounded-lg p-6">
+              <div className="space-y-3">
+                {skillTrends.top_skills.slice(0, 10).map((skill: any, index: number) => (
+                  <div key={skill.skill || index} className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-6 text-sm font-medium text-gray-500">
+                      {index + 1}
+                    </div>
+                    <div className="flex-shrink-0 w-32 text-sm font-medium text-gray-900 truncate">
+                      {skill.skill}
+                    </div>
+                    <div className="flex-1 bg-gray-100 rounded-full h-6 relative min-w-0">
+                      <div 
+                        className="bg-blue-500 h-6 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${Math.max(2, skill.percentage)}%` }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-end pr-3">
+                        <span className="text-xs font-medium text-white mix-blend-difference">
+                          {skill.percentage}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 w-16 text-xs text-gray-500 text-right">
+                      {skill.demand} jobs
                     </div>
                   </div>
-                  
-                  {/* Job Count */}
-                  <div className="flex-shrink-0 w-16 text-xs text-gray-500 text-right">
-                    {skill.demand} jobs
+                ))}
+              </div>
+              
+              {/* Summary Stats */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {skillTrends.top_skills[0]?.percentage || 0}%
+                    </div>
+                    <div className="text-xs text-gray-600">Top Skill Demand</div>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Summary Stats */}
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {skillTrends.top_skills[0]?.percentage || 0}%
+                  <div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {Math.round(skillTrends.top_skills.slice(0, 5).reduce((sum: number, skill: any) => sum + (skill.percentage || 0), 0) / 5) || 0}%
+                    </div>
+                    <div className="text-xs text-gray-600">Top 5 Average</div>
                   </div>
-                  <div className="text-xs text-gray-600">Top Skill Demand</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {Math.round(skillTrends.top_skills.slice(0, 5).reduce((sum: number, skill: any) => sum + (skill.percentage || 0), 0) / 5) || 0}%
+                  <div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {skillTrends.top_skills.length || 0}
+                    </div>
+                    <div className="text-xs text-gray-600">Skills Identified</div>
                   </div>
-                  <div className="text-xs text-gray-600">Top 5 Average</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {skillTrends.top_skills.length || 0}
-                  </div>
-                  <div className="text-xs text-gray-600">Skills Identified</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Experience Level Donut Chart */}
