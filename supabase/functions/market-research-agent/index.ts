@@ -500,16 +500,50 @@ async function executeScraping(
 }
 
 async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<any> {
-  console.log('[Market Research Agent] Analyzing skill trends...');
+  console.log('[Market Research Agent] Analyzing skill trends and combinations...');
   
   const skillFrequency: Record<string, number> = {};
   const experienceLevels: Record<string, number> = {};
+  const skillCombinations: Record<string, number> = {};
+  const skillsByExperience: Record<string, Record<string, number>> = {};
   
   jobData.forEach((job: any) => {
+    const jobSkills = job.skills || [];
+    
     // Count skill frequency
-    (job.skills || []).forEach((skill: string) => {
+    jobSkills.forEach((skill: string) => {
       skillFrequency[skill] = (skillFrequency[skill] || 0) + 1;
+      
+      // Track skills by experience level
+      const expLevel = job.experience_level || 'Not specified';
+      if (!skillsByExperience[expLevel]) {
+        skillsByExperience[expLevel] = {};
+      }
+      skillsByExperience[expLevel][skill] = (skillsByExperience[expLevel][skill] || 0) + 1;
     });
+    
+    // Analyze skill combinations (pairs and triads)
+    if (jobSkills.length > 1) {
+      // Two-skill combinations
+      for (let i = 0; i < jobSkills.length; i++) {
+        for (let j = i + 1; j < jobSkills.length; j++) {
+          const combo = [jobSkills[i], jobSkills[j]].sort().join(' + ');
+          skillCombinations[combo] = (skillCombinations[combo] || 0) + 1;
+        }
+      }
+      
+      // Three-skill combinations (for comprehensive patterns)
+      if (jobSkills.length > 2) {
+        for (let i = 0; i < jobSkills.length; i++) {
+          for (let j = i + 1; j < jobSkills.length; j++) {
+            for (let k = j + 1; k < jobSkills.length; k++) {
+              const trio = [jobSkills[i], jobSkills[j], jobSkills[k]].sort().join(' + ');
+              skillCombinations[trio] = (skillCombinations[trio] || 0) + 1;
+            }
+          }
+        }
+      }
+    }
     
     // Count experience levels
     if (job.experience_level && job.experience_level !== 'Not specified') {
@@ -527,10 +561,24 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
       percentage: Math.round((count / jobData.length) * 100)
     }));
   
+  // Sort skill combinations by frequency (minimum 3 occurrences for relevance)
+  const topCombinations = Object.entries(skillCombinations)
+    .filter(([, count]) => count >= 3)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 8)
+    .map(([combo, count]) => ({
+      combination: combo,
+      frequency: count,
+      percentage: Math.round((count / jobData.length) * 100),
+      skills_count: combo.split(' + ').length
+    }));
+  
   return {
     total_jobs_analyzed: jobData.length,
     top_skills: topSkills,
     experience_distribution: experienceLevels,
+    skill_combinations: topCombinations,
+    skills_by_experience: skillsByExperience,
     analysis_summary: `Analyzed ${jobData.length} job postings. Top skills: ${topSkills.slice(0, 3).map(s => s.skill).join(', ')}`
   };
 }
@@ -604,12 +652,13 @@ async function generateMarketInsights(
 ): Promise<string> {
   console.log('[Market Research Agent] Generating enhanced market insights with AI...');
   
-  // Create a structured summary for AI enhancement
+  // Create a structured summary for AI enhancement including skill combinations
   const dataContext = {
     total_jobs: scrapedData.total_scraped,
     locations: locations,
     top_skills: skillAnalysis.top_skills,
     experience_distribution: skillAnalysis.experience_distribution,
+    skill_combinations: skillAnalysis.skill_combinations,
     sample_jobs: scrapedData.data.slice(0, 5)
   };
 
@@ -632,9 +681,13 @@ async function generateMarketInsights(
           role: "system",
           content: `You are a market intelligence analyst. Generate a comprehensive, actionable market report based on the provided job market data. Focus on:
         1. Key talent trends and skill gaps
-        2. Competitive landscape insights
-        3. Strategic training recommendations
-        4. Emerging technology trends
+        2. Skill combination patterns that appear together frequently in job requirements
+        3. Competitive landscape insights
+        4. Strategic training recommendations
+        5. Emerging technology trends
+        
+        IMPORTANT: Pay special attention to skill_combinations data - analyze which skills are commonly required together and what this means for talent strategy. Include insights about skill bundles that employers are seeking.
+        
         Format the response in markdown with clear sections and bullet points.`
         },
         {
