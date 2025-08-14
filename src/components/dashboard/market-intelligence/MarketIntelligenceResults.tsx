@@ -194,81 +194,67 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Skills Priority Quadrant */}
+      {/* Skills Frequency Timeline */}
       {skillTrends.top_skills && skillTrends.top_skills.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Skills Priority Matrix</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Skills Demand Ranking</h2>
           <div className="bg-white border border-gray-100 rounded-lg p-6">
-            {/* Quadrant Chart */}
-            <div className="relative w-full h-80 mb-6">
-              {/* Axis Labels */}
-              <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-gray-600 font-medium">
-                Market Demand (%)
-              </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-6 text-xs text-gray-600 font-medium">
-                Priority Level
-              </div>
-              
-              {/* Quadrant Background */}
-              <div className="relative w-full h-full border border-gray-200 rounded-lg overflow-hidden">
-                {/* Quadrant Colors */}
-                <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                  <div className="bg-yellow-50 border-r border-b border-gray-200"></div>
-                  <div className="bg-red-50 border-b border-gray-200"></div>
-                  <div className="bg-gray-50 border-r border-gray-200"></div>
-                  <div className="bg-green-50"></div>
-                </div>
-                
-                {/* Quadrant Labels */}
-                <div className="absolute top-2 left-2 text-xs font-medium text-yellow-700">DEVELOP</div>
-                <div className="absolute top-2 right-2 text-xs font-medium text-red-700">URGENT</div>
-                <div className="absolute bottom-2 left-2 text-xs font-medium text-gray-600">MAINTAIN</div>
-                <div className="absolute bottom-2 right-2 text-xs font-medium text-green-700">MONITOR</div>
-                
-                {/* Skills as dots */}
-                {skillTrends.top_skills.slice(0, 10).map((skill: any, index: number) => {
-                  // Calculate position (mock calculation for now)
-                  const x = (skill.percentage || 0); // Market demand %
-                  const y = 100 - (index * 10 + 20); // Mock priority level
+            <div className="space-y-3">
+              {skillTrends.top_skills.slice(0, 10).map((skill: any, index: number) => (
+                <div key={skill.skill || index} className="flex items-center gap-4">
+                  {/* Rank Number */}
+                  <div className="flex-shrink-0 w-6 text-sm font-medium text-gray-500">
+                    {index + 1}
+                  </div>
                   
-                  // Determine color based on quadrant
-                  const isUrgent = x > 50 && y > 50;
-                  const isDevelop = x <= 50 && y > 50;
-                  const isMonitor = x > 50 && y <= 50;
+                  {/* Skill Name */}
+                  <div className="flex-shrink-0 w-32 text-sm font-medium text-gray-900 truncate">
+                    {skill.skill}
+                  </div>
                   
-                  const dotColor = isUrgent ? 'bg-red-500' : 
-                                 isDevelop ? 'bg-yellow-500' : 
-                                 isMonitor ? 'bg-green-500' : 'bg-gray-500';
-                  
-                  return (
-                    <div
-                      key={skill.skill || index}
-                      className={`absolute w-3 h-3 rounded-full ${dotColor} border-2 border-white shadow-sm cursor-pointer hover:scale-125 transition-transform`}
-                      style={{
-                        left: `${Math.max(5, Math.min(95, x))}%`,
-                        bottom: `${Math.max(5, Math.min(95, y))}%`,
-                        transform: 'translate(-50%, 50%)'
-                      }}
-                      title={`${skill.skill}: ${skill.percentage}% demand`}
+                  {/* Progress Bar */}
+                  <div className="flex-1 bg-gray-100 rounded-full h-6 relative min-w-0">
+                    <div 
+                      className="bg-blue-500 h-6 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${Math.max(2, skill.percentage)}%` }}
                     />
-                  );
-                })}
-              </div>
-              
-              {/* Center Lines */}
-              <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-300"></div>
-              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300"></div>
-            </div>
-            
-            {/* Skills Legend */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-              {skillTrends.top_skills.slice(0, 6).map((skill: any, index: number) => (
-                <div key={skill.skill || index} className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                  <span className="text-gray-700 truncate">{skill.skill}</span>
-                  <span className="text-gray-500">({skill.percentage}%)</span>
+                    <div className="absolute inset-0 flex items-center justify-end pr-3">
+                      <span className="text-xs font-medium text-white mix-blend-difference">
+                        {skill.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Job Count */}
+                  <div className="flex-shrink-0 w-16 text-xs text-gray-500 text-right">
+                    {skill.demand} jobs
+                  </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Summary Stats */}
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {skillTrends.top_skills[0]?.percentage || 0}%
+                  </div>
+                  <div className="text-xs text-gray-600">Top Skill Demand</div>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {Math.round(skillTrends.top_skills.slice(0, 5).reduce((sum: number, skill: any) => sum + (skill.percentage || 0), 0) / 5) || 0}%
+                  </div>
+                  <div className="text-xs text-gray-600">Top 5 Average</div>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {skillTrends.top_skills.length || 0}
+                  </div>
+                  <div className="text-xs text-gray-600">Skills Identified</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
