@@ -503,7 +503,6 @@ export default function MarketIntelligence() {
               <MarketIntelligenceResults
                 request={currentRequest}
                 onExport={handleExport}
-                onRerun={handleRetry}
                 onDelete={() => handleDelete(currentRequest.id)}
               />
             </div>
@@ -523,18 +522,14 @@ export default function MarketIntelligence() {
                   </AlertDescription>
                 </Alert>
                 <div className="flex gap-3 mt-4">
-                  <Button onClick={handleRetry} variant="default">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry
-                  </Button>
                   <Button 
                     onClick={() => {
                       setCurrentRequest(null);
                       setUiState('first-time');
                     }}
-                    variant="outline"
+                    variant="default"
                   >
-                    Adjust Filters
+                    Start New Analysis
                   </Button>
                 </div>
               </CardContent>
@@ -548,31 +543,17 @@ export default function MarketIntelligence() {
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <h3 className="font-medium text-gray-900">No recent postings matched your filters</h3>
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm text-gray-600">Try these suggestions:</p>
-                    <div className="flex flex-col gap-2 items-center">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setConfig(prev => ({ ...prev, dateWindow: '90d' }));
-                          submitMarketIntelligenceRequest();
-                        }}
-                      >
-                        Extend to 90 days
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setConfig(prev => ({ ...prev, regions: ['US', 'Europe'] }));
-                          submitMarketIntelligenceRequest();
-                        }}
-                      >
-                        Try broader region
-                      </Button>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-600 mt-2">Try adjusting your search criteria or date range</p>
+                  <Button 
+                    onClick={() => {
+                      setCurrentRequest(null);
+                      setUiState('first-time');
+                    }}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Start New Analysis
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -590,12 +571,13 @@ export default function MarketIntelligence() {
                   </AlertDescription>
                 </Alert>
                 <div className="flex gap-3 mt-4">
-                  <Button onClick={handleRetry}>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry
-                  </Button>
-                  <Button variant="outline">
-                    Run in background
+                  <Button 
+                    onClick={() => {
+                      setCurrentRequest(null);
+                      setUiState('first-time');
+                    }}
+                  >
+                    Start New Analysis
                   </Button>
                 </div>
               </CardContent>
@@ -609,18 +591,6 @@ export default function MarketIntelligence() {
             requests={marketRequests}
             currentRequestId={currentRequest?.id}
             onSelect={setCurrentRequest}
-            onRerun={(request) => {
-              setConfig({
-                positionId: request.position_id || '',
-                positionTitle: request.position_title || '',
-                regions: request.regions || [],
-                countries: request.countries || [],
-                dateWindow: request.date_window || '30d',
-                sinceDate: request.since_date || '',
-                focusArea: request.focus_area || 'all_skills'
-              });
-              submitMarketIntelligenceRequest();
-            }}
             onDelete={handleDelete}
             onStartNew={() => {
               setCurrentRequest(null);

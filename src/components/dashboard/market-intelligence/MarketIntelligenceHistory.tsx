@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  RefreshCw, 
   Trash2, 
   Clock,
   CheckCircle,
@@ -19,7 +18,6 @@ interface MarketIntelligenceHistoryProps {
   requests: MarketIntelligenceRequest[];
   currentRequestId?: string;
   onSelect: (request: MarketIntelligenceRequest) => void;
-  onRerun: (request: MarketIntelligenceRequest) => void;
   onDelete: (requestId: string) => void;
   onStartNew: () => void;
 }
@@ -28,7 +26,6 @@ export default function MarketIntelligenceHistory({
   requests,
   currentRequestId,
   onSelect,
-  onRerun,
   onDelete,
   onStartNew
 }: MarketIntelligenceHistoryProps) {
@@ -181,32 +178,18 @@ export default function MarketIntelligenceHistory({
                     <span className="text-xs text-gray-500">
                       {formatDate(request.created_at)}
                     </span>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRerun(request);
-                        }}
-                        title="Rerun with same filters"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(request.id);
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(request.id);
+                      }}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
 
                   {/* Status Message */}
