@@ -379,6 +379,30 @@ export default function MarketIntelligenceList() {
               </CardContent>
             </Card>
           )}
+
+          {/* Show recent reports when no form is open and reports exist */}
+          {!showCreateForm && !activeRequest && marketRequests.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-8">
+                  <div className="p-3 bg-blue-100 rounded-lg w-fit mx-auto mb-4">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Market Intelligence Reports</h3>
+                  <p className="text-gray-700 mb-6 max-w-md mx-auto">
+                    View your previous analysis reports or start a new market intelligence analysis.
+                  </p>
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Start New Analysis
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Panel - Compact History */}
