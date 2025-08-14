@@ -241,6 +241,7 @@ export default function MarketIntelligenceReport() {
         request={request}
         onExport={handleExport}
         onDelete={handleDelete}
+        showHeader={false}
       />
     </div>
   );

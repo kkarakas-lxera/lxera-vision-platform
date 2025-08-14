@@ -26,12 +26,14 @@ interface MarketIntelligenceResultsProps {
   request: MarketIntelligenceRequest;
   onExport: (format: 'pdf' | 'csv') => void;
   onDelete: () => void;
+  showHeader?: boolean;
 }
 
 export default function MarketIntelligenceResults({
   request,
   onExport,
-  onDelete
+  onDelete,
+  showHeader = true
 }: MarketIntelligenceResultsProps) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
@@ -75,7 +77,8 @@ export default function MarketIntelligenceResults({
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Minimalistic Header */}
-      <div className="border-b border-gray-100 pb-6">
+      {showHeader && (
+        <div className="border-b border-gray-100 pb-6">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -124,7 +127,8 @@ export default function MarketIntelligenceResults({
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Mismatch Alerts */}
       {request.analysis_data?.requirements_comparison?.mismatch_alerts?.length > 0 && (

@@ -28,7 +28,7 @@ export default function MarketIntelligenceList() {
   const [loading, setLoading] = useState(true);
   const [marketRequests, setMarketRequests] = useState<MarketIntelligenceRequest[]>([]);
   const [activeRequest, setActiveRequest] = useState<MarketIntelligenceRequest | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   
   // Configuration state for new analysis
@@ -252,7 +252,7 @@ export default function MarketIntelligenceList() {
 
       // Start polling for updates
       startPolling(request.id);
-      setShowCreateModal(false);
+      setShowCreateForm(false);
 
       toast({
         title: 'Analysis Started',
@@ -317,129 +317,135 @@ export default function MarketIntelligenceList() {
           <p className="text-gray-600 mt-1">Analyze job market demand for specific roles and regions</p>
         </div>
         <Button 
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => setShowCreateForm(!showCreateForm)}
           disabled={!!activeRequest}
           className="bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="h-4 w-4 mr-2" />
-          New Analysis
+          {showCreateForm ? 'Cancel' : 'New Analysis'}
         </Button>
       </div>
 
-      {/* Active Analysis Progress */}
-      {activeRequest && (
-        <MarketIntelligenceProgress
-          request={activeRequest}
-          onCancel={() => {
-            if (pollingInterval) {
-              clearInterval(pollingInterval);
-              setPollingInterval(null);
-            }
-            setActiveRequest(null);
-          }}
-        />
-      )}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Panel - Configuration or Welcome */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Active Analysis Progress */}
+          {activeRequest && (
+            <MarketIntelligenceProgress
+              request={activeRequest}
+              onCancel={() => {
+                if (pollingInterval) {
+                  clearInterval(pollingInterval);
+                  setPollingInterval(null);
+                }
+                setActiveRequest(null);
+              }}
+            />
+          )}
 
-      {/* Reports History */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
-        
-        {marketRequests.length === 0 ? (
-          <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <div className="p-3 bg-indigo-100 rounded-lg w-fit mx-auto mb-4">
-                  <BarChart3 className="h-8 w-8 text-indigo-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Get Started with Market Intelligence</h3>
-                <p className="text-gray-700 mb-6 max-w-md mx-auto">
-                  Discover what skills are most in-demand for your positions across different regions. 
-                  Get AI-powered insights to guide your training programs.
-                </p>
-                <Button 
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Brain className="h-4 w-4 mr-2" />
-                  Create Your First Analysis
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {marketRequests.map((request) => (
-              <Card key={request.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{request.position_title}</h3>
-                        {getStatusBadge(request.status)}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{request.regions.length > 0 ? request.regions.join(', ') : request.countries.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>{request.date_window}</span>
-                        </div>
-                        {request.scraped_data?.total_jobs && (
-                          <div className="flex items-center gap-1">
-                            <Target className="h-4 w-4" />
-                            <span>{request.scraped_data.total_jobs} jobs</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <p className="text-sm text-gray-500">
-                        Created {getRelativeTime(request.created_at)}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {request.status === 'completed' && (
-                        <Button
-                          onClick={() => navigate(`/dashboard/market-intelligence/${request.id}`)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Report
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      )}
-                    </div>
+          {/* Configuration Form */}
+          {showCreateForm && (
+            <MarketIntelligenceConfig
+              config={config}
+              setConfig={setConfig}
+              validationErrors={validationErrors}
+              onSubmit={submitMarketIntelligenceRequest}
+              isLoading={!!activeRequest}
+            />
+          )}
+
+          {/* Welcome State */}
+          {!showCreateForm && !activeRequest && marketRequests.length === 0 && (
+            <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+              <CardContent className="pt-6">
+                <div className="text-center py-8">
+                  <div className="p-3 bg-indigo-100 rounded-lg w-fit mx-auto mb-4">
+                    <BarChart3 className="h-8 w-8 text-indigo-600" />
                   </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Get Started with Market Intelligence</h3>
+                  <p className="text-gray-700 mb-6 max-w-md mx-auto">
+                    Discover what skills are most in-demand for your positions across different regions. 
+                    Get AI-powered insights to guide your training programs.
+                  </p>
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Create Your First Analysis
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Right Panel - Compact History */}
+        <div className="lg:col-span-1">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
+            
+            {marketRequests.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <FileText className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600">No reports yet</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="space-y-3">
+                {marketRequests.slice(0, 10).map((request) => (
+                  <Card key={request.id} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 text-sm truncate">
+                            {request.position_title}
+                          </h4>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        
+                        <div className="text-xs text-gray-600">
+                          <div className="flex items-center gap-1 mb-1">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate">
+                              {request.regions.length > 0 ? request.regions.join(', ') : request.countries.slice(0, 2).join(', ')}
+                              {request.countries.length > 2 && ` +${request.countries.length - 2} more`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{getRelativeTime(request.created_at)}</span>
+                            {request.scraped_data?.total_jobs && (
+                              <>
+                                <span className="mx-1">•</span>
+                                <span>{request.scraped_data.total_jobs} jobs</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {request.status === 'completed' && (
+                          <Button
+                            onClick={() => navigate(`/dashboard/market-intelligence/${request.id}`)}
+                            variant="ghost"
+                            size="sm"
+                            className="w-full mt-2 text-xs h-7"
+                          >
+                            View Report
+                            <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Create New Analysis Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-blue-600" />
-              New Market Intelligence Analysis
-            </DialogTitle>
-          </DialogHeader>
-          
-          <MarketIntelligenceConfig
-            config={config}
-            setConfig={setConfig}
-            validationErrors={validationErrors}
-            onSubmit={submitMarketIntelligenceRequest}
-            isLoading={!!activeRequest}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
