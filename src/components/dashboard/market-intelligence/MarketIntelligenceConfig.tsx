@@ -207,14 +207,25 @@ export default function MarketIntelligenceConfig({
 
   const handleSkillTypeChange = (skillType: string) => {
     if (skillType === 'all_skills') {
-      // If selecting "All Skills", clear others and set focus area
-      setSelectedSkillTypes(['all_skills']);
-      setConfig((prev: any) => ({ ...prev, focusArea: 'all_skills', skillTypes: ['all_skills'] }));
+      // Toggle "All Skills" - if already selected, unselect it
+      if (selectedSkillTypes.includes('all_skills')) {
+        setSelectedSkillTypes([]);
+        setConfig((prev: any) => ({ ...prev, focusArea: 'technical', skillTypes: [] }));
+      } else {
+        // If selecting "All Skills", clear others and set it
+        setSelectedSkillTypes(['all_skills']);
+        setConfig((prev: any) => ({ ...prev, focusArea: 'all_skills', skillTypes: ['all_skills'] }));
+      }
     } else {
-      // Remove "All Skills" if selecting specific types
-      const newTypes = selectedSkillTypes.includes(skillType)
-        ? selectedSkillTypes.filter(t => t !== skillType && t !== 'all_skills')
-        : [...selectedSkillTypes.filter(t => t !== 'all_skills'), skillType];
+      // Handle specific skill type selection
+      let newTypes;
+      if (selectedSkillTypes.includes(skillType)) {
+        // Unselecting a specific type
+        newTypes = selectedSkillTypes.filter(t => t !== skillType && t !== 'all_skills');
+      } else {
+        // Selecting a specific type - remove "All Skills" if present
+        newTypes = [...selectedSkillTypes.filter(t => t !== 'all_skills'), skillType];
+      }
       
       setSelectedSkillTypes(newTypes);
       
@@ -225,16 +236,16 @@ export default function MarketIntelligenceConfig({
   };
 
   const SectionHeader = ({ title, description, icon: Icon }: { title: string; description: string; icon: any }) => (
-    <div className="flex items-center gap-2 mb-3">
-      <Icon className="h-4 w-4 text-blue-600" />
-      <Label className="font-medium">{title}</Label>
+    <div className="flex items-center gap-2 mb-2">
+      <Icon className="h-3 w-3 text-blue-600" />
+      <Label className="text-sm font-medium">{title}</Label>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger>
-            <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600" />
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
-            <p className="text-sm">{description}</p>
+            <p className="text-xs">{description}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -270,9 +281,9 @@ export default function MarketIntelligenceConfig({
             Analyze current job market demand vs. your position requirements{companyIndustry && ` in ${companyIndustry}`}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
+        <CardContent className="space-y-4">
         {/* Position Selection */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <SectionHeader 
             title="Position"
             description="Select an existing role from your organization or create a custom analysis for any job title"
@@ -280,7 +291,7 @@ export default function MarketIntelligenceConfig({
           />
           
           {/* Card-based Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* From Existing Positions Card */}
             <Card 
               className={`cursor-pointer transition-all border-2 ${
@@ -293,18 +304,18 @@ export default function MarketIntelligenceConfig({
                 setConfig((prev: any) => ({ ...prev, customPosition: false, positionId: '', positionTitle: '' }));
               }}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded ${
                     !showCustomPosition ? 'bg-blue-100' : 'bg-gray-100'
                   }`}>
-                    <Users className={`h-5 w-5 ${
+                    <Users className={`h-4 w-4 ${
                       !showCustomPosition ? 'text-blue-600' : 'text-gray-500'
                     }`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">From Your Positions</h4>
-                    <p className="text-sm text-gray-600">Choose from {positions.length} existing roles</p>
+                    <h4 className="text-sm font-medium text-gray-900">From Your Positions</h4>
+                    <p className="text-xs text-gray-600">{positions.length} existing roles</p>
                   </div>
                 </div>
               </CardContent>
@@ -322,18 +333,18 @@ export default function MarketIntelligenceConfig({
                 setConfig((prev: any) => ({ ...prev, customPosition: true, positionId: 'custom', positionTitle: '' }));
               }}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded ${
                     showCustomPosition ? 'bg-blue-100' : 'bg-gray-100'
                   }`}>
-                    <Plus className={`h-5 w-5 ${
+                    <Plus className={`h-4 w-4 ${
                       showCustomPosition ? 'text-blue-600' : 'text-gray-500'
                     }`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Custom Position</h4>
-                    <p className="text-sm text-gray-600">Analyze any job title</p>
+                    <h4 className="text-sm font-medium text-gray-900">Custom Position</h4>
+                    <p className="text-xs text-gray-600">Analyze any job title</p>
                   </div>
                 </div>
               </CardContent>
@@ -341,7 +352,7 @@ export default function MarketIntelligenceConfig({
           </div>
 
           {/* Position Input */}
-          <div className="mt-4">
+          <div className="mt-2">
             {showCustomPosition ? (
               <div className="space-y-2">
                 <Input
@@ -396,42 +407,40 @@ export default function MarketIntelligenceConfig({
 
         {/* Industry Context */}
         {showCustomPosition && (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-orange-600" />
-                  <Label className="font-medium">Industry Context</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p className="text-sm">Industry context helps us find more relevant job postings and provide better market insights</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Select
-                  value={config.industry}
-                  onValueChange={(value) => setConfig((prev: any) => ({ ...prev, industry: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry for better context" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDUSTRIES.map(industry => (
-                      <SelectItem key={industry} value={industry}>
-                        {industry}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom">Other...</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="border border-orange-200 bg-orange-50 rounded p-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Globe className="h-3 w-3 text-orange-600" />
+                <Label className="text-sm font-medium">Industry Context</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">Industry context helps find more relevant job postings</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-            </CardContent>
-          </Card>
+              <Select
+                value={config.industry}
+                onValueChange={(value) => setConfig((prev: any) => ({ ...prev, industry: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRIES.map(industry => (
+                    <SelectItem key={industry} value={industry}>
+                      {industry}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Other...</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         )}
 
         {/* Region Selection */}
@@ -460,50 +469,50 @@ export default function MarketIntelligenceConfig({
               </SelectContent>
             </Select>
             
-            {/* Smart Country Preview */}
+            {/* Interactive Country Selection */}
             {config.regions.length > 0 && config.regions[0] !== 'custom' && (
-              <div className="border rounded-lg bg-gray-50">
+              <div className="border rounded bg-gray-50">
                 <div 
-                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => setShowCountriesPreview(!showCountriesPreview)}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      {config.countries.length} countries included
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      ({config.regions[0]})
-                    </span>
-                  </div>
+                  <span className="text-xs text-gray-700">
+                    {config.countries.length} countries • {config.regions[0]}
+                  </span>
                   {showCountriesPreview ? (
-                    <ChevronUp className="h-4 w-4 text-gray-500" />
+                    <ChevronUp className="h-3 w-3 text-gray-500" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                    <ChevronDown className="h-3 w-3 text-gray-500" />
                   )}
                 </div>
                 
                 {showCountriesPreview && (
-                  <div className="border-t p-3">
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {config.countries.map(country => (
-                        <span key={country} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs">
-                          {country}
-                        </span>
-                      ))}
+                  <div className="border-t p-2">
+                    <div className="flex flex-wrap gap-1">
+                      {REGIONS[config.regions[0] as keyof typeof REGIONS]?.map(country => {
+                        const isSelected = config.countries.includes(country);
+                        return (
+                          <button
+                            key={country}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCountryToggle(country);
+                            }}
+                            className={`px-2 py-1 rounded text-xs transition-colors ${
+                              isSelected 
+                                ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {country}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCustomCountries(true);
-                        setConfig((prev: any) => ({ ...prev, regions: ['custom'] }));
-                      }}
-                      className="text-blue-600 hover:text-blue-700 text-xs"
-                    >
-                      Customize countries selection
-                    </Button>
+                    <p className="text-xs text-gray-600 mt-2">
+                      Click countries to include/exclude from analysis
+                    </p>
                   </div>
                 )}
               </div>
@@ -515,49 +524,57 @@ export default function MarketIntelligenceConfig({
           </div>
         </div>
 
-        {/* Custom Countries */}
+        {/* Custom Countries - Global Selection */}
         {showCustomCountries && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="font-medium">Select Countries</Label>
-                  <span className="text-xs text-gray-600">{config.countries.length} selected</span>
+          <div className="border border-blue-200 bg-blue-50 rounded p-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Global Country Selection</Label>
+                <span className="text-xs text-gray-600">{config.countries.length} selected</span>
+              </div>
+              <div className="border rounded p-2 max-h-40 overflow-y-auto bg-white">
+                <div className="flex flex-wrap gap-1">
+                  {ALL_COUNTRIES.map(country => {
+                    const isSelected = config.countries.includes(country);
+                    return (
+                      <button
+                        key={country}
+                        type="button"
+                        onClick={() => handleCountryToggle(country)}
+                        className={`px-2 py-1 rounded text-xs transition-colors ${
+                          isSelected 
+                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {country}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="border rounded-lg p-4 max-h-48 overflow-y-auto bg-white">
-                  <div className="grid grid-cols-2 gap-3">
-                    {ALL_COUNTRIES.map(country => (
-                      <label key={country} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
-                        <Checkbox
-                          checked={config.countries.includes(country)}
-                          onCheckedChange={() => handleCountryToggle(country)}
-                        />
-                        <span>{country}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-t flex gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setConfig((prev: any) => ({ ...prev, countries: ALL_COUNTRIES }))}
-                    >
-                      Select all
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setConfig((prev: any) => ({ ...prev, countries: [] }))}
-                    >
-                      Clear all
-                    </Button>
-                  </div>
+                <div className="mt-2 pt-2 border-t flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConfig((prev: any) => ({ ...prev, countries: ALL_COUNTRIES }))}
+                    className="h-6 text-xs"
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConfig((prev: any) => ({ ...prev, countries: [] }))}
+                    className="h-6 text-xs"
+                  >
+                    Clear all
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Date Window */}
@@ -587,28 +604,23 @@ export default function MarketIntelligenceConfig({
 
         {/* Custom Date */}
         {config.dateWindow === 'custom' && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <Label className="font-medium">
-                  Since Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={config.sinceDate}
-                  onChange={(e) => setConfig((prev: any) => ({ ...prev, sinceDate: e.target.value }))}
-                  className={validationErrors.sinceDate ? 'border-red-500' : ''}
-                  max={new Date().toISOString().split('T')[0]}
-                />
-                {validationErrors.sinceDate && (
-                  <p className="text-sm text-red-500">{validationErrors.sinceDate}</p>
-                )}
-                <p className="text-xs text-gray-600">
-                  Jobs posted since this date will be included in the analysis
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="border border-blue-200 bg-blue-50 rounded p-3">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Since Date <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="date"
+                value={config.sinceDate}
+                onChange={(e) => setConfig((prev: any) => ({ ...prev, sinceDate: e.target.value }))}
+                className={validationErrors.sinceDate ? 'border-red-500' : ''}
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {validationErrors.sinceDate && (
+                <p className="text-xs text-red-500">{validationErrors.sinceDate}</p>
+              )}
+            </div>
+          </div>
         )}
 
 
@@ -625,111 +637,93 @@ export default function MarketIntelligenceConfig({
               const isSelected = selectedSkillTypes.includes(skillType.id);
               const isAllSkills = skillType.id === 'all_skills';
               const hasOthersSelected = selectedSkillTypes.length > 0 && !selectedSkillTypes.includes('all_skills');
-              const isDisabled = isAllSkills ? hasOthersSelected : selectedSkillTypes.includes('all_skills');
+              const isDisabled = false; // Remove blocking logic - allow all interactions
               
               return (
-                <Card 
+                <div 
                   key={skillType.id}
-                  className={`cursor-pointer transition-all border-2 ${
+                  className={`cursor-pointer transition-all border rounded p-2 ${
                     isSelected 
                       ? 'border-blue-500 bg-blue-50' 
-                      : isDisabled
-                        ? 'border-gray-200 bg-gray-50 opacity-50'
-                        : 'border-gray-200 hover:border-blue-300'
-                  } ${isDisabled ? 'cursor-not-allowed' : ''}`}
-                  onClick={() => !isDisabled && handleSkillTypeChange(skillType.id)}
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                  onClick={() => handleSkillTypeChange(skillType.id)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={isDisabled}
-                        className="pointer-events-none"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className={`font-medium ${
-                            isSelected ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
-                            {skillType.label}
-                          </h4>
-                          {isAllSkills && (
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                              Comprehensive
-                            </span>
-                          )}
-                        </div>
-                        <p className={`text-sm mt-1 ${
-                          isSelected ? 'text-blue-700' : 'text-gray-600'
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={isSelected}
+                      className="pointer-events-none"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${
+                          isSelected ? 'text-blue-900' : 'text-gray-900'
                         }`}>
-                          {skillType.description}
-                        </p>
+                          {skillType.label}
+                        </span>
+                        {isAllSkills && (
+                          <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                            All
+                          </span>
+                        )}
                       </div>
+                      <p className={`text-xs ${
+                        isSelected ? 'text-blue-700' : 'text-gray-600'
+                      }`}>
+                        {skillType.description}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
           
           {/* Helper Text */}
-          <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-            <strong>Selection Rules:</strong> Choose "All Skills" for comprehensive analysis, 
-            or select specific categories for focused insights. 
-            {selectedSkillTypes.length > 0 && (
-              <span className="block mt-1">
-                Currently analyzing: {selectedSkillTypes.includes('all_skills') 
-                  ? 'All skill categories' 
-                  : selectedSkillTypes.map(id => SKILL_TYPES.find(t => t.id === id)?.label).join(', ')}
-              </span>
-            )}
-          </div>
+          {selectedSkillTypes.length > 0 && (
+            <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+              Analyzing: {selectedSkillTypes.includes('all_skills') 
+                ? 'All categories' 
+                : selectedSkillTypes.map(id => SKILL_TYPES.find(t => t.id === id)?.label).join(', ')}
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}
-        <div className="pt-6 border-t border-gray-200">
-          <div className="space-y-4">
-            {/* Validation Summary */}
-            {!isValid && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm font-medium">Complete required fields to start analysis</span>
-                </div>
+        <div className="pt-4 border-t border-gray-200">
+          {!isValid && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertCircle className="h-3 w-3" />
+                <span className="text-xs">Complete required fields</span>
               </div>
-            )}
-            
-            <Button
-              onClick={onSubmit}
-              disabled={!isValid || isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Brain className="h-4 w-4 mr-2" />
-                  Start Market Analysis
-                </>
-              )}
-            </Button>
-            
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                We'll analyze recent job postings and compare them against your requirements
-                {companyIndustry && ` in the ${companyIndustry} industry`}
-              </p>
-              {selectedSkillTypes.length > 0 && !selectedSkillTypes.includes('all_skills') && (
-                <p className="text-xs text-blue-600 mt-1">
-                  Focusing on: {selectedSkillTypes.map(id => SKILL_TYPES.find(t => t.id === id)?.label).join(', ')}
-                </p>
-              )}
             </div>
-          </div>
+          )}
+          
+          <Button
+            onClick={onSubmit}
+            disabled={!isValid || isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Brain className="h-4 w-4 mr-2" />
+                Start Analysis
+              </>
+            )}
+          </Button>
+          
+          <p className="text-xs text-gray-500 text-center mt-2">
+            Analyzing job postings{companyIndustry && ` in ${companyIndustry}`}
+            {selectedSkillTypes.length > 0 && !selectedSkillTypes.includes('all_skills') && (
+              <span className="text-blue-600"> • {selectedSkillTypes.map(id => SKILL_TYPES.find(t => t.id === id)?.label).join(', ')}</span>
+            )}
+          </p>
         </div>
         </CardContent>
       </Card>
