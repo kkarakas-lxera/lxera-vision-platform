@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Brain, Globe, Calendar, Database } from 'lucide-react';
+import { Brain, Globe, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -18,7 +18,6 @@ interface MarketIntelligenceConfigProps {
     countries: string[];
     dateWindow: '24h' | '7d' | '30d' | '90d' | 'custom';
     sinceDate: string;
-    source: 'linkedin';
     focusArea: 'technical' | 'all_skills';
   };
   setConfig: React.Dispatch<React.SetStateAction<any>>;
@@ -234,7 +233,7 @@ export default function MarketIntelligenceConfig({
             <SelectContent>
               <SelectItem value="US">United States</SelectItem>
               <SelectItem value="Europe">Europe</SelectItem>
-              <SelectItem value="Turkey">Turkey (kariyer.net)</SelectItem>
+              <SelectItem value="Turkey">Turkey</SelectItem>
               <SelectItem value="MENA">Middle East & Africa</SelectItem>
               <SelectItem value="Asia/Pacific">Asia Pacific</SelectItem>
               <SelectItem value="custom">Custom Countries...</SelectItem>
@@ -325,32 +324,6 @@ export default function MarketIntelligenceConfig({
           </div>
         )}
 
-        {/* Data Source */}
-        <div className="space-y-2">
-          <Label htmlFor="source">
-            Data Source <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={config.source}
-            onValueChange={(value: any) => setConfig((prev: any) => ({ ...prev, source: value }))}
-            disabled
-          >
-            <SelectTrigger id="source" className="opacity-60">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="linkedin">
-                <div className="flex items-center gap-2">
-                  <Database className="h-4 w-4 text-blue-600" />
-                  LinkedIn Jobs
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-gray-500">
-            Additional sources coming soon
-          </p>
-        </div>
 
         {/* Focus Area */}
         <div className="space-y-2">

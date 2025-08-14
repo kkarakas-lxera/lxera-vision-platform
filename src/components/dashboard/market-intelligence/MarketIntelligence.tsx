@@ -33,7 +33,6 @@ export interface MarketIntelligenceRequest {
   countries: string[];
   date_window: '24h' | '7d' | '30d' | '90d' | 'custom';
   since_date?: string;
-  keywords_override?: string;
   focus_area: 'technical' | 'all_skills';
   status: 'queued' | 'scraping' | 'analyzing' | 'completed' | 'failed';
   status_message?: string;
@@ -41,7 +40,6 @@ export interface MarketIntelligenceRequest {
   ai_insights?: string;
   analysis_data?: {
     skill_trends?: any;
-    salary_trends?: any;
   };
   error_details?: any;
   created_at: string;
@@ -80,7 +78,6 @@ export default function MarketIntelligence() {
     countries: [] as string[],
     dateWindow: '30d' as '24h' | '7d' | '30d' | '90d' | 'custom',
     sinceDate: '',
-    source: 'linkedin' as 'linkedin',
     focusArea: 'all_skills' as 'technical' | 'all_skills'
   });
   
@@ -201,7 +198,6 @@ export default function MarketIntelligence() {
           countries: config.countries,
           date_window: config.dateWindow,
           since_date: config.dateWindow === 'custom' ? config.sinceDate : null,
-          keywords_override: config.keywordsOverride || null,
           focus_area: config.focusArea,
           status: 'queued',
           status_message: 'Initializing market research...',
@@ -225,7 +221,6 @@ export default function MarketIntelligence() {
           regions: config.regions,
           countries: config.countries,
           focus_area: config.focusArea,
-          custom_prompt: config.keywordsOverride || null,
           position_title: config.positionTitle,
           date_window: config.dateWindow,
           since_date: config.sinceDate || null
@@ -345,7 +340,6 @@ export default function MarketIntelligence() {
         countries: currentRequest.countries || [],
         dateWindow: currentRequest.date_window || '30d',
         sinceDate: currentRequest.since_date || '',
-        keywordsOverride: currentRequest.keywords_override || '',
         focusArea: currentRequest.focus_area || 'all_skills'
       });
       submitMarketIntelligenceRequest();
@@ -551,7 +545,6 @@ export default function MarketIntelligence() {
                 countries: request.countries || [],
                 dateWindow: request.date_window || '30d',
                 sinceDate: request.since_date || '',
-                keywordsOverride: request.keywords_override || '',
                 focusArea: request.focus_area || 'all_skills'
               });
               submitMarketIntelligenceRequest();

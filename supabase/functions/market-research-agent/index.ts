@@ -1,6 +1,13 @@
 // @ts-nocheck
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import OpenAI from 'https://esm.sh/openai@4.20.1';
+// Using Groq API instead of OpenAI
+interface GroqResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,29 +19,30 @@ interface MarketIntelligenceRequest {
   regions?: string[];
   countries?: string[];
   focus_area?: string;
-  custom_prompt?: string;
   request_id: string;
   position_title?: string;
   date_window?: '24h' | '7d' | '30d' | '90d' | 'custom';
   since_date?: string;
 }
 
-function resolveGeoCode(location: string): string | null {
+function resolveLinkedInGeoId(location: string): string | null {
   const normalized = (location || '').toLowerCase();
-  const map: Record<string, string> = {
-    'us': 'us', 'united states': 'us',
-    'united kingdom': 'gb', 'uk': 'gb',
-    'germany': 'de', 'france': 'fr', 'netherlands': 'nl',
-    'sweden': 'se', 'switzerland': 'ch', 'spain': 'es', 'italy': 'it',
-    'uae': 'ae', 'united arab emirates': 'ae', 'saudi arabia': 'sa',
-    'qatar': 'qa', 'kuwait': 'kw', 'bahrain': 'bh', 'oman': 'om',
-    'jordan': 'jo', 'lebanon': 'lb', 'egypt': 'eg',
-    'singapore': 'sg', 'australia': 'au', 'japan': 'jp',
-    'south korea': 'kr', 'korea': 'kr', 'hong kong': 'hk',
-    'malaysia': 'my', 'india': 'in', 'thailand': 'th'
+  const geoIdMap: Record<string, string> = {
+    'turkey': '102105699', 'türkiye': '102105699', 'tr': '102105699',
+    'istanbul': '102105699', 'ankara': '102105699',
+    'us': '103644278', 'united states': '103644278',
+    'united kingdom': '101165590', 'uk': '101165590',
+    'germany': '101282230', 'france': '105015875', 'netherlands': '102890719',
+    'sweden': '105117694', 'switzerland': '106693272', 'spain': '105646813', 'italy': '103350119',
+    'uae': '104305776', 'united arab emirates': '104305776', 'saudi arabia': '100459316',
+    'qatar': '104170880', 'kuwait': '100961350', 'bahrain': '100132971', 'oman': '103620775',
+    'jordan': '106155005', 'lebanon': '104583659', 'egypt': '100963918',
+    'singapore': '102454443', 'australia': '101452733', 'japan': '101355337',
+    'south korea': '105149562', 'korea': '105149562', 'hong kong': '102890883',
+    'malaysia': '106808692', 'india': '102713980', 'thailand': '105072130'
   };
-  for (const [key, code] of Object.entries(map)) {
-    if (normalized.includes(key)) return code;
+  for (const [key, geoId] of Object.entries(geoIdMap)) {
+    if (normalized.includes(key)) return geoId;
   }
   return null;
 }
@@ -50,104 +58,209 @@ type ParsedJob = {
   description: string;
   skills: string[];
   experience_level: string;
-  salary_range: string;
   scraped_at: string;
 };
 
-function parseKariyerJobs(html: string, location: string, limit: number): ParsedJob[] {
+function parseLinkedInMarkdown(markdown: string, location: string, limit: number): ParsedJob[] {
   const results: ParsedJob[] = [];
   
-  console.log(`[Market Research Agent] Parsing kariyer.net HTML...`);
+  console.log(`[Market Research Agent] Parsing LinkedIn markdown for ${location}...`);
   
-  // Kariyer.net job listing structure
-  // Jobs are typically in divs with class "list-items" or similar
-  // Title in <a> tags with class containing "position"
-  // Company in <span> or <a> with class containing "company"
+  // Split by job sections - each job starts with "### " (job title)
+  const jobSections = markdown.split(/^- \[/m).slice(1); // Remove header section
   
-  // Try to extract job cards - kariyer.net uses different structure
-  const jobCardRegex = /<div[^>]*class="[^"]*list-items[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
-  const jobCards: string[] = [];
-  let cardMatch: RegExpExecArray | null;
-  
-  while ((cardMatch = jobCardRegex.exec(html)) !== null && jobCards.length < limit) {
-    jobCards.push(cardMatch[1]);
-  }
-  
-  // If no cards found with that pattern, try another common pattern
-  if (jobCards.length === 0) {
-    // Try to find job titles directly
-    const titleRegex = /<a[^>]*class="[^"]*k-ad-card[^"]*"[^>]*title="([^"]+)"/gi;
-    const companyRegex = /<span[^>]*class="[^"]*company[^"]*"[^>]*>([^<]+)</gi;
-    
-    const titles: string[] = [];
-    const companies: string[] = [];
-    
-    let match: RegExpExecArray | null;
-    while ((match = titleRegex.exec(html)) !== null && titles.length < limit) {
-      titles.push(match[1].trim());
-    }
-    
-    while ((match = companyRegex.exec(html)) !== null && companies.length < limit) {
-      companies.push(stripHtml(match[1]));
-    }
-    
-    // Create jobs from what we found
-    const count = Math.min(limit, titles.length);
-    for (let i = 0; i < count; i++) {
-      results.push({
-        title: titles[i] || 'Unknown Position',
-        company: companies[i] || 'Unknown Company',
-        location: 'Turkey',
-        description: '',
-        skills: extractSkillsFromTitle(titles[i] || ''),
-        experience_level: determineExperienceLevel(titles[i] || ''),
-        salary_range: 'Not specified',
-        scraped_at: new Date().toISOString()
-      });
-    }
-  } else {
-    // Parse each job card
-    for (const card of jobCards.slice(0, limit)) {
-      const titleMatch = /<a[^>]*>([^<]+)<\/a>/i.exec(card);
-      const title = titleMatch ? stripHtml(titleMatch[1]) : 'Unknown Position';
+  for (const section of jobSections.slice(0, limit)) {
+    try {
+      // Extract job title - between first '](' and ')'
+      const titleMatch = section.match(/^([^\]]+)\]/);
+      const title = titleMatch ? titleMatch[1].trim() : 'Unknown Position';
       
-      const companyMatch = /<span[^>]*class="[^"]*company[^"]*"[^>]*>([^<]+)</i.exec(card);
-      const company = companyMatch ? stripHtml(companyMatch[1]) : 'Unknown Company';
+      // Skip navigation/footer elements that aren't job postings
+      const navigationTerms = ['about', 'accessibility', 'user agreement', 'privacy policy', 'cookie policy', 'terms', 'help', 'contact', 'careers', 'support', 'cookie settings', 'ad choices', 'guest'];
+      const isNavigation = navigationTerms.some(term => title.toLowerCase().includes(term));
+      
+      // Additional validation: job titles should have some meaningful length and structure
+      const isValidJobTitle = title.length > 3 && 
+                             !title.toLowerCase().startsWith('http') && 
+                             !title.includes('linkedin.com') &&
+                             title !== 'Unknown Position';
+      
+      if (isNavigation || !isValidJobTitle) {
+        console.log(`[Market Research Agent] Skipping invalid/navigation element: ${title}`);
+        continue;
+      }
+      
+      // Extract company - look for "#### [CompanyName]"
+      const companyMatch = section.match(/#### \[([^\]]+)\]/);
+      const company = companyMatch ? companyMatch[1].trim() : 'Unknown Company';
+      
+      // Extract location - usually after company line
+      const locationMatch = section.match(/#### \[[^\]]+\][^\n]*\n\n\n([^\n]+)/);
+      const jobLocation = locationMatch ? locationMatch[1].trim() : location;
+      
+      // Extract timing - look for "X days ago", "X weeks ago", etc.
+      const timeMatch = section.match(/(\d+\s+(?:hour|day|week|month)s?\s+ago|just now)/i);
+      const postedTime = timeMatch ? timeMatch[1] : 'Unknown';
+      
+      // Determine experience level from title
+      const experienceLevel = determineExperienceLevel(title);
       
       results.push({
         title,
         company,
-        location: 'Turkey',
-        description: '',
-        skills: extractSkillsFromTitle(title),
-        experience_level: determineExperienceLevel(title),
-        salary_range: 'Not specified',
+        location: jobLocation,
+        description: '', // Markdown doesn't include full descriptions
+        skills: [],
+        experience_level: experienceLevel,
         scraped_at: new Date().toISOString()
       });
+      
+    } catch (error) {
+      console.error(`[Market Research Agent] Error parsing job section:`, error);
+      continue;
     }
   }
   
+  console.log(`[Market Research Agent] Parsed ${results.length} jobs from LinkedIn markdown`);
   return results;
 }
 
-function extractSkillsFromTitle(title: string): string[] {
-  const skills: string[] = [];
-  const titleLower = title.toLowerCase();
+
+async function extractSkillsWithAI(jobData: any[]): Promise<any[]> {
+  console.log('[Market Research Agent] Starting AI-powered skill analysis...');
   
-  const skillKeywords = [
-    'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
-    'SQL', 'MongoDB', 'TypeScript', 'Angular', 'Vue', 'Machine Learning', 'AI', 'DevOps',
-    'CI/CD', 'Git', 'Agile', 'Scrum', 'REST', 'API', 'Cloud', 'Azure', 'GCP',
-    '.NET', 'C#', 'PHP', 'Laravel', 'Frontend', 'Backend', 'Full Stack'
-  ];
+  // Process jobs in batches for efficiency
+  const batchSize = 10;
+  const processedJobs: any[] = [];
   
-  for (const skill of skillKeywords) {
-    if (titleLower.includes(skill.toLowerCase())) {
-      skills.push(skill);
+  for (let i = 0; i < jobData.length; i += batchSize) {
+    const batch = jobData.slice(i, i + batchSize);
+    console.log(`[Market Research Agent] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(jobData.length/batchSize)}`);
+    
+    // Prepare batch for AI analysis
+    const jobTexts = batch.map((job, index) => 
+      `Job ${i + index + 1}:
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location}
+Description: ${job.description || 'No description available'}
+---`
+    ).join('\n\n');
+
+    try {
+      // Use Groq API instead of OpenAI
+      const groqApiKey = Deno.env.get('GROQ_API_KEY');
+      if (!groqApiKey) {
+        throw new Error('GROQ_API_KEY environment variable is not set');
+      }
+
+      const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content: `You are a skills analysis expert. Analyze job postings and extract:
+1. Technical skills (programming languages, frameworks, tools, platforms)
+2. Soft skills (communication, leadership, problem-solving)
+3. Domain expertise (industry knowledge, certifications)
+4. Experience level requirements
+5. Role focus areas
+
+Return ONLY a valid JSON array with one object per job containing:
+{
+  "job_index": number,
+  "skills": {
+    "technical": ["skill1", "skill2"],
+    "soft": ["skill1", "skill2"], 
+    "domain": ["skill1", "skill2"]
+  },
+  "experience_level": "Entry|Mid|Senior|Executive",
+  "role_focus": "description of main responsibilities",
+  "seniority_indicators": ["specific phrases indicating level"]
+}
+
+IMPORTANT: Return only the JSON array, no markdown formatting, no explanations, no code blocks.
+Extract actual skills mentioned, inferred skills from context, and standardize skill names.`
+            },
+            {
+              role: "user",
+              content: `Analyze these job postings and extract skills:\n\n${jobTexts}`
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 4000
+        })
+      });
+
+      if (!aiResponse.ok) {
+        throw new Error(`Groq API error: ${aiResponse.status} ${await aiResponse.text()}`);
+      }
+
+      const groqResult: GroqResponse = await aiResponse.json();
+
+      const aiResult = groqResult.choices[0]?.message?.content;
+      if (aiResult) {
+        try {
+          // Clean the AI response to extract JSON from markdown code blocks
+          let cleanedResult = aiResult.trim();
+          
+          // Remove markdown code blocks if present
+          if (cleanedResult.startsWith('```json')) {
+            cleanedResult = cleanedResult.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleanedResult.startsWith('```')) {
+            cleanedResult = cleanedResult.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+          
+          const parsedResults = JSON.parse(cleanedResult);
+          
+          // Merge AI analysis back into job data
+          batch.forEach((job, batchIndex) => {
+            const aiAnalysis = parsedResults.find((r: any) => r.job_index === i + batchIndex + 1);
+            if (aiAnalysis) {
+              job.ai_skills = aiAnalysis.skills;
+              job.experience_level = aiAnalysis.experience_level || job.experience_level;
+              job.role_focus = aiAnalysis.role_focus;
+              job.seniority_indicators = aiAnalysis.seniority_indicators;
+              
+              // Flatten skills for backward compatibility
+              job.skills = [
+                ...(aiAnalysis.skills.technical || []),
+                ...(aiAnalysis.skills.soft || []),
+                ...(aiAnalysis.skills.domain || [])
+              ];
+            }
+            processedJobs.push(job);
+          });
+          
+        } catch (parseError) {
+          console.error('[Market Research Agent] Failed to parse AI response:', parseError);
+          // Fallback: use original jobs without AI enhancement
+          processedJobs.push(...batch);
+        }
+      } else {
+        processedJobs.push(...batch);
+      }
+      
+    } catch (aiError) {
+      console.error('[Market Research Agent] AI analysis error:', aiError);
+      // Fallback: use original jobs
+      processedJobs.push(...batch);
+    }
+    
+    // Small delay between batches to avoid rate limits
+    if (i + batchSize < jobData.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
   
-  return skills;
+  console.log(`[Market Research Agent] AI skill analysis complete. Processed ${processedJobs.length} jobs`);
+  return processedJobs;
 }
 
 function determineExperienceLevel(title: string): string {
@@ -223,7 +336,6 @@ function parseLinkedInJobs(html: string, location: string, limit: number): Parse
         description: '',
         skills: [],
         experience_level: 'Not specified',
-        salary_range: 'Not specified',
         scraped_at: new Date().toISOString()
       });
     }
@@ -247,9 +359,6 @@ function parseLinkedInJobs(html: string, location: string, limit: number): Parse
                        /<p[^>]*>([\s\S]*?)<\/p>/i.exec(card);
       const description = descMatch ? stripHtml(descMatch[1]).substring(0, 500) : '';
 
-      // Try to extract salary if mentioned
-      const salaryMatch = /\$[\d,]+\s*-?\s*\$?[\d,]*|€[\d,]+\s*-?\s*€?[\d,]*|£[\d,]+\s*-?\s*£?[\d,]*/i.exec(card);
-      const salary = salaryMatch ? salaryMatch[0] : 'Not specified';
 
       // Extract experience level from title or description
       let experienceLevel = 'Not specified';
@@ -267,32 +376,14 @@ function parseLinkedInJobs(html: string, location: string, limit: number): Parse
         }
       }
 
-      // Extract skills from description - look for common tech keywords
-      const skillKeywords = [
-        'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
-        'SQL', 'MongoDB', 'TypeScript', 'Angular', 'Vue', 'Machine Learning', 'AI', 'DevOps',
-        'CI/CD', 'Git', 'Agile', 'Scrum', 'REST', 'API', 'Cloud', 'Azure', 'GCP',
-        'Microservices', 'Spring', 'Django', 'Flask', '.NET', 'C#', 'Ruby', 'Rails',
-        'Golang', 'Rust', 'Swift', 'iOS', 'Android', 'Mobile', 'Frontend', 'Backend',
-        'Full Stack', 'Data Science', 'Analytics', 'Tableau', 'Power BI', 'Salesforce'
-      ];
-
-      const foundSkills: string[] = [];
-      const combinedText = `${title} ${description}`.toLowerCase();
-      for (const skill of skillKeywords) {
-        if (combinedText.includes(skill.toLowerCase())) {
-          foundSkills.push(skill);
-        }
-      }
 
       results.push({
         title,
         company,
         location: jobLocation,
         description,
-        skills: foundSkills,
+        skills: [],
         experience_level: experienceLevel,
-        salary_range: salary,
         scraped_at: new Date().toISOString()
       });
     }
@@ -308,43 +399,24 @@ async function executeScraping(
   count: number = 20,
   dateWindow?: string
 ): Promise<any> {
-  // Check if location is Turkey - use kariyer.net instead of LinkedIn
-  const isTurkey = location.toLowerCase().includes('turkey') || 
-                   location.toLowerCase().includes('türkiye') || 
-                   location.toLowerCase() === 'tr' ||
-                   location.toLowerCase().includes('istanbul') ||
-                   location.toLowerCase().includes('ankara');
+  console.log(`[Market Research Agent] Scraping LinkedIn for: ${keywords} in ${location} (${dateWindow || '24h'})`);
   
+  // Map date window to LinkedIn time posted filter
+  let timeFilter = 'r86400'; // Default to 24 hours
+  if (dateWindow === '24h') {
+    timeFilter = 'r86400'; // Past 24 hours
+  } else if (dateWindow === '7d') {
+    timeFilter = 'r604800'; // Past week
+  } else if (dateWindow === '30d' || dateWindow === '90d') {
+    timeFilter = 'r2592000'; // Past month (LinkedIn doesn't have 90 days, so we use month)
+  }
+  
+  // Use LinkedIn geo ID for better targeting
+  const geoId = resolveLinkedInGeoId(location);
   let targetUrl: string;
-  
-  if (isTurkey) {
-    console.log(`[Market Research Agent] Scraping kariyer.net for: ${keywords} in Turkey`);
-    // Kariyer.net search URL format
-    // Example: https://www.kariyer.net/is-ilanlari?kw=frontend+developer
-    const kariyerKeywords = keywords.replace(/\s+/g, '+');
-    targetUrl = `https://www.kariyer.net/is-ilanlari?kw=${encodeURIComponent(kariyerKeywords)}`;
-    
-    // Add date filter if needed (kariyer.net uses different parameters)
-    if (dateWindow === '24h') {
-      targetUrl += '&dp=1'; // Last 24 hours
-    } else if (dateWindow === '7d') {
-      targetUrl += '&dp=7'; // Last 7 days  
-    } else if (dateWindow === '30d') {
-      targetUrl += '&dp=30'; // Last 30 days
-    }
+  if (geoId) {
+    targetUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&geoId=${geoId}&f_TPR=${timeFilter}&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true`;
   } else {
-    console.log(`[Market Research Agent] Scraping LinkedIn for: ${keywords} in ${location} (${dateWindow || '24h'})`);
-    
-    // Map date window to LinkedIn time posted filter
-    let timeFilter = 'r86400'; // Default to 24 hours
-    if (dateWindow === '24h') {
-      timeFilter = 'r86400'; // Past 24 hours
-    } else if (dateWindow === '7d') {
-      timeFilter = 'r604800'; // Past week
-    } else if (dateWindow === '30d' || dateWindow === '90d') {
-      timeFilter = 'r2592000'; // Past month (LinkedIn doesn't have 90 days, so we use month)
-    }
-    
     targetUrl = `https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&f_TPR=${timeFilter}`;
   }
 
@@ -354,15 +426,12 @@ async function executeScraping(
     throw new Error('SCRAPE_DO_API_KEY is not configured');
   }
   console.log(`[Market Research Agent] API Key present: ${apiKey ? 'Yes' : 'No'}, length: ${apiKey?.length}`);
-
-  const geoCode = resolveGeoCode(location);
   
-  // Scrape.do Hobby plan - basic features only
-  // IMPORTANT: Only include token and url, no other parameters that might trigger premium features
+  // Scrape.do API with markdown output for better parsing
   const params = new URLSearchParams();
   params.append('token', apiKey);
   params.append('url', targetUrl);
-  // DO NOT add any of these: render, super, customHeaders, geocode, etc.
+  params.append('output', 'markdown'); // Add markdown output for better parsing
   
   const scrapeEndpoint = `https://api.scrape.do?${params.toString()}`;
 
@@ -396,21 +465,21 @@ async function executeScraping(
     throw new Error(`Scrape.do API error: ${scrapeResponse.status} - ${errorBody.substring(0, 400)}`);
   }
 
-  const scrapedHtml = await scrapeResponse.text();
+  const scrapedContent = await scrapeResponse.text();
   
-  // Parse based on the site we're scraping
+  // Parse LinkedIn content - check if we got markdown output
   let jobListings: ParsedJob[];
-  if (isTurkey) {
-    jobListings = parseKariyerJobs(scrapedHtml, location, count);
+  if (scrapedContent.includes('- Meta:') || scrapedContent.includes('###') || scrapedContent.includes('#### [')) {
+    jobListings = parseLinkedInMarkdown(scrapedContent, location, count);
   } else {
-    jobListings = parseLinkedInJobs(scrapedHtml, location, count);
+    jobListings = parseLinkedInJobs(scrapedContent, location, count);
   }
   
   console.log(`[Market Research Agent] Successfully scraped ${jobListings.length} job listings`);
   
   if (jobListings.length === 0) {
-    // Log first 1000 chars of HTML to debug
-    console.log(`[Market Research Agent] No jobs found. HTML preview: ${scrapedHtml.substring(0, 1000)}`);
+    // Log first 1000 chars of content to debug
+    console.log(`[Market Research Agent] No jobs found. Content preview: ${scrapedContent.substring(0, 1000)}`);
     throw new Error('No job listings found - scraping may have failed or page structure changed');
   }
 
@@ -459,36 +528,11 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   };
 }
 
-async function analyzeSalaryTrends(jobData: any[]): Promise<any> {
-  console.log('[Market Research Agent] Analyzing salary trends...');
-  
-  const salariesByLevel: Record<string, string[]> = {};
-  let salaryCount = 0;
-  
-  jobData.forEach((job: any) => {
-    if (job.salary_range && job.salary_range !== 'Not specified') {
-      salaryCount++;
-      const level = job.experience_level || 'Unknown';
-      if (!salariesByLevel[level]) salariesByLevel[level] = [];
-      salariesByLevel[level].push(job.salary_range);
-    }
-  });
-  
-  return {
-    jobs_with_salary: salaryCount,
-    total_jobs: jobData.length,
-    salary_transparency: Math.round((salaryCount / jobData.length) * 100),
-    salaries_by_level: salariesByLevel,
-    analysis_summary: `${salaryCount} out of ${jobData.length} jobs (${Math.round((salaryCount / jobData.length) * 100)}%) include salary information`
-  };
-}
 
 async function generateMarketInsights(
   scrapedData: any,
   skillAnalysis: any,
-  salaryAnalysis: any,
   locations: string,
-  openai: OpenAI,
   positionTitle?: string,
   dateWindow?: string
 ): Promise<string> {
@@ -500,35 +544,50 @@ async function generateMarketInsights(
     locations: locations,
     top_skills: skillAnalysis.top_skills,
     experience_distribution: skillAnalysis.experience_distribution,
-    salary_transparency: salaryAnalysis.salary_transparency,
-    salary_data: salaryAnalysis.salaries_by_level,
     sample_jobs: scrapedData.data.slice(0, 5)
   };
 
-  // Use AI to generate more sophisticated insights
-  const aiResponse = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
-    messages: [
-      {
-        role: "system",
-        content: `You are a market intelligence analyst. Generate a comprehensive, actionable market report based on the provided job market data. Focus on:
+  // Use Groq API to generate sophisticated insights
+  const groqApiKey = Deno.env.get('GROQ_API_KEY');
+  if (!groqApiKey) {
+    throw new Error('GROQ_API_KEY environment variable is not set');
+  }
+
+  const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${groqApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: `You are a market intelligence analyst. Generate a comprehensive, actionable market report based on the provided job market data. Focus on:
         1. Key talent trends and skill gaps
         2. Competitive landscape insights
-        3. Salary benchmarking recommendations
-        4. Strategic hiring recommendations
-        5. Emerging technology trends
+        3. Strategic training recommendations
+        4. Emerging technology trends
         Format the response in markdown with clear sections and bullet points.`
-      },
-      {
-        role: "user",
-        content: `Generate a market intelligence report based on this data:\n${JSON.stringify(dataContext, null, 2)}`
-      }
-    ],
-    temperature: 0.3,
-    max_tokens: 2000
+        },
+        {
+          role: "user",
+          content: `Generate a market intelligence report based on this data:\n${JSON.stringify(dataContext, null, 2)}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    })
   });
 
-  const aiInsights = aiResponse.choices[0]?.message?.content || '';
+  if (!aiResponse.ok) {
+    throw new Error(`Groq API error: ${aiResponse.status} ${await aiResponse.text()}`);
+  }
+
+  const groqResult: GroqResponse = await aiResponse.json();
+
+  const aiInsights = groqResult.choices[0]?.message?.content || '';
 
   // Combine structured data with AI insights
   const fullReport = `# Market Intelligence Report${positionTitle ? ` - ${positionTitle}` : ''}
@@ -550,10 +609,6 @@ ${skillAnalysis.experience_distribution ? Object.entries(skillAnalysis.experienc
   `- **${level}**: ${count} positions`
 ).join('\n') : '- No experience level data available'}
 
-## Salary Intelligence
-- **Transparency Rate**: ${salaryAnalysis.salary_transparency}%
-- **Jobs with Salary**: ${salaryAnalysis.jobs_with_salary} out of ${salaryAnalysis.total_jobs}
-
 ${aiInsights}
 
 ---
@@ -568,7 +623,7 @@ serve(async (req) => {
   }
 
   try {
-    const { regions = [], countries = [], focus_area = 'all_skills', custom_prompt = '', request_id, position_title, date_window, since_date } = await req.json() as MarketIntelligenceRequest;
+    const { regions = [], countries = [], focus_area = 'all_skills', request_id, position_title, date_window, since_date } = await req.json() as MarketIntelligenceRequest;
     
     console.log(`[Market Research Agent] Starting analysis for request: ${request_id}`);
     console.log(`[Market Research Agent] Regions: ${regions.join(', ')}, Focus: ${focus_area}`);
@@ -580,10 +635,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
     
-    // Initialize OpenAI for insights generation
-    const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    });
+    // Groq API will be used directly in analysis functions
 
     const locations = [...regions, ...countries];
     const allJobData: any[] = [];
@@ -595,7 +647,7 @@ serve(async (req) => {
         .from('market_intelligence_requests')
         .update({
           status: 'scraping',
-          status_message: 'Step 1/4: Scraping job market data from LinkedIn...',
+          status_message: 'Step 1/3: Scraping job market data from LinkedIn...',
           updated_at: new Date().toISOString()
         })
         .eq('id', request_id);
@@ -634,7 +686,7 @@ serve(async (req) => {
             await supabase
               .from('market_intelligence_requests')
               .update({
-                status_message: `Step 1/4: Scraping jobs in ${location}... (attempt ${retryCount + 1})`,
+                status_message: `Step 1/3: Scraping jobs in ${location}... (attempt ${retryCount + 1})`,
                 updated_at: new Date().toISOString()
               })
               .eq('id', request_id);
@@ -664,17 +716,45 @@ serve(async (req) => {
         throw new Error('No job data could be scraped from any location');
       }
 
-      console.log(`[Market Research Agent] Total jobs scraped: ${allJobData.length}`);
+      // Filter out invalid jobs (those that are clearly not job postings)
+      const validJobs = allJobData.filter(job => {
+        const isValidTitle = job.title && 
+                           job.title.length > 3 && 
+                           !['about', 'privacy', 'terms', 'help', 'contact'].some(term => 
+                             job.title.toLowerCase().includes(term)
+                           );
+        return isValidTitle;
+      });
+
+      if (validJobs.length === 0) {
+        throw new Error(`Scraped ${allJobData.length} items but found no valid job postings - scraping may have captured navigation elements instead`);
+      }
+
+      console.log(`[Market Research Agent] Total jobs scraped: ${allJobData.length}, valid jobs: ${validJobs.length}`);
+      
+      // STEP 1.5: AI-Powered Skill Analysis
+      console.log('[Market Research Agent] Step 1.5: Running AI skill analysis...');
+      await supabase
+        .from('market_intelligence_requests')
+        .update({
+          status_message: 'Step 1.5/3: Analyzing skills with AI...',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', request_id);
+
+      const aiEnhancedJobs = await extractSkillsWithAI(validJobs);
+      console.log(`[Market Research Agent] AI skill analysis complete. Enhanced ${aiEnhancedJobs.length} jobs`);
       
       // Update with scraping results
       await supabase
         .from('market_intelligence_requests')
         .update({
-          status_message: `Step 1/4 Complete: Scraped ${allJobData.length} job listings`,
+          status_message: `Step 1.5/3 Complete: AI analysis of ${aiEnhancedJobs.length} job listings`,
           scraped_data: { 
-            jobs_count: allJobData.length, 
+            total_jobs: aiEnhancedJobs.length,
+            jobs_count: aiEnhancedJobs.length, 
             locations_scraped: locations,
-            sample_jobs: allJobData.slice(0, 5) 
+            sample_jobs: aiEnhancedJobs.slice(0, 5) 
           },
           updated_at: new Date().toISOString()
         })
@@ -686,46 +766,58 @@ serve(async (req) => {
         .from('market_intelligence_requests')
         .update({
           status: 'analyzing',
-          status_message: 'Step 2/4: Analyzing skill demand and trends...',
+          status_message: 'Step 2/3: Analyzing skill demand and trends...',
           updated_at: new Date().toISOString()
         })
         .eq('id', request_id);
 
-      const skillAnalysis = await analyzeSkillTrends(allJobData, focus_area);
+      const skillAnalysis = await analyzeSkillTrends(aiEnhancedJobs, focus_area);
       console.log(`[Market Research Agent] Skill analysis complete. Top skills identified: ${skillAnalysis.top_skills.length}`);
 
-      // STEP 3: Salary Analysis
-      console.log('[Market Research Agent] Step 3: Analyzing salary trends...');
+      // STEP 3: Generate Comprehensive Insights
+      console.log('[Market Research Agent] Step 3: Generating market insights report...');
       await supabase
         .from('market_intelligence_requests')
         .update({
-          status_message: 'Step 3/4: Analyzing compensation and salary trends...',
+          status_message: 'Step 3/3: Generating comprehensive market intelligence report...',
           updated_at: new Date().toISOString()
         })
         .eq('id', request_id);
 
-      const salaryAnalysis = await analyzeSalaryTrends(allJobData);
-      console.log(`[Market Research Agent] Salary analysis complete. Transparency: ${salaryAnalysis.salary_transparency}%`);
+      let marketInsights = '';
+      try {
+        // Add timeout protection for AI insights generation
+        const insightsPromise = generateMarketInsights(
+          { total_scraped: aiEnhancedJobs.length, data: aiEnhancedJobs },
+          skillAnalysis,
+          locations.join(', '),
+          position_title,
+          date_window
+        );
+        
+        // Race between the AI call and a 30-second timeout
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('AI insights generation timed out')), 30000)
+        );
+        
+        marketInsights = await Promise.race([insightsPromise, timeoutPromise]) as string;
+      } catch (insightsError) {
+        console.error('[Market Research Agent] AI insights generation failed:', insightsError);
+        // Generate basic insights without AI if it fails
+        marketInsights = `# Market Intelligence Report - ${position_title || 'General'}
 
-      // STEP 4: Generate Comprehensive Insights
-      console.log('[Market Research Agent] Step 4: Generating market insights report...');
-      await supabase
-        .from('market_intelligence_requests')
-        .update({
-          status_message: 'Step 4/4: Generating comprehensive market intelligence report...',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', request_id);
+## Data Overview
+- **Total Jobs Analyzed**: ${aiEnhancedJobs.length}
+- **Locations**: ${locations.join(', ')}
+- **Time Period**: ${date_window === '24h' ? 'Last 24 hours' : date_window === '7d' ? 'Last 7 days' : date_window === '30d' ? 'Last 30 days' : 'Last 90 days'}
 
-      const marketInsights = await generateMarketInsights(
-        { total_scraped: allJobData.length, data: allJobData },
-        skillAnalysis,
-        salaryAnalysis,
-        locations.join(', '),
-        openai,
-        position_title,
-        date_window
-      );
+## Top Skills Analysis
+${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) => 
+  `- **${s.skill}**: ${s.percentage}% of jobs (${s.demand} postings)`
+).join('\n') : '- No skill data available'}
+
+*Note: Advanced AI insights unavailable due to processing timeout. Basic analysis provided.*`;
+      }
 
       // Save final results
       console.log('[Market Research Agent] Saving final analysis results...');
@@ -736,13 +828,12 @@ serve(async (req) => {
           status_message: 'Analysis complete! Market intelligence report ready.',
           ai_insights: marketInsights,
           scraped_data: {
-            total_jobs: allJobData.length,
+            total_jobs: aiEnhancedJobs.length,
             locations: locations,
-            job_listings: allJobData
+            job_listings: aiEnhancedJobs
           },
           analysis_data: {
-            skill_trends: skillAnalysis,
-            salary_trends: salaryAnalysis
+            skill_trends: skillAnalysis
           },
           updated_at: new Date().toISOString()
         })
@@ -755,10 +846,9 @@ serve(async (req) => {
         agent: "market-research-agent",
         request_id,
         summary: {
-          total_jobs_analyzed: allJobData.length,
+          total_jobs_analyzed: aiEnhancedJobs.length,
           locations_covered: locations,
-          top_skills: skillAnalysis.top_skills.slice(0, 5),
-          salary_transparency: `${salaryAnalysis.salary_transparency}%`
+          top_skills: skillAnalysis.top_skills.slice(0, 5)
         },
         status: "Pipeline completed successfully"
       }), {
@@ -773,12 +863,12 @@ serve(async (req) => {
       await supabase
         .from('market_intelligence_requests')
         .update({
-          status: 'error',
+          status: 'failed',
           status_message: `Pipeline failed: ${errorMessage.substring(0, 200)}`,
           error_details: { 
             error: errorMessage,
             partial_data: {
-              jobs_scraped: allJobData.length,
+              jobs_scraped: aiEnhancedJobs?.length || validJobs?.length || allJobData.length,
               locations_attempted: locations
             }
           },

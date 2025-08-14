@@ -14,7 +14,6 @@ import {
   ChevronDown,
   TrendingUp,
   Users,
-  DollarSign,
   Briefcase,
   Copy,
   Check
@@ -73,7 +72,6 @@ export default function MarketIntelligenceResults({
   // Parse analysis data for structured display
   const analysisData = request.analysis_data || {};
   const skillTrends = analysisData.skill_trends || {};
-  const salaryTrends = analysisData.salary_trends || {};
   const jobsCount = request.scraped_data?.total_jobs || request.scraped_data?.jobs_count || 0;
 
   return (
@@ -129,8 +127,8 @@ export default function MarketIntelligenceResults({
       </Card>
 
       {/* Quick Stats */}
-      {(skillTrends.top_skills || salaryTrends.salary_transparency) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {skillTrends.top_skills && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {skillTrends.top_skills && (
             <Card>
               <CardContent className="pt-6">
@@ -169,24 +167,6 @@ export default function MarketIntelligenceResults({
             </Card>
           )}
 
-          {salaryTrends.salary_transparency !== undefined && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Salary Transparency</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {salaryTrends.salary_transparency}%
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Jobs with salary data
-                    </p>
-                  </div>
-                  <DollarSign className="h-8 w-8 text-purple-600 opacity-20" />
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
 
