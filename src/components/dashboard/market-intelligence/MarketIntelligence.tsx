@@ -13,7 +13,9 @@ import {
   Clock,
   ChevronRight,
   FileText,
-  ArrowRight
+  ArrowRight,
+  BarChart3,
+  Target
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,6 +85,20 @@ export default function MarketIntelligence() {
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+
+  const getRelativeTime = (date: string) => {
+    const now = new Date();
+    const then = new Date(date);
+    const diff = now.getTime() - then.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -404,13 +420,49 @@ export default function MarketIntelligence() {
         <div className="lg:col-span-2 space-y-6">
           {/* Configuration or Results */}
           {(uiState === 'first-time' || uiState === 'config-incomplete') && (
-            <MarketIntelligenceConfig
-              config={config}
-              setConfig={setConfig}
-              validationErrors={validationErrors}
-              onSubmit={submitMarketIntelligenceRequest}
-              isLoading={!!activeRequest}
-            />
+            <div className="space-y-6">
+              {/* Onboarding Header for First Time */}
+              {uiState === 'first-time' && (
+                <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-indigo-100 rounded-lg">
+                        <BarChart3 className="h-8 w-8 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Market Intelligence Analysis</h2>
+                        <p className="text-gray-700 mb-4">
+                          Discover what skills are most in-demand for your positions across different regions. 
+                          Get AI-powered insights to guide your training programs.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-indigo-600" />
+                            <span className="text-gray-700">Real-time job market data</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Brain className="h-4 w-4 text-purple-600" />
+                            <span className="text-gray-700">AI-powered skill analysis</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-4 w-4 text-blue-600" />
+                            <span className="text-gray-700">Training recommendations</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              <MarketIntelligenceConfig
+                config={config}
+                setConfig={setConfig}
+                validationErrors={validationErrors}
+                onSubmit={submitMarketIntelligenceRequest}
+                isLoading={!!activeRequest}
+              />
+            </div>
           )}
 
           {/* Active Run Progress */}
@@ -429,12 +481,32 @@ export default function MarketIntelligence() {
 
           {/* Results */}
           {(uiState === 'success' || uiState === 'history-present') && currentRequest?.status === 'completed' && (
-            <MarketIntelligenceResults
-              request={currentRequest}
-              onExport={handleExport}
-              onRerun={handleRetry}
-              onDelete={() => handleDelete(currentRequest.id)}
-            />
+            <div className="space-y-4">
+              {/* New Analysis Button */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Viewing Report</h3>
+                  <p className="text-sm text-gray-600">{currentRequest.position_title} • {getRelativeTime(currentRequest.updated_at)}</p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setCurrentRequest(null);
+                    setUiState('first-time');
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Brain className="h-4 w-4 mr-2" />
+                  Start New Analysis
+                </Button>
+              </div>
+              
+              <MarketIntelligenceResults
+                request={currentRequest}
+                onExport={handleExport}
+                onRerun={handleRetry}
+                onDelete={() => handleDelete(currentRequest.id)}
+              />
+            </div>
           )}
 
           {/* Failure State */}
@@ -550,6 +622,11 @@ export default function MarketIntelligence() {
               submitMarketIntelligenceRequest();
             }}
             onDelete={handleDelete}
+            onStartNew={() => {
+              setCurrentRequest(null);
+              setActiveRequest(null);
+              setUiState('first-time');
+            }}
           />
         </div>
       </div>

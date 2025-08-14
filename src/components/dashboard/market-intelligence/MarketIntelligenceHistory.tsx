@@ -9,7 +9,9 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  Plus,
+  Brain
 } from 'lucide-react';
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 
@@ -19,6 +21,7 @@ interface MarketIntelligenceHistoryProps {
   onSelect: (request: MarketIntelligenceRequest) => void;
   onRerun: (request: MarketIntelligenceRequest) => void;
   onDelete: (requestId: string) => void;
+  onStartNew: () => void;
 }
 
 export default function MarketIntelligenceHistory({
@@ -26,7 +29,8 @@ export default function MarketIntelligenceHistory({
   currentRequestId,
   onSelect,
   onRerun,
-  onDelete
+  onDelete,
+  onStartNew
 }: MarketIntelligenceHistoryProps) {
   
   const getStatusIcon = (status: string) => {
@@ -91,12 +95,31 @@ export default function MarketIntelligenceHistory({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">History</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">History</CardTitle>
+            <Button 
+              onClick={onStartNew}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <Clock className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm">No previous analyses</p>
+            <Button 
+              onClick={onStartNew}
+              variant="outline"
+              size="sm"
+              className="mt-3"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              Start First Analysis
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -108,8 +131,16 @@ export default function MarketIntelligenceHistory({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Recent Analyses</CardTitle>
-          <span className="text-xs text-gray-500">Last 10</span>
+          <Button 
+            onClick={onStartNew}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            New
+          </Button>
         </div>
+        <p className="text-xs text-gray-500 mt-1">Last 10 reports</p>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y">
@@ -121,9 +152,9 @@ export default function MarketIntelligenceHistory({
               <div
                 key={request.id}
                 className={`
-                  p-4 cursor-pointer transition-colors
-                  ${isSelected ? 'bg-blue-50 border-l-2 border-blue-600' : 'hover:bg-gray-50'}
-                  ${isActive ? 'animate-pulse' : ''}
+                  p-4 cursor-pointer transition-all duration-200
+                  ${isSelected ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm' : 'hover:bg-gray-50 border-l-4 border-transparent'}
+                  ${isActive ? 'animate-pulse bg-yellow-50 border-l-4 border-yellow-400' : ''}
                 `}
                 onClick={() => onSelect(request)}
               >
