@@ -108,6 +108,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/admin/companies', icon: Building2, label: 'Companies' },
           { href: '/admin/users', icon: Users, label: 'Users' },
           { href: '/admin/courses', icon: BookOpen, label: 'Courses' },
+          { href: '/dashboard/market-intelligence', icon: TrendingUp, label: 'Market Intelligence' },
           { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
           { href: '/admin/settings', icon: Settings, label: 'Settings' },
         ];
@@ -119,6 +120,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
+          { href: '/dashboard/market-intelligence', icon: TrendingUp, label: 'Market Intelligence' },
           // Temporarily unlock premium items for free skills gap users
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
           { section: 'Learning Platform', icon: School },

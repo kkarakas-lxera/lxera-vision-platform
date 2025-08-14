@@ -21,6 +21,13 @@ interface MarketIntelligenceRequest {
   focus_area?: string;
   request_id: string;
   position_title?: string;
+  industry?: string;
+  custom_position?: boolean;
+  position_requirements?: {
+    required_skills?: any[];
+    nice_to_have_skills?: any[];
+    description?: string;
+  };
   date_window?: '24h' | '7d' | '30d' | '90d' | 'custom';
   since_date?: string;
 }
@@ -528,6 +535,65 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   };
 }
 
+function comparePositionToMarket(positionRequirements: any, marketAnalysis: any): any {
+  console.log('[Market Research Agent] Comparing position requirements to market demand...');
+  
+  const requiredSkills = positionRequirements.required_skills || [];
+  const niceToHaveSkills = positionRequirements.nice_to_have_skills || [];
+  const marketSkills = marketAnalysis.top_skills || [];
+  
+  // Check how many of our required skills appear in market
+  const requiredInMarket = requiredSkills.filter((reqSkill: any) => 
+    marketSkills.some((mktSkill: any) => 
+      mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
+    )
+  );
+  
+  // Check market skills not in our requirements
+  const marketNotInRequirements = marketSkills.filter((mktSkill: any) =>
+    !requiredSkills.some((reqSkill: any) => 
+      mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
+    ) &&
+    !niceToHaveSkills.some((niceSkill: any) => 
+      mktSkill.skill.toLowerCase().includes(niceSkill.skill_name?.toLowerCase() || '')
+    )
+  );
+  
+  return {
+    required_skills_in_market: requiredInMarket.length,
+    total_required_skills: requiredSkills.length,
+    market_alignment_score: requiredSkills.length > 0 ? Math.round((requiredInMarket.length / requiredSkills.length) * 100) : 0,
+    missing_from_market: requiredSkills.filter((reqSkill: any) => 
+      !marketSkills.some((mktSkill: any) => 
+        mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
+      )
+    ),
+    trending_skills_missing: marketNotInRequirements.slice(0, 5),
+    mismatch_alerts: generateMismatchAlerts(requiredSkills, marketSkills, marketNotInRequirements)
+  };
+}
+
+function generateMismatchAlerts(requiredSkills: any[], marketSkills: any[], missingSkills: any[]): string[] {
+  const alerts = [];
+  
+  if (missingSkills.length > 2) {
+    alerts.push(`🔥 ${missingSkills.slice(0, 3).map((s: any) => s.skill).join(', ')} are in high market demand but not in your requirements`);
+  }
+  
+  const lowDemandRequired = requiredSkills.filter((reqSkill: any) => {
+    const marketSkill = marketSkills.find((mktSkill: any) => 
+      mktSkill.skill.toLowerCase().includes(reqSkill.skill_name?.toLowerCase() || '')
+    );
+    return marketSkill && marketSkill.percentage < 10;
+  });
+  
+  if (lowDemandRequired.length > 0) {
+    alerts.push(`⚠️ ${lowDemandRequired.slice(0, 2).map((s: any) => s.skill_name).join(', ')} required but rare in market (<10%)`);
+  }
+  
+  return alerts;
+}
+
 
 async function generateMarketInsights(
   scrapedData: any,
@@ -623,7 +689,7 @@ serve(async (req) => {
   }
 
   try {
-    const { regions = [], countries = [], focus_area = 'all_skills', request_id, position_title, date_window, since_date } = await req.json() as MarketIntelligenceRequest;
+    const { regions = [], countries = [], focus_area = 'all_skills', request_id, position_title, industry, custom_position, position_requirements, date_window, since_date } = await req.json() as MarketIntelligenceRequest;
     
     console.log(`[Market Research Agent] Starting analysis for request: ${request_id}`);
     console.log(`[Market Research Agent] Regions: ${regions.join(', ')}, Focus: ${focus_area}`);
@@ -652,24 +718,35 @@ serve(async (req) => {
         })
         .eq('id', request_id);
 
-      // Determine search keywords based on position title or focus area
-      let searchKeywords = position_title || 'software engineer developer technology'; // Use position title if provided
+      // Determine search keywords based on position title, industry, or focus area
+      let searchKeywords = position_title || 'software engineer developer technology';
+      
+      // Enhance keywords with industry context if provided
+      if (industry && custom_position) {
+        const industryKeywords: Record<string, string> = {
+          'Technology & Software': 'software engineer developer programmer tech',
+          'Financial Services': 'fintech financial analyst quantitative developer banking',
+          'Healthcare & Biotechnology': 'healthcare biotech medical data scientist clinical',
+          'Manufacturing & Automotive': 'manufacturing automotive engineer industrial IoT',
+          'Retail & E-commerce': 'ecommerce retail digital marketing product manager',
+          'Media & Entertainment': 'media entertainment content creator digital marketing',
+          'Education & Training': 'education training instructional designer curriculum',
+          'Government & Public Sector': 'government public sector policy analyst data',
+          'Consulting & Professional Services': 'consultant analyst strategy business',
+          'Energy & Utilities': 'energy utilities engineer sustainability data'
+        };
+        
+        const industryKeyword = industryKeywords[industry] || '';
+        if (industryKeyword) {
+          searchKeywords = `${searchKeywords} ${industryKeyword}`;
+        }
+      }
       
       // If no position title, use focus area mapping
       if (!position_title) {
-        // Map focus areas to better search keywords
         const keywordMap: Record<string, string> = {
           'all_skills': 'software engineer developer technology data analyst',
-          'technical': 'software engineer developer programmer coding',
-          'ai_ml': 'machine learning artificial intelligence data scientist AI ML',
-          'data_science': 'data scientist data analyst data engineer analytics',
-          'cloud': 'cloud engineer devops AWS Azure GCP kubernetes',
-          'frontend': 'frontend developer react angular vue javascript UI UX',
-          'backend': 'backend developer API microservices java python node',
-          'mobile': 'mobile developer iOS android react native flutter',
-          'cybersecurity': 'security engineer cybersecurity infosec penetration testing',
-          'product': 'product manager product owner agile scrum',
-          'design': 'UX designer UI designer product designer figma'
+          'technical': 'software engineer developer programmer coding'
         };
         
         searchKeywords = keywordMap[focus_area] || keywordMap['all_skills'];
@@ -691,7 +768,7 @@ serve(async (req) => {
               })
               .eq('id', request_id);
 
-            const scrapedResult = await executeScraping(location, searchKeywords, 500, data_window);
+            const scrapedResult = await executeScraping(location, searchKeywords, 500, date_window);
             if (scrapedResult.success && scrapedResult.data) {
               allJobData.push(...scrapedResult.data);
               console.log(`[Market Research Agent] Added ${scrapedResult.data.length} jobs from ${location}`);
@@ -773,6 +850,12 @@ serve(async (req) => {
 
       const skillAnalysis = await analyzeSkillTrends(aiEnhancedJobs, focus_area);
       console.log(`[Market Research Agent] Skill analysis complete. Top skills identified: ${skillAnalysis.top_skills.length}`);
+      
+      // Add position requirements comparison
+      let requirementsComparison = null;
+      if (position_requirements) {
+        requirementsComparison = comparePositionToMarket(position_requirements, skillAnalysis);
+      }
 
       // STEP 3: Generate Comprehensive Insights
       console.log('[Market Research Agent] Step 3: Generating market insights report...');
@@ -833,7 +916,8 @@ ${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) 
             job_listings: aiEnhancedJobs
           },
           analysis_data: {
-            skill_trends: skillAnalysis
+            skill_trends: skillAnalysis,
+            requirements_comparison: requirementsComparison
           },
           updated_at: new Date().toISOString()
         })

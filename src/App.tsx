@@ -121,6 +121,10 @@ const AnalyzedEmployees = lazy(() => import("./pages/dashboard/skills/AnalyzedEm
 const PositionRequirements = lazy(() => import("./pages/dashboard/skills/PositionRequirements"));
 const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/DepartmentSkillsDetail"));
 
+// Lazy load market intelligence pages
+const MarketIntelligenceList = lazy(() => import("./pages/dashboard/market-intelligence/MarketIntelligenceList"));
+const MarketIntelligenceReport = lazy(() => import("./pages/dashboard/market-intelligence/MarketIntelligenceReport"));
+
 // Lazy load gamification analytics
 const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
 const HRISCallback = lazy(() => import("./pages/dashboard/HRISCallback"));
@@ -947,6 +951,8 @@ const App = () => {
                       <Route path="/skills/employees" element={<PageSuspense><AnalyzedEmployees /></PageSuspense>} />
                       <Route path="/skills/positions" element={<PageSuspense><PositionRequirements /></PageSuspense>} />
                       <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
+                      <Route path="/market-intelligence" element={<PageSuspense><MarketIntelligenceList /></PageSuspense>} />
+                      <Route path="/market-intelligence/:id" element={<PageSuspense><MarketIntelligenceReport /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
                       <Route path="/settings" element={<CompanySettings />} />
                       <Route path="/settings/hris-callback" element={<PageSuspense><HRISCallback /></PageSuspense>} />

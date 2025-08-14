@@ -14,6 +14,8 @@ interface MarketIntelligenceConfigProps {
     positionId: string;
     positionTitle: string;
     positionDescription: string;
+    customPosition: boolean;
+    industry: string;
     regions: string[];
     countries: string[];
     dateWindow: '24h' | '7d' | '30d' | '90d' | 'custom';
@@ -27,12 +29,27 @@ interface MarketIntelligenceConfigProps {
 }
 
 const REGIONS = {
-  'US': ['United States'],
-  'Europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Sweden', 'Switzerland', 'Spain', 'Italy'],
-  'Turkey': ['Turkey', 'Istanbul', 'Ankara', 'Izmir'],
+  'North America': ['United States', 'Canada', 'Mexico'],
+  'South America': ['Brazil', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Uruguay'],
+  'Europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Sweden', 'Switzerland', 'Spain', 'Italy', 'Poland', 'Czech Republic', 'Turkey'],
   'MENA': ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Jordan', 'Lebanon', 'Egypt'],
-  'Asia/Pacific': ['Singapore', 'Australia', 'Japan', 'South Korea', 'Hong Kong', 'Malaysia', 'India', 'Thailand']
+  'Asia Pacific': ['Singapore', 'Australia', 'Japan', 'South Korea', 'Hong Kong', 'Malaysia', 'India', 'Thailand', 'Philippines']
 };
+
+const INDUSTRIES = [
+  'Technology & Software',
+  'Financial Services',
+  'Healthcare & Biotechnology', 
+  'Manufacturing & Automotive',
+  'Retail & E-commerce',
+  'Media & Entertainment',
+  'Education & Training',
+  'Government & Public Sector',
+  'Consulting & Professional Services',
+  'Energy & Utilities',
+  'Real Estate & Construction',
+  'Transportation & Logistics'
+];
 
 const ALL_COUNTRIES = Object.values(REGIONS).flat().sort();
 
@@ -55,6 +72,7 @@ export default function MarketIntelligenceConfig({
   }>>([]);
   const [showCustomCountries, setShowCustomCountries] = useState(false);
   const [companyIndustry, setCompanyIndustry] = useState<string>('');
+  const [showCustomPosition, setShowCustomPosition] = useState(false);
 
   useEffect(() => {
     fetchPositions();
@@ -138,10 +156,12 @@ export default function MarketIntelligenceConfig({
       setConfig((prev: any) => ({ ...prev, regions: [], countries: [] }));
     } else {
       setShowCustomCountries(false);
+      // Set the region and automatically include all countries in that region
+      const regionCountries = REGIONS[region as keyof typeof REGIONS] || [];
       setConfig((prev: any) => ({ 
         ...prev, 
         regions: [region], 
-        countries: []
+        countries: regionCountries
       }));
     }
   };
@@ -166,7 +186,7 @@ export default function MarketIntelligenceConfig({
     }
   };
 
-  const isValid = config.positionId && 
+  const isValid = (config.positionId && config.positionTitle) && 
     (config.regions.length > 0 || config.countries.length > 0) &&
     (config.dateWindow !== 'custom' || config.sinceDate);
 
@@ -183,40 +203,112 @@ export default function MarketIntelligenceConfig({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Role/Title Selection */}
-        <div className="space-y-2">
-          <Label htmlFor="position">
-            Role/Title <span className="text-red-500">*</span>
+        <div className="space-y-3">
+          <Label>
+            Position <span className="text-red-500">*</span>
           </Label>
-          <Select
-            value={config.positionId}
-            onValueChange={(value) => {
-              const position = positions.find(p => p.id === value);
-              setConfig((prev: any) => ({
-                ...prev,
-                positionId: value,
-                positionTitle: position?.position_title || '',
-                positionDescription: position?.description || ''
-              }));
-            }}
-          >
-            <SelectTrigger id="position" className={validationErrors.position ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select a role from your positions" />
-            </SelectTrigger>
-            <SelectContent>
-              {positions.map(position => (
-                <SelectItem key={position.id} value={position.id}>
-                  {position.position_title}
-                  {userProfile?.role === 'super_admin' && position.company_name && (
-                    <span className="text-gray-500 ml-2">({position.company_name})</span>
-                  )}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {validationErrors.position && (
+          
+          {/* Toggle between existing positions and custom */}
+          <div className="flex gap-4 mb-3">
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                checked={!showCustomPosition}
+                onChange={() => {
+                  setShowCustomPosition(false);
+                  setConfig((prev: any) => ({ ...prev, customPosition: false, positionId: '', positionTitle: '' }));
+                }}
+                className="text-blue-600"
+              />
+              <span className="text-sm">Select from existing positions</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                checked={showCustomPosition}
+                onChange={() => {
+                  setShowCustomPosition(true);
+                  setConfig((prev: any) => ({ ...prev, customPosition: true, positionId: 'custom', positionTitle: '' }));
+                }}
+                className="text-blue-600"
+              />
+              <span className="text-sm">Enter custom position</span>
+            </label>
+          </div>
+
+          {showCustomPosition ? (
+            <div className="space-y-2">
+              <Input
+                placeholder="e.g. Senior DevOps Engineer, AI Product Manager, Blockchain Developer"
+                value={config.positionTitle}
+                onChange={(e) => setConfig((prev: any) => ({ 
+                  ...prev, 
+                  positionTitle: e.target.value,
+                  positionId: 'custom'
+                }))}
+                className={validationErrors.position ? 'border-red-500' : ''}
+              />
+              {validationErrors.position && (
+                <p className="text-sm text-red-500">{validationErrors.position}</p>
+              )}
+            </div>
+          ) : (
+            <Select
+              value={config.positionId}
+              onValueChange={(value) => {
+                const position = positions.find(p => p.id === value);
+                setConfig((prev: any) => ({
+                  ...prev,
+                  positionId: value,
+                  positionTitle: position?.position_title || '',
+                  positionDescription: position?.description || ''
+                }));
+              }}
+            >
+              <SelectTrigger className={validationErrors.position ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select a role from your positions" />
+              </SelectTrigger>
+              <SelectContent>
+                {positions.map(position => (
+                  <SelectItem key={position.id} value={position.id}>
+                    {position.position_title}
+                    {userProfile?.role === 'super_admin' && position.company_name && (
+                      <span className="text-gray-500 ml-2">({position.company_name})</span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {validationErrors.position && !showCustomPosition && (
             <p className="text-sm text-red-500">{validationErrors.position}</p>
           )}
         </div>
+
+        {/* Industry Context */}
+        {showCustomPosition && (
+          <div className="space-y-2">
+            <Label htmlFor="industry">
+              Industry Context
+            </Label>
+            <Select
+              value={config.industry}
+              onValueChange={(value) => setConfig((prev: any) => ({ ...prev, industry: value }))}
+            >
+              <SelectTrigger id="industry">
+                <SelectValue placeholder="Select industry for better context" />
+              </SelectTrigger>
+              <SelectContent>
+                {INDUSTRIES.map(industry => (
+                  <SelectItem key={industry} value={industry}>
+                    {industry}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">Other...</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Region Selection */}
         <div className="space-y-2">
@@ -231,11 +323,11 @@ export default function MarketIntelligenceConfig({
               <SelectValue placeholder="Choose a region" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="US">United States</SelectItem>
+              <SelectItem value="North America">North America</SelectItem>
+              <SelectItem value="South America">South America</SelectItem>
               <SelectItem value="Europe">Europe</SelectItem>
-              <SelectItem value="Turkey">Turkey</SelectItem>
               <SelectItem value="MENA">Middle East & Africa</SelectItem>
-              <SelectItem value="Asia/Pacific">Asia Pacific</SelectItem>
+              <SelectItem value="Asia Pacific">Asia Pacific</SelectItem>
               <SelectItem value="custom">Custom Countries...</SelectItem>
             </SelectContent>
           </Select>

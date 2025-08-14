@@ -126,6 +126,23 @@ export default function MarketIntelligenceResults({
         </div>
       </div>
 
+      {/* Mismatch Alerts */}
+      {request.analysis_data?.requirements_comparison?.mismatch_alerts?.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <h3 className="font-medium text-orange-900 mb-2">Position vs Market Mismatches</h3>
+          <div className="space-y-1">
+            {request.analysis_data.requirements_comparison.mismatch_alerts.map((alert: string, index: number) => (
+              <div key={index} className="text-sm text-orange-800">{alert}</div>
+            ))}
+          </div>
+          {request.analysis_data.requirements_comparison.market_alignment_score !== undefined && (
+            <div className="mt-2 text-xs text-orange-700">
+              Market Alignment: {request.analysis_data.requirements_comparison.market_alignment_score}%
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-100">

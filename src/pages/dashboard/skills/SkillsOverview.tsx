@@ -27,7 +27,6 @@ import CriticalSkillsPanel from '@/components/dashboard/skills/CriticalSkillsPan
 import SkillsHeatmapView from '@/components/dashboard/skills/SkillsHeatmapView';
 import SkillsTrendsView from '@/components/dashboard/skills/SkillsTrendsView';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { MarketIntelligence } from '@/components/dashboard/market-intelligence';
 
 interface DepartmentSummary {
   department: string;
@@ -570,14 +569,10 @@ export default function SkillsOverview() {
         <p className="text-gray-600 mt-1">Monitor your organization's skill development and identify gaps</p>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="internal" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="internal">Internal Readiness</TabsTrigger>
-          <TabsTrigger value="market">Market Intelligence</TabsTrigger>
-        </TabsList>
+      {/* Skills Content - No Tabs Needed */}
+      <div className="w-full">
 
-        <TabsContent value="internal" className="space-y-6 mt-6">
+        <div className="space-y-6 mt-6">
           {/* View Toggle */}
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Internal Skills Readiness</h2>
@@ -655,12 +650,7 @@ export default function SkillsOverview() {
               isLoading={false}
             />
           )}
-        </TabsContent>
-
-        <TabsContent value="market" className="space-y-6 mt-6">
-          <MarketIntelligence />
-        </TabsContent>
-      </Tabs>
+        </div>
     </div>
   );
 }

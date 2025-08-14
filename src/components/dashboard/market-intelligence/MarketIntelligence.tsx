@@ -31,6 +31,8 @@ export interface MarketIntelligenceRequest {
   company_id: string;
   position_id?: string;
   position_title?: string;
+  industry?: string;
+  custom_position?: boolean;
   regions: string[];
   countries: string[];
   date_window: '24h' | '7d' | '30d' | '90d' | 'custom';
@@ -74,6 +76,8 @@ export default function MarketIntelligence() {
     positionId: '',
     positionTitle: '',
     positionDescription: '',
+    customPosition: false,
+    industry: '',
     requiredSkills: [] as any[],
     niceToHaveSkills: [] as any[],
     regions: [] as string[],
@@ -183,8 +187,8 @@ export default function MarketIntelligence() {
   const validateConfig = (): boolean => {
     const errors: Record<string, string> = {};
     
-    if (!config.positionId) {
-      errors.position = 'Select a role';
+    if (!config.positionId || !config.positionTitle) {
+      errors.position = config.customPosition ? 'Enter a position title' : 'Select a role';
     }
     
     if (config.regions.length === 0 && config.countries.length === 0) {
@@ -208,8 +212,10 @@ export default function MarketIntelligence() {
         .from('market_intelligence_requests' as any)
         .insert({
           company_id: userProfile.company_id,
-          position_id: config.positionId || null,
+          position_id: config.customPosition ? null : config.positionId,
           position_title: config.positionTitle || null,
+          industry: config.industry || null,
+          custom_position: config.customPosition,
           regions: config.regions,
           countries: config.countries,
           date_window: config.dateWindow,
@@ -230,6 +236,17 @@ export default function MarketIntelligence() {
       setActiveRequest(request);
       setCurrentRequest(request);
 
+      // Fetch position requirements if using existing position
+      let positionRequirements = null;
+      if (!config.customPosition && config.positionId) {
+        const { data: positionData } = await supabase
+          .from('st_company_positions')
+          .select('required_skills, nice_to_have_skills, description')
+          .eq('id', config.positionId)
+          .single();
+        positionRequirements = positionData;
+      }
+
       // Start the edge function
       const response = await supabase.functions.invoke('market-research-agent', {
         body: {
@@ -238,6 +255,9 @@ export default function MarketIntelligence() {
           countries: config.countries,
           focus_area: config.focusArea,
           position_title: config.positionTitle,
+          industry: config.industry || null,
+          custom_position: config.customPosition,
+          position_requirements: positionRequirements,
           date_window: config.dateWindow,
           since_date: config.sinceDate || null
         }
@@ -352,6 +372,11 @@ export default function MarketIntelligence() {
       setConfig({
         positionId: currentRequest.position_id || '',
         positionTitle: currentRequest.position_title || '',
+        positionDescription: '',
+        customPosition: currentRequest.custom_position || false,
+        industry: currentRequest.industry || '',
+        requiredSkills: [] as any[],
+        niceToHaveSkills: [] as any[],
         regions: currentRequest.regions || [],
         countries: currentRequest.countries || [],
         dateWindow: currentRequest.date_window || '30d',
