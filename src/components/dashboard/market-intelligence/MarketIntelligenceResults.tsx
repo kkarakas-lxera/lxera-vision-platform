@@ -16,7 +16,8 @@ import {
   Users,
   Briefcase,
   Copy,
-  Check
+  Check,
+  Brain
 } from 'lucide-react';
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 import ReactMarkdown from 'react-markdown';
