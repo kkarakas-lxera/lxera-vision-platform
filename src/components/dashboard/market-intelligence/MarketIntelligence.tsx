@@ -84,7 +84,8 @@ export default function MarketIntelligence() {
     countries: [] as string[],
     dateWindow: '30d' as '24h' | '7d' | '30d' | '90d' | 'custom',
     sinceDate: '',
-    focusArea: 'all_skills' as 'technical' | 'all_skills'
+    focusArea: 'all_skills' as 'technical' | 'all_skills',
+    skillTypes: ['all_skills'] as string[]
   });
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -381,7 +382,8 @@ export default function MarketIntelligence() {
         countries: currentRequest.countries || [],
         dateWindow: currentRequest.date_window || '30d',
         sinceDate: currentRequest.since_date || '',
-        focusArea: currentRequest.focus_area || 'all_skills'
+        focusArea: currentRequest.focus_area || 'all_skills',
+        skillTypes: ['all_skills'] as string[]
       });
       submitMarketIntelligenceRequest();
     }

@@ -44,7 +44,8 @@ export default function MarketIntelligenceList() {
     countries: [] as string[],
     dateWindow: '30d' as '24h' | '7d' | '30d' | '90d' | 'custom',
     sinceDate: '',
-    focusArea: 'all_skills' as 'technical' | 'all_skills'
+    focusArea: 'all_skills' as 'technical' | 'all_skills',
+    skillTypes: ['all_skills'] as string[]
   });
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
