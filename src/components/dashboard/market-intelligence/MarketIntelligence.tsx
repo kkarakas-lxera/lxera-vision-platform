@@ -419,10 +419,10 @@ export default function MarketIntelligence() {
         {/* Left/Main Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Configuration or Results */}
-          {(uiState === 'first-time' || uiState === 'config-incomplete') && (
+          {(uiState === 'first-time' || uiState === 'config-incomplete' || uiState === 'history-present') && (
             <div className="space-y-6">
               {/* Onboarding Header for First Time */}
-              {uiState === 'first-time' && (
+              {uiState === 'first-time' && marketRequests.length === 0 && (
                 <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">

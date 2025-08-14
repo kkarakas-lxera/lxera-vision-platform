@@ -396,7 +396,7 @@ function parseLinkedInJobs(html: string, location: string, limit: number): Parse
 async function executeScraping(
   location: string,
   keywords: string,
-  count: number = 20,
+  count: number = 500,
   dateWindow?: string
 ): Promise<any> {
   console.log(`[Market Research Agent] Scraping LinkedIn for: ${keywords} in ${location} (${dateWindow || '24h'})`);
@@ -691,7 +691,7 @@ serve(async (req) => {
               })
               .eq('id', request_id);
 
-            const scrapedResult = await executeScraping(location, searchKeywords, 30, date_window);
+            const scrapedResult = await executeScraping(location, searchKeywords, 500, data_window);
             if (scrapedResult.success && scrapedResult.data) {
               allJobData.push(...scrapedResult.data);
               console.log(`[Market Research Agent] Added ${scrapedResult.data.length} jobs from ${location}`);
