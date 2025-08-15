@@ -203,8 +203,34 @@ export default function MarketIntelligenceResults({
                   h2: ({children}) => <h2 className="text-base font-medium text-gray-900 mt-4 mb-2">{children}</h2>,
                   h3: ({children}) => <h3 className="text-sm font-medium text-gray-900 mt-3 mb-1">{children}</h3>,
                   p: ({children}) => {
-                    // Enhanced paragraph processing for callouts and highlighting
-                    const content = String(children);
+                    // Convert React elements/objects to plain text properly
+                    const getTextContent = (element: any): string => {
+                      if (typeof element === 'string') return element;
+                      if (typeof element === 'number') return element.toString();
+                      if (React.isValidElement(element)) {
+                        // Handle React elements by extracting their text content
+                        if (typeof element.props.children === 'string') {
+                          return element.props.children;
+                        }
+                        if (Array.isArray(element.props.children)) {
+                          return element.props.children.map(getTextContent).join('');
+                        }
+                        return getTextContent(element.props.children);
+                      }
+                      if (Array.isArray(element)) {
+                        return element.map(getTextContent).join('');
+                      }
+                      if (element && typeof element === 'object') {
+                        // For objects, try to extract meaningful text
+                        if (element.props && element.props.children) {
+                          return getTextContent(element.props.children);
+                        }
+                        return '';
+                      }
+                      return String(element || '');
+                    };
+
+                    const content = getTextContent(children);
                     
                     // Check for callout patterns
                     if (content.includes('💡') || content.includes('Key Insight')) {
@@ -212,7 +238,7 @@ export default function MarketIntelligenceResults({
                         <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3 rounded-r">
                           <div className="flex items-start">
                             <span className="text-blue-600 text-base mr-2">💡</span>
-                            <p className="text-blue-800 text-sm font-medium leading-relaxed">{children}</p>
+                            <p className="text-blue-800 text-sm font-medium leading-relaxed">{content}</p>
                           </div>
                         </div>
                       );
@@ -223,7 +249,7 @@ export default function MarketIntelligenceResults({
                         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-3 rounded-r">
                           <div className="flex items-start">
                             <span className="text-yellow-600 text-base mr-2">⚠️</span>
-                            <p className="text-yellow-800 text-sm font-medium leading-relaxed">{children}</p>
+                            <p className="text-yellow-800 text-sm font-medium leading-relaxed">{content}</p>
                           </div>
                         </div>
                       );
@@ -234,7 +260,7 @@ export default function MarketIntelligenceResults({
                         <div className="bg-green-50 border-l-4 border-green-400 p-3 mb-3 rounded-r">
                           <div className="flex items-start">
                             <span className="text-green-600 text-base mr-2">🚀</span>
-                            <p className="text-green-800 text-sm font-medium leading-relaxed">{children}</p>
+                            <p className="text-green-800 text-sm font-medium leading-relaxed">{content}</p>
                           </div>
                         </div>
                       );
@@ -249,18 +275,44 @@ export default function MarketIntelligenceResults({
                             // Highlight numbers (especially job counts, percentages)
                             .replace(/\b(\d+(?:,\d{3})*(?:\.\d+)?%?)\b/g, '<span class="font-semibold text-blue-600 bg-blue-50 px-1 py-0.5 rounded text-xs">$1</span>')
                             // Highlight locations
-                            .replace(/\b(North America|United States|US|USA|Canada|UK|Europe|Asia)\b/g, '<span class="font-medium text-purple-600 bg-purple-50 px-1 py-0.5 rounded text-xs">📍 $1</span>')
+                            .replace(/\b(North America|United States|US|USA|Canada|UK|Europe|Asia|MENA|Middle East|UAE|Saudi Arabia|Qatar|Kuwait|Turkey)\b/g, '<span class="font-medium text-purple-600 bg-purple-50 px-1 py-0.5 rounded text-xs">📍 $1</span>')
                             // Highlight positions/roles
-                            .replace(/\b(Go To Market Strategist|Software Engineer|Data Scientist|Product Manager|Marketing Manager|Sales Manager)\b/gi, '<span class="font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded text-xs">👔 $1</span>')
+                            .replace(/\b(Content Manager|Go To Market Strategist|Software Engineer|Data Scientist|Product Manager|Marketing Manager|Sales Manager)\b/gi, '<span class="font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded text-xs">👔 $1</span>')
                             // Highlight time periods
                             .replace(/\b(\d+\s+(?:days?|weeks?|months?|years?))\b/gi, '<span class="font-medium text-green-600 bg-green-50 px-1 py-0.5 rounded text-xs">⏰ $1</span>')
                         }}
                       />
                     );
                   },
-                  ul: ({children}) => <ul className="space-y-1 mb-3">{children}</ul>,
-                  li: ({children}) => {
-                    const content = String(children);
+                  ul: ({children}) => <ul className="space-y-1 mb-3" role="list">{children}</ul>,
+                  ol: ({children}) => <ol className="space-y-1 mb-3 list-decimal list-inside" role="list">{children}</ol>,
+                  li: ({children, ...props}) => {
+                    // Use the same text extraction function as paragraphs
+                    const getTextContent = (element: any): string => {
+                      if (typeof element === 'string') return element;
+                      if (typeof element === 'number') return element.toString();
+                      if (React.isValidElement(element)) {
+                        if (typeof element.props.children === 'string') {
+                          return element.props.children;
+                        }
+                        if (Array.isArray(element.props.children)) {
+                          return element.props.children.map(getTextContent).join('');
+                        }
+                        return getTextContent(element.props.children);
+                      }
+                      if (Array.isArray(element)) {
+                        return element.map(getTextContent).join('');
+                      }
+                      if (element && typeof element === 'object') {
+                        if (element.props && element.props.children) {
+                          return getTextContent(element.props.children);
+                        }
+                        return '';
+                      }
+                      return String(element || '');
+                    };
+
+                    const content = getTextContent(children);
                     // Enhanced bullet points with color coding
                     if (content.includes('High Demand') || content.includes('Critical')) {
                       return (
@@ -310,6 +362,212 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
+      {/* Key Findings from Structured Data */}
+      {(request as any).structured_insights?.key_findings?.key_findings && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Key Findings</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('key-findings', JSON.stringify((request as any).structured_insights.key_findings, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'key-findings' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="space-y-3">
+              {(request as any).structured_insights.key_findings.key_findings.map((finding: any, index: number) => {
+                const getTypeStyles = (type: string) => {
+                  switch (type) {
+                    case 'high_demand':
+                      return {
+                        bg: 'bg-red-50 border-red-200',
+                        text: 'text-red-800',
+                        dot: 'bg-red-500'
+                      };
+                    case 'opportunity':
+                      return {
+                        bg: 'bg-green-50 border-green-200', 
+                        text: 'text-green-800',
+                        dot: 'bg-green-500'
+                      };
+                    case 'market':
+                      return {
+                        bg: 'bg-blue-50 border-blue-200',
+                        text: 'text-blue-800',
+                        dot: 'bg-blue-500'
+                      };
+                    default:
+                      return {
+                        bg: 'bg-gray-50 border-gray-200',
+                        text: 'text-gray-800',
+                        dot: 'bg-gray-500'
+                      };
+                  }
+                };
+                
+                const styles = getTypeStyles(finding.type);
+                
+                return (
+                  <div key={index} className={`p-4 rounded-lg border ${styles.bg}`}>
+                    <div className="flex items-start">
+                      <div className={`w-2 h-2 rounded-full ${styles.dot} mt-2 mr-3 flex-shrink-0`}></div>
+                      <div className="flex-1">
+                        <h4 className={`font-medium ${styles.text} mb-1`}>{finding.title}</h4>
+                        <p className={`text-sm ${styles.text}`}>{finding.description}</p>
+                        {finding.metrics && Object.keys(finding.metrics).length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {finding.metrics.percentage && (
+                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
+                                {finding.metrics.percentage}%
+                              </span>
+                            )}
+                            {finding.metrics.count && (
+                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
+                                {finding.metrics.count} jobs
+                              </span>
+                            )}
+                            {finding.metrics.skill_name && (
+                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
+                                {finding.metrics.skill_name}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Strategic Recommendations from Structured Data */}
+      {(request as any).structured_insights?.strategic_recommendations?.strategic_recommendations && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Strategic Recommendations</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('strategic-recommendations', JSON.stringify((request as any).structured_insights.strategic_recommendations, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'strategic-recommendations' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="space-y-4">
+              {(request as any).structured_insights.strategic_recommendations.strategic_recommendations.map((recommendation: any, index: number) => {
+                const getCategoryStyles = (category: string) => {
+                  switch (category) {
+                    case 'training_priorities':
+                      return {
+                        bg: 'bg-blue-50 border-blue-200',
+                        text: 'text-blue-800',
+                        icon: '🎯',
+                        badge: 'bg-blue-100 text-blue-800'
+                      };
+                    case 'skill_combinations':
+                      return {
+                        bg: 'bg-purple-50 border-purple-200',
+                        text: 'text-purple-800',
+                        icon: '🔗',
+                        badge: 'bg-purple-100 text-purple-800'
+                      };
+                    case 'hiring_strategy':
+                      return {
+                        bg: 'bg-green-50 border-green-200',
+                        text: 'text-green-800',
+                        icon: '👥',
+                        badge: 'bg-green-100 text-green-800'
+                      };
+                    case 'competitive_positioning':
+                      return {
+                        bg: 'bg-orange-50 border-orange-200',
+                        text: 'text-orange-800',
+                        icon: '⚡',
+                        badge: 'bg-orange-100 text-orange-800'
+                      };
+                    default:
+                      return {
+                        bg: 'bg-gray-50 border-gray-200',
+                        text: 'text-gray-800',
+                        icon: '📋',
+                        badge: 'bg-gray-100 text-gray-800'
+                      };
+                  }
+                };
+                
+                const styles = getCategoryStyles(recommendation.category);
+                
+                return (
+                  <div key={index} className={`p-5 rounded-lg border ${styles.bg}`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center">
+                        <span className="text-lg mr-2">{styles.icon}</span>
+                        <h3 className={`font-semibold ${styles.text}`}>{recommendation.title}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${styles.badge}`}>
+                          {recommendation.category.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        </span>
+                        {recommendation.priority && (
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            recommendation.priority === 'high' ? 'bg-red-100 text-red-800' :
+                            recommendation.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {recommendation.priority.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <p className={`${styles.text} mb-3 leading-relaxed`}>
+                      {recommendation.strategy}
+                    </p>
+                    
+                    {recommendation.focus_areas && recommendation.focus_areas.length > 0 && (
+                      <div className="mb-3">
+                        <h4 className={`text-sm font-medium ${styles.text} mb-2`}>Focus Areas:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {recommendation.focus_areas.map((area: string, areaIndex: number) => (
+                            <span key={areaIndex} className="px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-medium">
+                              {area}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {recommendation.business_impact && (
+                      <div className={`mt-3 pt-3 border-t border-white border-opacity-40`}>
+                        <p className={`text-sm ${styles.text} font-medium`}>
+                          <span className="opacity-75">Expected Impact:</span> {recommendation.business_impact}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Skills Analysis by Category - Enhanced with Collapsible and Context */}
       {skillTrends.skills_by_category && skillTrends.skills_by_category.length > 0 ? (
         <SkillsDemandAnalysis skillsByCategory={skillTrends.skills_by_category} />
@@ -329,6 +587,7 @@ export default function MarketIntelligenceResults({
                       {skill.skill}
                     </div>
                     <div className="flex-1 bg-gray-100 rounded-full h-6 relative min-w-0">
+                      {/* Inline style necessary for dynamic progress bar width based on skill.percentage data */}
                       <div 
                         className="bg-blue-500 h-6 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${Math.max(2, skill.percentage)}%` }}
@@ -596,6 +855,96 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
+      {/* Market Opportunities - Structured JSON Rendering */}
+      {(request as any)?.structured_insights?.market_opportunities && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Market Opportunities</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('opportunities', JSON.stringify((request as any).structured_insights.market_opportunities, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'opportunities' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="space-y-6">
+              {/* Skill Gaps */}
+              {(request as any).structured_insights.market_opportunities.skill_gaps && (request as any).structured_insights.market_opportunities.skill_gaps.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    Skill Gaps
+                  </h3>
+                  <div className="space-y-2">
+                    {(request as any).structured_insights.market_opportunities.skill_gaps.map((gap: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-700">{gap}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Emerging Trends */}
+              {(request as any).structured_insights.market_opportunities.emerging_trends && (request as any).structured_insights.market_opportunities.emerging_trends.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Emerging Trends
+                  </h3>
+                  <div className="space-y-2">
+                    {(request as any).structured_insights.market_opportunities.emerging_trends.map((trend: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-700">{trend}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Competitive Advantages */}
+              {(request as any).structured_insights.market_opportunities.competitive_advantages && (request as any).structured_insights.market_opportunities.competitive_advantages.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Competitive Advantages
+                  </h3>
+                  <div className="space-y-2">
+                    {(request as any).structured_insights.market_opportunities.competitive_advantages.map((advantage: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-700">{advantage}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hiring Insights */}
+              {(request as any).structured_insights.market_opportunities.hiring_insights && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    Hiring Insights
+                  </h3>
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    {(request as any).structured_insights.market_opportunities.hiring_insights}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Experience Level Distribution - Compact */}
       {skillTrends.experience_distribution && Object.keys(skillTrends.experience_distribution).length > 0 && (

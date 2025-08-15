@@ -238,7 +238,7 @@ function parseLinkedInMarkdown(markdown: string, location: string, limit: number
       });
       
     } catch (error) {
-      console.error(`[Market Research Agent] Error parsing job section:`, error);
+      console.error(`[Market Research Agent] Error parsing job section:`, error instanceof Error ? error.message : JSON.stringify(error));
       continue;
     }
   }
@@ -925,9 +925,26 @@ async function generateSkillContextsWithAI(skillAnalysis: any): Promise<any> {
 
     for (let i = 0; i < skillAnalysis.skills_by_category.length; i++) {
       const category = skillAnalysis.skills_by_category[i];
+      
+      // Debug category structure to identify [object Object] issues
+      if (!category || typeof category !== 'object') {
+        console.error(`[Market Research Agent] ❌ Invalid category structure at index ${i}:`, JSON.stringify(category));
+        continue;
+      }
+      
+      if (!category.category) {
+        console.error(`[Market Research Agent] ❌ Missing category.category property at index ${i}:`, JSON.stringify(category));
+        continue;
+      }
+      
+      if (!Array.isArray(category.skills)) {
+        console.error(`[Market Research Agent] ❌ Invalid category.skills structure at index ${i}:`, JSON.stringify(category));
+        continue;
+      }
+      
       const categorySkills = category.skills.slice(0, batchSize); // Limit per category for quality
       
-      console.log(`[Market Research Agent] 🔄 Processing category: ${category.category} (${categorySkills.length} skills)`);
+      console.log(`[Market Research Agent] 🔄 Processing category: ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)} (${categorySkills.length} skills)`);
 
       const skillNames = categorySkills.map(skill => skill.skill);
       
@@ -962,7 +979,7 @@ Guidelines:
             },
             {
               role: "user",
-              content: `Generate professional skill contexts for these ${category.category} skills: ${skillNames.join(', ')}
+              content: `Generate professional skill contexts for these ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)} skills: ${skillNames.join(', ')}
 
 Each skill needs:
 1. A 2-3 sentence professional description explaining its importance and application
@@ -992,15 +1009,15 @@ Return valid JSON only.`
       const aiContent = groqResult.choices[0]?.message?.content;
 
       if (!aiContent) {
-        console.error(`[Market Research Agent] ❌ Empty AI response for category: ${category.category}`);
+        console.error(`[Market Research Agent] ❌ Empty AI response for category: ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)}`);
         continue;
       }
 
       // Parse AI response using robust safeParseAIResponse function
-      const parsedContexts = await safeParseAIResponse(aiContent, `skill contexts for ${category.category}`);
+      const parsedContexts = await safeParseAIResponse(aiContent, `skill contexts for ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)}`);
       
       if (!parsedContexts) {
-        console.error(`[Market Research Agent] ❌ Failed to parse skill contexts for category ${category.category}`);
+        console.error(`[Market Research Agent] ❌ Failed to parse skill contexts for category ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)}`);
         continue;
       }
 
@@ -1025,7 +1042,7 @@ Return valid JSON only.`
         skills: enhancedSkills
       });
 
-      console.log(`[Market Research Agent] ✅ Enhanced ${enhancedSkills.length}/${categorySkills.length} skills in ${category.category}`);
+      console.log(`[Market Research Agent] ✅ Enhanced ${enhancedSkills.length}/${categorySkills.length} skills in ${typeof category.category === 'string' ? category.category : JSON.stringify(category.category)}`);
 
       // Small delay between API calls to be respectful
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -1041,7 +1058,7 @@ Return valid JSON only.`
     };
     
   } catch (error) {
-    console.error('[Market Research Agent] ❌ Error in AI skill context generation:', error);
+    console.error('[Market Research Agent] ❌ Error in AI skill context generation:', error instanceof Error ? error.message : JSON.stringify(error));
     // Return original data without contexts rather than failing
     return skillAnalysis;
   }
@@ -1210,7 +1227,7 @@ Return ONLY valid JSON:
         });
         
       } catch (llmError) {
-        console.warn(`[Market Research Agent] LLM analysis failed for skill: ${skillData.skill}`, llmError);
+        console.warn(`[Market Research Agent] LLM analysis failed for skill: ${skillData.skill}`, llmError instanceof Error ? llmError.message : JSON.stringify(llmError));
         // Add basic structure without LLM data
         enhancedSkills.push({
           skill: skillData.skill,
@@ -1290,7 +1307,7 @@ Return ONLY valid JSON:
     };
     
   } catch (error) {
-    console.error('[Market Research Agent] Enhanced skill analysis failed:', error);
+    console.error('[Market Research Agent] Enhanced skill analysis failed:', error instanceof Error ? error.message : JSON.stringify(error));
     // Return empty enhanced structure if analysis fails
     return {
       enhanced_skill_analysis: [],
@@ -1424,42 +1441,201 @@ function comparePositionToMarket(positionRequirements: any, marketAnalysis: any)
 
 
 // Multi-step AI analysis with chain-of-thought reasoning
+// Generate structured JSON insights instead of markdown
+async function generateStructuredInsights(
+  scrapedData: any,
+  skillAnalysis: any,
+  locations: string,
+  positionTitle?: string,
+  dateWindow?: string,
+  groqApiKey: string
+): Promise<any> {
+  console.log('[Market Research Agent] Generating structured JSON insights...');
+
+  // Prepare data for AI analysis
+  const topSkills = skillAnalysis.top_skills?.slice(0, 10) || [];
+  const skillCombinations = skillAnalysis.skill_combinations?.slice(0, 8) || [];
+  const experienceDistribution = skillAnalysis.experience_distribution || {};
+  const skillsByCategory = skillAnalysis.skills_by_category || [];
+
+  const analysisData = {
+    position: positionTitle || 'General Market Analysis',
+    locations: locations,
+    date_range: dateWindow || '30d',
+    total_jobs: scrapedData.total_scraped || 0,
+    top_skills: topSkills.map(skill => ({
+      name: skill.skill,
+      demand_percentage: skill.percentage,
+      job_count: skill.demand
+    })),
+    skill_combinations: skillCombinations.map(combo => ({
+      skills: combo.combination,
+      frequency: combo.frequency,
+      percentage: combo.percentage
+    })),
+    experience_levels: experienceDistribution,
+    categories: skillsByCategory.map(cat => ({
+      name: cat.category,
+      total_percentage: cat.total_percentage,
+      skill_count: cat.skill_count
+    }))
+  };
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${groqApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are a market intelligence analyst. Generate structured JSON insights for market research data.
+
+CRITICAL: Return ONLY valid JSON. No markdown, no explanations, no code blocks. Start with { and end with }.
+
+Required JSON structure:
+{
+  "executive_summary": {
+    "overview": "2-3 sentence market overview",
+    "key_insight": "Most important finding",
+    "market_health": "Strong/Moderate/Weak",
+    "total_opportunities": number
+  },
+  "key_findings": [
+    {
+      "type": "critical|opportunity|trend",
+      "title": "Finding title",
+      "description": "2-3 sentence description",
+      "impact": "High/Medium/Low"
+    }
+  ],
+  "strategic_recommendations": [
+    {
+      "priority": "immediate|short_term|long_term",
+      "title": "Recommendation title",
+      "description": "Actionable description",
+      "skills_focus": ["skill1", "skill2"],
+      "expected_impact": "Business impact description"
+    }
+  ],
+  "market_opportunities": {
+    "skill_gaps": ["gap1", "gap2"],
+    "emerging_trends": ["trend1", "trend2"],
+    "competitive_advantages": ["advantage1", "advantage2"],
+    "hiring_insights": "Market hiring insights"
+  }
+}`
+        },
+        {
+          role: "user",
+          content: `Generate structured market intelligence insights for this data:
+
+Position: ${analysisData.position}
+Locations: ${analysisData.locations}
+Total Jobs Analyzed: ${analysisData.total_jobs}
+
+Top Skills by Demand:
+${analysisData.top_skills.map(s => `- ${s.name}: ${s.demand_percentage}% (${s.job_count} jobs)`).join('\n')}
+
+Key Skill Combinations:
+${analysisData.skill_combinations.map(c => `- ${c.skills}: ${c.frequency} jobs (${c.percentage}%)`).join('\n')}
+
+Skill Categories:
+${analysisData.categories.map(c => `- ${c.name}: ${c.total_percentage}% total demand, ${c.skill_count} skills`).join('\n')}
+
+Experience Distribution:
+${Object.entries(analysisData.experience_levels).map(([level, count]) => `- ${level}: ${count} positions`).join('\n')}
+
+Generate comprehensive market intelligence in the specified JSON format.`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Structured insights generation failed: ${response.status}`);
+  }
+
+  const result: GroqResponse = await response.json();
+  const jsonContent = result.choices[0]?.message?.content;
+
+  if (!jsonContent) {
+    throw new Error('No content received from AI');
+  }
+
+  // Parse and validate JSON response
+  try {
+    const parsedInsights = JSON.parse(jsonContent);
+    console.log('[Market Research Agent] ✅ Successfully generated structured JSON insights');
+    return parsedInsights;
+  } catch (parseError) {
+    console.error('[Market Research Agent] ❌ Failed to parse AI JSON response:', parseError);
+    // Return fallback structure
+    return {
+      executive_summary: {
+        overview: `Analysis of ${analysisData.total_jobs} job postings for ${analysisData.position} positions.`,
+        key_insight: `${topSkills[0]?.skill || 'Technical skills'} shows highest market demand at ${topSkills[0]?.percentage || 0}%.`,
+        market_health: "Moderate",
+        total_opportunities: topSkills.length
+      },
+      key_findings: [
+        {
+          type: "trend",
+          title: "High Skill Demand Identified",
+          description: `Market shows strong demand for ${topSkills.slice(0, 3).map(s => s.skill).join(', ')}.`,
+          impact: "High"
+        }
+      ],
+      strategic_recommendations: [
+        {
+          priority: "immediate",
+          title: "Focus on Top Skills",
+          description: `Prioritize training in ${topSkills.slice(0, 2).map(s => s.skill).join(' and ')}.`,
+          skills_focus: topSkills.slice(0, 3).map(s => s.skill),
+          expected_impact: "Improved market competitiveness"
+        }
+      ],
+      market_opportunities: {
+        skill_gaps: topSkills.slice(0, 3).map(s => s.skill),
+        emerging_trends: ["Market analysis in progress"],
+        competitive_advantages: ["Strong skill foundation"],
+        hiring_insights: `${analysisData.total_jobs} positions analyzed across ${analysisData.locations}`
+      }
+    };
+  }
+}
+
 async function generateMarketInsights(
   scrapedData: any,
   skillAnalysis: any,
   locations: string,
   positionTitle?: string,
   dateWindow?: string
-): Promise<string> {
-  console.log('[Market Research Agent] Generating enhanced market insights with multi-step AI analysis...');
+): Promise<any> {
+  console.log('[Market Research Agent] Generating structured JSON insights with AI analysis...');
   
   const groqApiKey = Deno.env.get('GROQ_API_KEY');
   if (!groqApiKey) {
     throw new Error('GROQ_API_KEY environment variable is not set');
   }
 
-  // STEP 1: Executive Summary Generation
-  const executiveSummary = await generateExecutiveSummary(scrapedData, skillAnalysis, locations, positionTitle, dateWindow, groqApiKey);
+  // Generate structured JSON insights
+  const insights = await generateStructuredInsights(
+    scrapedData, 
+    skillAnalysis, 
+    locations, 
+    positionTitle, 
+    dateWindow,
+    groqApiKey
+  );
   
-  // STEP 2: Key Findings Bullet Points
-  const keyFindings = await generateKeyFindings(scrapedData, skillAnalysis, groqApiKey);
-  
-  // STEP 3: Strategic Recommendations 
-  const strategicRecommendations = await generateStrategicRecommendations(skillAnalysis, positionTitle, groqApiKey);
-  
-  // STEP 4: Market Opportunities Analysis
-  const marketOpportunities = await generateMarketOpportunities(skillAnalysis, scrapedData, groqApiKey);
-
-  // Combine all sections into final report
-  const fullReport = `${executiveSummary}
-
-${keyFindings}
-
-${strategicRecommendations}
-
-${marketOpportunities}`;
-
-  return fullReport;
+  console.log('[Market Research Agent] ✅ Structured JSON insights generation complete');
+  return insights;
 }
 
 // STEP 1: Generate Executive Summary with 4-part professional structure
@@ -1473,14 +1649,29 @@ async function generateExecutiveSummary(
 ): Promise<string> {
   console.log('[Market Research Agent] Step 1: Generating Executive Summary...');
   
+  // Format data for AI consumption - avoid object serialization issues
+  const topSkills = skillAnalysis.top_skills?.slice(0, 5) || [];
+  const skillCombinations = skillAnalysis.skill_combinations?.slice(0, 3) || [];
+  const experienceDistribution = skillAnalysis.experience_distribution || {};
+  
   const dataContext = {
     total_jobs: scrapedData.total_scraped,
     locations: locations,
     position_title: positionTitle,
     date_window: dateWindow,
-    top_skills: skillAnalysis.top_skills?.slice(0, 5) || [],
-    experience_distribution: skillAnalysis.experience_distribution || {},
-    skill_combinations: skillAnalysis.skill_combinations?.slice(0, 3) || []
+    // Format skills as readable strings
+    top_skills_formatted: topSkills.map(skill => 
+      `${skill.skill} (${skill.percentage}% of jobs, ${skill.demand} positions)`
+    ).join(', '),
+    top_skill_names: topSkills.map(skill => skill.skill).join(', '),
+    // Format experience distribution as readable string
+    experience_levels_formatted: Object.entries(experienceDistribution)
+      .map(([level, count]) => `${level}: ${count} positions`)
+      .join(', '),
+    // Format skill combinations as readable strings
+    skill_combinations_formatted: skillCombinations.map(combo => 
+      `"${combo.combination}" (${combo.percentage}% of jobs)`
+    ).join(', ')
   };
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1535,9 +1726,22 @@ These insights indicate [strategic implication] requiring [recommended action]..
           role: "user", 
           content: `Generate Executive Summary for this market data:
 
-${JSON.stringify(dataContext, null, 2)}
+**Market Overview:**
+- Total Jobs Analyzed: ${dataContext.total_jobs}
+- Locations: ${dataContext.locations}
+- Position: ${dataContext.position_title || 'General Market Analysis'}
+- Time Period: ${dataContext.date_window || 'Recent'}
 
-Focus on quantitative insights and strategic implications for ${positionTitle || 'the analyzed role'}.`
+**Top Skills in Demand:**
+${dataContext.top_skills_formatted}
+
+**Experience Level Distribution:**
+${dataContext.experience_levels_formatted}
+
+**Popular Skill Combinations:**
+${dataContext.skill_combinations_formatted}
+
+Generate a professional executive summary focusing on quantitative insights and strategic implications for ${positionTitle || 'the analyzed role'}.`
         }
       ],
       temperature: 0.2,
@@ -1558,16 +1762,34 @@ async function generateKeyFindings(
   scrapedData: any,
   skillAnalysis: any, 
   groqApiKey: string
-): Promise<string> {
+): Promise<any> {
   console.log('[Market Research Agent] Step 2: Generating Key Findings...');
 
+  // Format findings data properly for AI consumption
+  const topSkills = skillAnalysis.top_skills || [];
+  const topSkill = topSkills[0] || null;
+  const skillCombinations = skillAnalysis.skill_combinations?.slice(0, 5) || [];
+  const experienceDistribution = skillAnalysis.experience_distribution || {};
+  const sampleCompanies = scrapedData.data?.slice(0, 10).map((job: any) => job.company).filter(Boolean) || [];
+  
   const findingsData = {
     total_jobs: scrapedData.total_scraped,
-    skills_count: skillAnalysis.top_skills?.length || 0,
-    top_skill: skillAnalysis.top_skills?.[0] || {},
-    skill_combinations: skillAnalysis.skill_combinations?.slice(0, 5) || [],
-    experience_levels: Object.keys(skillAnalysis.experience_distribution || {}).length,
-    sample_companies: scrapedData.data?.slice(0, 10).map((job: any) => job.company) || []
+    skills_count: topSkills.length,
+    // Format top skill as readable string
+    top_skill_formatted: topSkill ? `${topSkill.skill} appears in ${topSkill.percentage}% of positions (${topSkill.demand} jobs)` : 'No skills identified',
+    top_skill_name: topSkill?.skill || 'Unknown',
+    top_skill_percentage: topSkill?.percentage || 0,
+    // Format skill combinations as readable strings
+    skill_combinations_formatted: skillCombinations.map(combo => 
+      `"${combo.combination}" found in ${combo.frequency} jobs (${combo.percentage}% of total)`
+    ).join('; '),
+    // Format experience levels
+    experience_levels_count: Object.keys(experienceDistribution).length,
+    experience_distribution_formatted: Object.entries(experienceDistribution)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .map(([level, count]) => `${level}: ${count} positions (${Math.round(((count as number) / scrapedData.total_scraped) * 100)}%)`)
+      .join(', '),
+    sample_companies_formatted: sampleCompanies.slice(0, 8).join(', ')
   };
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1581,40 +1803,61 @@ async function generateKeyFindings(
       messages: [
         {
           role: "system",
-          content: `You are a data analyst. Extract the most important findings from market research data with visual emphasis for critical insights.
+          content: `You are a data analyst. Extract the most important findings from market research data and return them as structured JSON.
 
-DELIVERABLE: Create a "Key Findings" section with 5-7 bullet points highlighting:
+DELIVERABLE: Return JSON with "key_findings" array containing 5-7 key findings, each highlighting:
 - Most critical quantitative insights (use "High Demand" for top skills)
 - Skill demand patterns with specific percentages
 - Experience level trends with numbers
 - Skill combination patterns with frequencies (use "Opportunity" for emerging patterns)
 - Competitive landscape observations (use "Market" for competition insights)
 
-FORMAT: Each bullet should be one concise sentence with specific numbers.
-VISUAL CUES: Include keywords that trigger color coding:
-- Use "High Demand" for critical skills (triggers red highlighting)
-- Use "Opportunity" for growth areas (triggers green highlighting)  
-- Use "Market" or "Competition" for competitive insights (triggers blue highlighting)
+RETURN ONLY VALID JSON in this exact format:
+{
+  "key_findings": [
+    {
+      "type": "high_demand|opportunity|market|skill_pattern",
+      "title": "Brief title for the finding",
+      "description": "Detailed finding with specific numbers",
+      "metrics": {
+        "percentage": 38,
+        "count": 65,
+        "skill_name": "Marketing"
+      }
+    }
+  ]
+}
 
-EXAMPLE:
-## Key Findings
+VISUAL CUES: Use these types for color coding:
+- "high_demand" for critical skills (triggers red highlighting)
+- "opportunity" for growth areas (triggers green highlighting)  
+- "market" for competitive insights (triggers blue highlighting)
+- "skill_pattern" for general skill trends
 
-• **High Demand Skill**: [Skill] is the most in-demand skill, appearing in X% of positions
-• **Top Skill Combinations**: The combination of "[Skill A] + [Skill B]" is found in X% of jobs (Y jobs)
-• **Experience Distribution**: Z% of positions target [level] professionals, with [level] at Y%
-• **Market Competition**: Top hiring companies include [companies], indicating a competitive landscape
-• **Emerging Opportunity**: The combination of "[Skill A] + [Skill C]" is found in X% of jobs, suggesting a growing need
-• **Skill Demand Patterns**: [Skill] is the second most in-demand skill, appearing in X% of positions
-
-Use • bullets and bold key metrics.`
+NO MARKDOWN. NO CODE BLOCKS. Return only the JSON object.`
         },
         {
           role: "user",
-          content: `Extract key findings from this data:
+          content: `Extract key findings from this market research data:
 
-${JSON.stringify(findingsData, null, 2)}
+**Market Overview:**
+- Total Jobs Analyzed: ${findingsData.total_jobs}
+- Total Unique Skills Identified: ${findingsData.skills_count}
+- Experience Levels Found: ${findingsData.experience_levels_count}
 
-Focus on the most actionable and quantifiable insights.`
+**Top Skill Analysis:**
+- Most In-Demand Skill: ${findingsData.top_skill_formatted}
+
+**Skill Combination Patterns:**
+${findingsData.skill_combinations_formatted}
+
+**Experience Level Distribution:**
+${findingsData.experience_distribution_formatted}
+
+**Sample Companies Hiring:**
+${findingsData.sample_companies_formatted}
+
+Extract the most actionable and quantifiable insights from this data.`
         }
       ],
       temperature: 0.1,
@@ -1627,7 +1870,33 @@ Focus on the most actionable and quantifiable insights.`
   }
 
   const result: GroqResponse = await response.json();
-  return result.choices[0]?.message?.content || '## Key Findings\n\nAnalysis in progress...';
+  const content = result.choices[0]?.message?.content;
+  
+  if (!content) {
+    return {
+      key_findings: [
+        {
+          type: "high_demand",
+          title: "Analysis in Progress",
+          description: "Market analysis is currently being processed",
+          metrics: {}
+        }
+      ]
+    };
+  }
+  
+  // Parse the JSON response
+  const parsedFindings = await safeParseAIResponse(content, 'Key Findings');
+  return parsedFindings || {
+    key_findings: [
+      {
+        type: "high_demand", 
+        title: "Analysis Error",
+        description: "Unable to generate key findings at this time",
+        metrics: {}
+      }
+    ]
+  };
 }
 
 // STEP 3: Generate Strategic Recommendations
@@ -1635,14 +1904,29 @@ async function generateStrategicRecommendations(
   skillAnalysis: any,
   positionTitle?: string,
   groqApiKey: string
-): Promise<string> {
+): Promise<any> {
   console.log('[Market Research Agent] Step 3: Generating Strategic Recommendations...');
 
+  // Format recommendations data for AI consumption
+  const topSkills = skillAnalysis.top_skills?.slice(0, 8) || [];
+  const skillCombinations = skillAnalysis.skill_combinations?.slice(0, 6) || [];
+  const skillsByCategory = skillAnalysis.skills_by_category || [];
+  
   const recommendationsData = {
     position_title: positionTitle,
-    top_skills: skillAnalysis.top_skills?.slice(0, 8) || [],
-    skill_combinations: skillAnalysis.skill_combinations?.slice(0, 6) || [],
-    skills_by_category: skillAnalysis.skills_by_category || []
+    // Format top skills as readable strings
+    top_skills_formatted: topSkills.map(skill => 
+      `${skill.skill} (${skill.percentage}% demand)`
+    ).join(', '),
+    highest_demand_skills: topSkills.slice(0, 3).map(skill => skill.skill).join(', '),
+    // Format skill combinations
+    skill_combinations_formatted: skillCombinations.map(combo => 
+      `"${combo.combination}" appears in ${combo.frequency} positions`
+    ).join('; '),
+    // Format categories
+    categories_formatted: skillsByCategory.map(cat => 
+      `${typeof cat.category === 'string' ? cat.category : JSON.stringify(cat.category)}: ${cat.skills.length} skills (${cat.total_percentage}% total demand)`
+    ).join(', ')
   };
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1656,38 +1940,52 @@ async function generateStrategicRecommendations(
       messages: [
         {
           role: "system", 
-          content: `You are a strategic workforce consultant. Generate actionable training and hiring recommendations.
+          content: `You are a strategic workforce consultant. Generate actionable training and hiring recommendations as structured JSON.
 
-DELIVERABLE: "Strategic Recommendations" section with 3-4 prioritized recommendations:
+DELIVERABLE: JSON with "strategic_recommendations" array containing 3-4 prioritized recommendations:
 1. **Immediate Training Priorities** - Top skills to develop now
 2. **Skill Combination Focus** - Critical skill pairs/clusters to build
 3. **Hiring Strategy** - Market-informed recruitment approach
 4. **Competitive Positioning** - How to leverage market gaps
 
-FORMAT: Each recommendation should have:
-- Bold heading
-- 2-3 sentences explaining the strategy
+RETURN ONLY VALID JSON in this exact format:
+{
+  "strategic_recommendations": [
+    {
+      "category": "training_priorities|skill_combinations|hiring_strategy|competitive_positioning",
+      "title": "Brief recommendation title",
+      "strategy": "2-3 sentences explaining the strategy",
+      "focus_areas": ["specific skill", "skill combination"],
+      "business_impact": "Expected business impact statement",
+      "priority": "high|medium|low"
+    }
+  ]
+}
+
+Each recommendation should have:
+- Clear category classification
 - Specific skills/combinations to focus on
+- Actionable strategy explanation
 - Expected business impact
 
-EXAMPLE:
-## Strategic Recommendations
-
-**1. Immediate Training Priorities**
-Focus training programs on [top skills] which appear in X% of market demand. Prioritize [specific skill] development as it shows the highest market penetration at Y%.
-
-**2. Skill Combination Mastery** 
-Develop "[skill A] + [skill B]" competencies as this combination appears in X positions. This pairing indicates [strategic value] in the current market.
-
-Keep recommendations specific and actionable.`
+Keep recommendations specific and actionable.
+NO MARKDOWN. NO CODE BLOCKS. Return only the JSON object.`
         },
         {
           role: "user",
           content: `Generate strategic recommendations based on this market analysis:
 
-${JSON.stringify(recommendationsData, null, 2)}
+**Position:** ${recommendationsData.position_title || 'General Market Analysis'}
 
-Position context: ${positionTitle || 'General market analysis'}`
+**Highest Demand Skills:** ${recommendationsData.highest_demand_skills}
+
+**All Top Skills by Demand:** ${recommendationsData.top_skills_formatted}
+
+**Key Skill Combinations:** ${recommendationsData.skill_combinations_formatted}
+
+**Skill Categories:** ${recommendationsData.categories_formatted}
+
+Generate strategic recommendations for training, hiring, and competitive positioning based on this market intelligence.`
         }
       ],
       temperature: 0.3,
@@ -1700,78 +1998,39 @@ Position context: ${positionTitle || 'General market analysis'}`
   }
 
   const result: GroqResponse = await response.json();
-  return result.choices[0]?.message?.content || '## Strategic Recommendations\n\nAnalysis in progress...';
-}
-
-// STEP 4: Generate Market Opportunities Analysis
-async function generateMarketOpportunities(
-  skillAnalysis: any,
-  scrapedData: any,
-  groqApiKey: string
-): Promise<string> {
-  console.log('[Market Research Agent] Step 4: Generating Market Opportunities...');
-
-  const opportunitiesData = {
-    total_jobs: scrapedData.total_scraped,
-    skill_combinations: skillAnalysis.skill_combinations?.slice(0, 10) || [],
-    top_skills: skillAnalysis.top_skills?.slice(0, 10) || [],
-    sample_job_titles: scrapedData.data?.slice(0, 15).map((job: any) => job.title) || [],
-    companies: scrapedData.data?.slice(0, 20).map((job: any) => job.company) || []
-  };
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${groqApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      messages: [
+  const content = result.choices[0]?.message?.content;
+  
+  if (!content) {
+    return {
+      strategic_recommendations: [
         {
-          role: "system",
-          content: `You are a market opportunity analyst. Identify competitive advantages and market gaps.
-
-DELIVERABLE: "Market Opportunities" section identifying:
-- **Skill Gaps** - Underserved skill combinations with potential
-- **Competitive Intelligence** - Insights from company hiring patterns  
-- **Emerging Trends** - New patterns in job titles and requirements
-- **Market Positioning** - How to leverage identified opportunities
-
-FORMAT: Use subheadings and specific insights with numbers where possible.
-
-EXAMPLE:
-## Market Opportunities
-
-**Skill Gap Analysis**
-The combination of [skill A] + [skill B] appears in only X% of current job market but shows Y% growth in job titles, indicating an emerging opportunity.
-
-**Competitive Intelligence** 
-Leading employers like [companies] are prioritizing [skills], suggesting [market trend]. This creates opportunities for [strategic action].
-
-Focus on actionable intelligence and competitive positioning.`
-        },
-        {
-          role: "user",
-          content: `Identify market opportunities from this data:
-
-${JSON.stringify(opportunitiesData, null, 2)}
-
-Focus on competitive advantages and strategic positioning insights.`
+          category: "training_priorities",
+          title: "Analysis in Progress",
+          strategy: "Strategic recommendations are currently being generated",
+          focus_areas: [],
+          business_impact: "Analysis pending",
+          priority: "high"
         }
-      ],
-      temperature: 0.4,
-      max_tokens: 700
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Market Opportunities generation failed: ${response.status}`);
+      ]
+    };
   }
-
-  const result: GroqResponse = await response.json();
-  return result.choices[0]?.message?.content || '## Market Opportunities\n\nAnalysis in progress...';
+  
+  // Parse the JSON response
+  const parsedRecommendations = await safeParseAIResponse(content, 'Strategic Recommendations');
+  return parsedRecommendations || {
+    strategic_recommendations: [
+      {
+        category: "training_priorities",
+        title: "Analysis Error",
+        strategy: "Unable to generate strategic recommendations at this time",
+        focus_areas: [],
+        business_impact: "Please retry analysis",
+        priority: "high"
+      }
+    ]
+  };
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -1870,7 +2129,7 @@ serve(async (req) => {
             }
             
           } catch (locationError) {
-            console.error(`[Market Research Agent] Failed to scrape ${location} (attempt ${retryCount + 1}):`, locationError);
+            console.error(`[Market Research Agent] Failed to scrape ${location} (attempt ${retryCount + 1}):`, locationError instanceof Error ? locationError.message : JSON.stringify(locationError));
             retryCount++;
             
             if (retryCount > maxRetries) {
@@ -1981,6 +2240,7 @@ serve(async (req) => {
         .eq('id', request_id);
 
       let marketInsights = '';
+      let insightsResult: any = null;
       try {
         // Add timeout protection for AI insights generation
         const insightsPromise = generateMarketInsights(
@@ -1996,7 +2256,8 @@ serve(async (req) => {
           setTimeout(() => reject(new Error('AI insights generation timed out')), 30000)
         );
         
-        marketInsights = await Promise.race([insightsPromise, timeoutPromise]) as string;
+        insightsResult = await Promise.race([insightsPromise, timeoutPromise]) as any;
+        marketInsights = typeof insightsResult === 'string' ? insightsResult : insightsResult.markdown || 'Analysis completed.';
       } catch (insightsError) {
         console.error('[Market Research Agent] AI insights generation failed:', insightsError);
         // Generate basic insights without AI if it fails
@@ -2020,12 +2281,24 @@ The job market shows active demand for ${position_title || 'this role'} across t
 
       // Save final results
       console.log('[Market Research Agent] Saving final analysis results...');
+      
+      // Extract structured insights if available
+      let structuredInsights = null;
+      try {
+        if (typeof insightsResult === 'object' && insightsResult.structured) {
+          structuredInsights = insightsResult.structured;
+        }
+      } catch (e) {
+        console.warn('[Market Research Agent] Could not extract structured insights:', e);
+      }
+      
       await supabase
         .from('market_intelligence_requests')
         .update({
           status: 'completed',
           status_message: 'Analysis complete! Market intelligence report ready.',
           ai_insights: marketInsights,
+          structured_insights: structuredInsights,
           scraped_data: {
             total_jobs: aiEnhancedJobs.length,
             locations: locations,
@@ -2082,7 +2355,7 @@ The job market shows active demand for ${position_title || 'this role'} across t
     }
 
   } catch (error) {
-    console.error('[Market Research Agent] Fatal error:', error);
+    console.error('[Market Research Agent] Fatal error:', error instanceof Error ? error.message : JSON.stringify(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
     return new Response(JSON.stringify({ 
