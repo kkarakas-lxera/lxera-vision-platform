@@ -11,6 +11,7 @@ import {
   Download, 
   Trash2, 
   ChevronDown,
+  ChevronUp,
   TrendingUp,
   Users,
   MapPin,
@@ -37,6 +38,12 @@ export default function MarketIntelligenceResults({
   showHeader = true
 }: MarketIntelligenceResultsProps) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [expandedCertCategories, setExpandedCertCategories] = useState<Record<string, boolean>>({
+    most_requested: true,
+    high_value: true, 
+    emerging: true
+  });
+  const [showAllCerts, setShowAllCerts] = useState<Record<string, boolean>>({});
 
   const getRelativeTime = (date: string) => {
     const now = new Date();
@@ -68,6 +75,20 @@ export default function MarketIntelligenceResults({
         variant: 'destructive'
       });
     }
+  };
+
+  const toggleCertCategory = (category: string) => {
+    setExpandedCertCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  const toggleShowAllCerts = (category: string) => {
+    setShowAllCerts(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   // Parse analysis data for structured display
@@ -175,17 +196,111 @@ export default function MarketIntelligenceResults({
             </Button>
           </div>
           <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="prose max-w-none prose-gray prose-sm prose-headings:text-gray-900 prose-headings:font-medium prose-h1:text-lg prose-h1:mb-3 prose-h2:text-base prose-h2:mt-4 prose-h2:mb-2 prose-h3:text-sm prose-h3:mt-3 prose-h3:mb-1 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-3 prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-medium prose-ul:my-2 prose-li:my-0">
+            <div className="prose max-w-none prose-gray prose-sm">
               <ReactMarkdown
                 components={{
                   h1: ({children}) => <h1 className="text-lg font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100">{children}</h1>,
                   h2: ({children}) => <h2 className="text-base font-medium text-gray-900 mt-4 mb-2">{children}</h2>,
                   h3: ({children}) => <h3 className="text-sm font-medium text-gray-900 mt-3 mb-1">{children}</h3>,
-                  p: ({children}) => <p className="text-gray-700 leading-relaxed mb-3 text-sm">{children}</p>,
+                  p: ({children}) => {
+                    // Enhanced paragraph processing for callouts and highlighting
+                    const content = String(children);
+                    
+                    // Check for callout patterns
+                    if (content.includes('💡') || content.includes('Key Insight')) {
+                      return (
+                        <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3 rounded-r">
+                          <div className="flex items-start">
+                            <span className="text-blue-600 text-base mr-2">💡</span>
+                            <p className="text-blue-800 text-sm font-medium leading-relaxed">{children}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    if (content.includes('⚠️') || content.includes('Market Alert')) {
+                      return (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-3 rounded-r">
+                          <div className="flex items-start">
+                            <span className="text-yellow-600 text-base mr-2">⚠️</span>
+                            <p className="text-yellow-800 text-sm font-medium leading-relaxed">{children}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    if (content.includes('🚀') || content.includes('Opportunity')) {
+                      return (
+                        <div className="bg-green-50 border-l-4 border-green-400 p-3 mb-3 rounded-r">
+                          <div className="flex items-start">
+                            <span className="text-green-600 text-base mr-2">🚀</span>
+                            <p className="text-green-800 text-sm font-medium leading-relaxed">{children}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Regular paragraph with number/location/position highlighting
+                    return (
+                      <p 
+                        className="text-gray-700 leading-relaxed mb-3 text-sm"
+                        dangerouslySetInnerHTML={{
+                          __html: content
+                            // Highlight numbers (especially job counts, percentages)
+                            .replace(/\b(\d+(?:,\d{3})*(?:\.\d+)?%?)\b/g, '<span class="font-semibold text-blue-600 bg-blue-50 px-1 py-0.5 rounded text-xs">$1</span>')
+                            // Highlight locations
+                            .replace(/\b(North America|United States|US|USA|Canada|UK|Europe|Asia)\b/g, '<span class="font-medium text-purple-600 bg-purple-50 px-1 py-0.5 rounded text-xs">📍 $1</span>')
+                            // Highlight positions/roles
+                            .replace(/\b(Go To Market Strategist|Software Engineer|Data Scientist|Product Manager|Marketing Manager|Sales Manager)\b/gi, '<span class="font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded text-xs">👔 $1</span>')
+                            // Highlight time periods
+                            .replace(/\b(\d+\s+(?:days?|weeks?|months?|years?))\b/gi, '<span class="font-medium text-green-600 bg-green-50 px-1 py-0.5 rounded text-xs">⏰ $1</span>')
+                        }}
+                      />
+                    );
+                  },
                   ul: ({children}) => <ul className="space-y-1 mb-3">{children}</ul>,
-                  li: ({children}) => <li className="text-gray-700 text-sm flex items-start"><span className="w-1 h-1 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span><span>{children}</span></li>,
-                  strong: ({children}) => <strong className="font-medium text-gray-900">{children}</strong>,
-                  em: ({children}) => <em className="italic text-gray-600">{children}</em>
+                  li: ({children}) => {
+                    const content = String(children);
+                    // Enhanced bullet points with color coding
+                    if (content.includes('High Demand') || content.includes('Critical')) {
+                      return (
+                        <li className="text-red-700 text-sm flex items-start mb-1">
+                          <span className="w-2 h-2 bg-red-500 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                          <span>{children}</span>
+                        </li>
+                      );
+                    }
+                    if (content.includes('Opportunity') || content.includes('Growth')) {
+                      return (
+                        <li className="text-green-700 text-sm flex items-start mb-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                          <span>{children}</span>
+                        </li>
+                      );
+                    }
+                    if (content.includes('Market') || content.includes('Competition')) {
+                      return (
+                        <li className="text-blue-700 text-sm flex items-start mb-1">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                          <span>{children}</span>
+                        </li>
+                      );
+                    }
+                    // Default bullet point
+                    return (
+                      <li className="text-gray-700 text-sm flex items-start mb-1">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span>{children}</span>
+                      </li>
+                    );
+                  },
+                  strong: ({children}) => <strong className="font-semibold text-gray-900 bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</strong>,
+                  em: ({children}) => <em className="italic text-gray-600">{children}</em>,
+                  blockquote: ({children}) => (
+                    <blockquote className="border-l-4 border-gray-300 pl-4 py-2 mb-3 bg-gray-50 rounded-r">
+                      <div className="text-gray-700 text-sm italic">{children}</div>
+                    </blockquote>
+                  )
                 }}
               >
                 {request.ai_insights}
@@ -363,9 +478,9 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Certification Landscape */}
+      {/* Certification Landscape - Enhanced UI */}
       {analysisData.certification_landscape && analysisData.certification_landscape.total_certifications_mentioned > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Certification Landscape</h2>
             <Button
@@ -381,50 +496,102 @@ export default function MarketIntelligenceResults({
               )}
             </Button>
           </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="space-y-4">
-              {/* Most Requested Certifications */}
-              {analysisData.certification_landscape.most_requested && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Most Requested Certifications</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.certification_landscape.most_requested.map((cert: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                        {cert}
-                      </span>
-                    ))}
+          <div className="space-y-3">
+            {(() => {
+              const INITIAL_DISPLAY_COUNT = 8;
+              const categories = [
+                {
+                  key: 'most_requested',
+                  title: 'Most Requested Certifications',
+                  data: analysisData.certification_landscape.most_requested,
+                  colorClasses: 'bg-blue-50 text-blue-700 border-blue-200',
+                  count: analysisData.certification_landscape.most_requested?.length || 0
+                },
+                {
+                  key: 'high_value',
+                  title: 'High-Value Certifications',
+                  data: analysisData.certification_landscape.high_value,
+                  colorClasses: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                  count: analysisData.certification_landscape.high_value?.length || 0
+                },
+                {
+                  key: 'emerging',
+                  title: 'Emerging Certifications',
+                  data: analysisData.certification_landscape.emerging,
+                  colorClasses: 'bg-green-50 text-green-700 border-green-200',
+                  count: analysisData.certification_landscape.emerging?.length || 0
+                }
+              ].filter(category => category.data && category.data.length > 0);
+
+              return categories.map((category) => {
+                const isExpanded = expandedCertCategories[category.key] ?? true;
+                const showAll = showAllCerts[category.key] ?? false;
+                const displayCerts = showAll ? category.data : category.data.slice(0, INITIAL_DISPLAY_COUNT);
+                const hasMore = category.data.length > INITIAL_DISPLAY_COUNT;
+
+                return (
+                  <div key={category.key} className="bg-white border border-gray-100 rounded-lg">
+                    {/* Category Header - Clickable */}
+                    <div 
+                      className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleCertCategory(category.key)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-gray-900">{category.title}</h3>
+                        <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                          {category.count}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Certifications in Category - Collapsible */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 p-3">
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {displayCerts.map((cert: string, index: number) => (
+                            <span key={index} className={`px-3 py-1 rounded-full text-sm font-medium border ${category.colorClasses}`}>
+                              {cert}
+                            </span>
+                          ))}
+                        </div>
+                        
+                        {/* Show More/Less Toggle */}
+                        {hasMore && (
+                          <div className="flex justify-center pt-2 border-t border-gray-50">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleShowAllCerts(category.key);
+                              }}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                            >
+                              {showAll ? (
+                                <>
+                                  Show Less
+                                  <ChevronUp className="h-3 w-3" />
+                                </>
+                              ) : (
+                                <>
+                                  Show {category.data.length - INITIAL_DISPLAY_COUNT} More Certifications
+                                  <ChevronDown className="h-3 w-3" />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-              
-              {/* High Value Certifications */}
-              {analysisData.certification_landscape.high_value && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">High-Value Certifications</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.certification_landscape.high_value.map((cert: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Emerging Certifications */}
-              {analysisData.certification_landscape.emerging && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Emerging Certifications</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.certification_landscape.emerging.map((cert: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                );
+              });
+            })()}
           </div>
         </div>
       )}
