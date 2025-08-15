@@ -362,208 +362,128 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Key Findings from Structured Data */}
-      {(request as any).structured_insights?.key_findings && Array.isArray((request as any).structured_insights.key_findings) && (
-        <div className="space-y-4">
+      {/* Executive Summary from Structured Data */}
+      {request.structured_insights?.executive_summary && (
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Key Findings</h2>
+            <h3 className="text-sm font-medium text-gray-900">Executive Summary</h3>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleCopySection('key-findings', JSON.stringify((request as any).structured_insights.key_findings, null, 2))}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={() => handleCopySection('executive-summary', JSON.stringify(request.structured_insights.executive_summary, null, 2))}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
             >
-              {copiedSection === 'key-findings' ? (
-                <Check className="h-4 w-4 text-green-600" />
+              {copiedSection === 'executive-summary' ? (
+                <Check className="h-3 w-3" />
               ) : (
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3 w-3" />
               )}
             </Button>
           </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="space-y-3">
-              {(request as any).structured_insights.key_findings.map((finding: any, index: number) => {
-                const getTypeStyles = (type: string) => {
-                  switch (type) {
-                    case 'high_demand':
-                      return {
-                        bg: 'bg-red-50 border-red-200',
-                        text: 'text-red-800',
-                        dot: 'bg-red-500'
-                      };
-                    case 'opportunity':
-                      return {
-                        bg: 'bg-green-50 border-green-200', 
-                        text: 'text-green-800',
-                        dot: 'bg-green-500'
-                      };
-                    case 'market':
-                      return {
-                        bg: 'bg-blue-50 border-blue-200',
-                        text: 'text-blue-800',
-                        dot: 'bg-blue-500'
-                      };
-                    default:
-                      return {
-                        bg: 'bg-gray-50 border-gray-200',
-                        text: 'text-gray-800',
-                        dot: 'bg-gray-500'
-                      };
-                  }
-                };
-                
-                const styles = getTypeStyles(finding.type);
-                
-                return (
-                  <div key={index} className={`p-4 rounded-lg border ${styles.bg}`}>
-                    <div className="flex items-start">
-                      <div className={`w-2 h-2 rounded-full ${styles.dot} mt-2 mr-3 flex-shrink-0`}></div>
-                      <div className="flex-1">
-                        <h4 className={`font-medium ${styles.text} mb-1`}>{finding.title}</h4>
-                        <p className={`text-sm ${styles.text}`}>{finding.description}</p>
-                        {finding.metrics && Object.keys(finding.metrics).length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {finding.metrics.percentage && (
-                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
-                                {finding.metrics.percentage}%
-                              </span>
-                            )}
-                            {finding.metrics.count && (
-                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
-                                {finding.metrics.count} jobs
-                              </span>
-                            )}
-                            {finding.metrics.skill_name && (
-                              <span className="px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">
-                                {finding.metrics.skill_name}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+            {request.structured_insights.executive_summary.market_context && (
+              <div className="text-gray-700 mb-2">
+                {request.structured_insights.executive_summary.market_context}
+              </div>
+            )}
+            {request.structured_insights.executive_summary.callouts && Array.isArray(request.structured_insights.executive_summary.callouts) && (
+              <div className="space-y-1 mb-2">
+                {request.structured_insights.executive_summary.callouts.map((callout: any, index: number) => (
+                  <div key={index} className="flex items-start gap-2 text-gray-600">
+                    <span>{callout.icon}</span>
+                    <span>{callout.text}</span>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
+            {request.structured_insights.executive_summary.strategic_conclusion && (
+              <div className="text-gray-700 font-medium">
+                {request.structured_insights.executive_summary.strategic_conclusion}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Key Findings from Structured Data */}
+      {request.structured_insights?.key_findings && Array.isArray(request.structured_insights.key_findings) && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-900">Key Findings</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('key-findings', JSON.stringify(request.structured_insights.key_findings, null, 2))}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'key-findings' ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {request.structured_insights.key_findings.map((finding: any, index: number) => (
+              <div key={index} className="p-3 bg-gray-50 border border-gray-200 rounded text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-sm">{finding.icon || '📊'}</span>
+                  <div className="min-w-0">
+                    <span className="font-medium text-gray-900">{finding.category}</span>
+                    {finding.insights && Array.isArray(finding.insights) && (
+                      <div className="mt-1 space-y-1">
+                        {finding.insights.map((insight: string, insightIndex: number) => (
+                          <div key={insightIndex} className="text-gray-600">• {insight}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Strategic Recommendations from Structured Data */}
-      {(request as any).structured_insights?.strategic_recommendations && Array.isArray((request as any).structured_insights.strategic_recommendations) && (
-        <div className="space-y-4">
+      {request.structured_insights?.strategic_recommendations && Array.isArray(request.structured_insights.strategic_recommendations) && (
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Strategic Recommendations</h2>
+            <h3 className="text-sm font-medium text-gray-900">Strategic Recommendations</h3>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleCopySection('strategic-recommendations', JSON.stringify((request as any).structured_insights.strategic_recommendations, null, 2))}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={() => handleCopySection('strategic-recommendations', JSON.stringify(request.structured_insights.strategic_recommendations, null, 2))}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
             >
               {copiedSection === 'strategic-recommendations' ? (
-                <Check className="h-4 w-4 text-green-600" />
+                <Check className="h-3 w-3" />
               ) : (
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3 w-3" />
               )}
             </Button>
           </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="space-y-4">
-              {(request as any).structured_insights.strategic_recommendations.map((recommendation: any, index: number) => {
-                const getCategoryStyles = (category: string) => {
-                  switch (category) {
-                    case 'training_priorities':
-                      return {
-                        bg: 'bg-blue-50 border-blue-200',
-                        text: 'text-blue-800',
-                        icon: '🎯',
-                        badge: 'bg-blue-100 text-blue-800'
-                      };
-                    case 'skill_combinations':
-                      return {
-                        bg: 'bg-purple-50 border-purple-200',
-                        text: 'text-purple-800',
-                        icon: '🔗',
-                        badge: 'bg-purple-100 text-purple-800'
-                      };
-                    case 'hiring_strategy':
-                      return {
-                        bg: 'bg-green-50 border-green-200',
-                        text: 'text-green-800',
-                        icon: '👥',
-                        badge: 'bg-green-100 text-green-800'
-                      };
-                    case 'competitive_positioning':
-                      return {
-                        bg: 'bg-orange-50 border-orange-200',
-                        text: 'text-orange-800',
-                        icon: '⚡',
-                        badge: 'bg-orange-100 text-orange-800'
-                      };
-                    default:
-                      return {
-                        bg: 'bg-gray-50 border-gray-200',
-                        text: 'text-gray-800',
-                        icon: '📋',
-                        badge: 'bg-gray-100 text-gray-800'
-                      };
-                  }
-                };
-                
-                const styles = getCategoryStyles(recommendation.category || 'general');
-                
-                return (
-                  <div key={index} className={`p-5 rounded-lg border ${styles.bg}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">{styles.icon}</span>
-                        <h3 className={`font-semibold ${styles.text}`}>{recommendation.title}</h3>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${styles.badge}`}>
-                          {recommendation.category ? recommendation.category.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Strategy'}
-                        </span>
-                        {recommendation.priority && (
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            recommendation.priority === 'high' ? 'bg-red-100 text-red-800' :
-                            recommendation.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {recommendation.priority.toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <p className={`${styles.text} mb-3 leading-relaxed`}>
-                      {recommendation.strategy}
-                    </p>
-                    
-                    {recommendation.focus_areas && recommendation.focus_areas.length > 0 && (
-                      <div className="mb-3">
-                        <h4 className={`text-sm font-medium ${styles.text} mb-2`}>Focus Areas:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {recommendation.focus_areas.map((area: string, areaIndex: number) => (
-                            <span key={areaIndex} className="px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-medium">
-                              {area}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {recommendation.business_impact && (
-                      <div className={`mt-3 pt-3 border-t border-white border-opacity-40`}>
-                        <p className={`text-sm ${styles.text} font-medium`}>
-                          <span className="opacity-75">Expected Impact:</span> {recommendation.business_impact}
-                        </p>
+          <div className="space-y-2">
+            {request.structured_insights.strategic_recommendations.map((recommendation: any, index: number) => (
+              <div key={index} className="p-3 bg-gray-50 border border-gray-200 rounded text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                    {recommendation.priority || index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <span className="font-medium text-gray-900">{recommendation.title}</span>
+                    <div className="mt-1 text-gray-600">{recommendation.description}</div>
+                    {recommendation.specific_actions && Array.isArray(recommendation.specific_actions) && (
+                      <div className="mt-1 space-y-1">
+                        {recommendation.specific_actions.map((action: string, actionIndex: number) => (
+                          <div key={actionIndex} className="text-gray-600">• {action}</div>
+                        ))}
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -855,96 +775,6 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Market Opportunities - Structured JSON Rendering */}
-      {(request as any)?.structured_insights?.market_opportunities && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Market Opportunities</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCopySection('opportunities', JSON.stringify((request as any).structured_insights.market_opportunities, null, 2))}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              {copiedSection === 'opportunities' ? (
-                <Check className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="space-y-6">
-              {/* Skill Gaps */}
-              {(request as any).structured_insights.market_opportunities.skill_gaps && (request as any).structured_insights.market_opportunities.skill_gaps.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    Skill Gaps
-                  </h3>
-                  <div className="space-y-2">
-                    {(request as any).structured_insights.market_opportunities.skill_gaps.map((gap: string, index: number) => (
-                      <div key={index} className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-700">{gap}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Emerging Trends */}
-              {(request as any).structured_insights.market_opportunities.emerging_trends && (request as any).structured_insights.market_opportunities.emerging_trends.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Emerging Trends
-                  </h3>
-                  <div className="space-y-2">
-                    {(request as any).structured_insights.market_opportunities.emerging_trends.map((trend: string, index: number) => (
-                      <div key={index} className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-700">{trend}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Competitive Advantages */}
-              {(request as any).structured_insights.market_opportunities.competitive_advantages && (request as any).structured_insights.market_opportunities.competitive_advantages.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Competitive Advantages
-                  </h3>
-                  <div className="space-y-2">
-                    {(request as any).structured_insights.market_opportunities.competitive_advantages.map((advantage: string, index: number) => (
-                      <div key={index} className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-700">{advantage}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Hiring Insights */}
-              {(request as any).structured_insights.market_opportunities.hiring_insights && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    Hiring Insights
-                  </h3>
-                  <div className="text-sm text-gray-700 leading-relaxed">
-                    {(request as any).structured_insights.market_opportunities.hiring_insights}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Experience Level Distribution - Compact */}
       {skillTrends.experience_distribution && Object.keys(skillTrends.experience_distribution).length > 0 && (

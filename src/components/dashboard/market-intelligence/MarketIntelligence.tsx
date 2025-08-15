@@ -42,6 +42,31 @@ export interface MarketIntelligenceRequest {
   status_message?: string;
   scraped_data?: any;
   ai_insights?: string;
+  structured_insights?: {
+    executive_summary?: {
+      market_context?: string;
+      callouts?: Array<{
+        type: string;
+        icon: string;
+        text: string;
+      }>;
+      strategic_conclusion?: string;
+    };
+    key_findings?: Array<{
+      icon?: string;
+      category?: string;
+      insights?: string[];
+    }>;
+    strategic_recommendations?: Array<{
+      priority?: number;
+      title?: string;
+      description?: string;
+      detailed_explanation?: string;
+      specific_actions?: string[];
+      expected_impact?: string;
+      supporting_data?: string;
+    }>;
+  };
   analysis_data?: {
     skill_trends?: any;
   };

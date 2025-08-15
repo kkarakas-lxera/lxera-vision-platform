@@ -1507,64 +1507,111 @@ async function generateStructuredInsights(
       messages: [
         {
           role: "system",
-          content: `You are a market intelligence analyst. Generate structured JSON insights for market research data.
+          content: `You are a senior market intelligence analyst. Generate a comprehensive, professional market analysis in JSON format.
 
 CRITICAL: Return ONLY valid JSON. No markdown, no explanations, no code blocks. Start with { and end with }.
 
-Required JSON structure:
+Required JSON structure with rich, detailed content (each section 300+ words):
 {
   "executive_summary": {
-    "overview": "2-3 sentence market overview",
-    "key_insight": "Most important finding",
-    "market_health": "Strong/Moderate/Weak",
-    "total_opportunities": number
+    "market_context": "Detailed 2-3 sentence market landscape description with specific numbers",
+    "callouts": [
+      {
+        "type": "key_insight",
+        "icon": "💡",
+        "text": "Detailed key insight with specific percentages and strategic implications"
+      },
+      {
+        "type": "market_alert", 
+        "icon": "⚠️",
+        "text": "Market challenges, gaps, or urgent trends with supporting data"
+      },
+      {
+        "type": "opportunity",
+        "icon": "🚀",
+        "text": "Growth opportunities with specific skill combinations and percentages"
+      }
+    ],
+    "strategic_conclusion": "2-3 sentences tying insights to actionable business strategy"
   },
   "key_findings": [
     {
-      "type": "critical|opportunity|trend",
-      "title": "Finding title",
-      "description": "2-3 sentence description",
-      "impact": "High/Medium/Low"
+      "icon": "🚀",
+      "category": "High Demand Skills",
+      "insights": [
+        "Specific skill with exact percentage and context",
+        "Top skill combination with job count and percentage", 
+        "Experience level distribution with strategic implications",
+        "Market competition insights with company examples"
+      ]
+    },
+    {
+      "icon": "📈", 
+      "category": "Market Dynamics",
+      "insights": [
+        "Emerging patterns with supporting data",
+        "Competitive landscape with specific examples",
+        "Skill gap opportunities with actionable insights"
+      ]
     }
   ],
   "strategic_recommendations": [
     {
-      "priority": "immediate|short_term|long_term",
-      "title": "Recommendation title",
-      "description": "Actionable description",
-      "skills_focus": ["skill1", "skill2"],
-      "expected_impact": "Business impact description"
+      "priority": 1,
+      "title": "Immediate Training Priorities",
+      "description": "Comprehensive 2-3 sentence overview of immediate actions needed",
+      "detailed_explanation": "Detailed paragraph explaining why these skills are critical, with specific market data and strategic context",
+      "specific_actions": [
+        "Specific actionable item with supporting data",
+        "Targeted skill development with percentage justification",
+        "Role-specific enhancement with market context"
+      ],
+      "expected_impact": "Detailed business impact statement with measurable outcomes",
+      "supporting_data": "Key statistics and market evidence supporting this recommendation"
+    },
+    {
+      "priority": 2,
+      "title": "Skill Combination Strategy", 
+      "description": "Strategic focus on high-value skill combinations",
+      "detailed_explanation": "In-depth analysis of why specific skill combinations provide competitive advantage",
+      "specific_actions": [
+        "Skill pairing development with market evidence",
+        "Strategic positioning actions with competitive context"
+      ],
+      "expected_impact": "Business growth and market positioning benefits",
+      "supporting_data": "Market demand percentages and competitive analysis"
     }
-  ],
-  "market_opportunities": {
-    "skill_gaps": ["gap1", "gap2"],
-    "emerging_trends": ["trend1", "trend2"],
-    "competitive_advantages": ["advantage1", "advantage2"],
-    "hiring_insights": "Market hiring insights"
-  }
+  ]
 }`
         },
         {
           role: "user",
-          content: `Generate structured market intelligence insights for this data:
+          content: `Generate a comprehensive, professional market intelligence report for this data. Each section should be detailed and substantive (300+ words worth of content).
 
+MARKET OVERVIEW:
 Position: ${analysisData.position}
-Locations: ${analysisData.locations}
+Locations: ${analysisData.locations}  
 Total Jobs Analyzed: ${analysisData.total_jobs}
+Date Range: Recent market analysis
 
-Top Skills by Demand:
-${analysisData.top_skills.map(s => `- ${s.name}: ${s.demand_percentage}% (${s.job_count} jobs)`).join('\n')}
+TOP SKILLS BY DEMAND:
+${analysisData.top_skills.map(s => `- ${s.name}: ${s.demand_percentage}% market demand (${s.job_count} positions)`).join('\n')}
 
-Key Skill Combinations:
-${analysisData.skill_combinations.map(c => `- ${c.skills}: ${c.frequency} jobs (${c.percentage}%)`).join('\n')}
+KEY SKILL COMBINATIONS:
+${analysisData.skill_combinations.map(c => `- "${c.skills}": ${c.frequency} jobs (${c.percentage}% prevalence)`).join('\n')}
 
-Skill Categories:
-${analysisData.categories.map(c => `- ${c.name}: ${c.total_percentage}% total demand, ${c.skill_count} skills`).join('\n')}
+SKILL CATEGORIES BY MARKET SHARE:
+${analysisData.categories.map(c => `- ${c.name}: ${c.total_percentage}% total market demand (${c.skill_count} distinct skills)`).join('\n')}
 
-Experience Distribution:
-${Object.entries(analysisData.experience_levels).map(([level, count]) => `- ${level}: ${count} positions`).join('\n')}
+EXPERIENCE LEVEL DISTRIBUTION:
+${Object.entries(analysisData.experience_levels).map(([level, count]) => `- ${level}: ${count} positions (${Math.round((count / analysisData.total_jobs) * 100)}% of market)`).join('\n')}
 
-Generate comprehensive market intelligence in the specified JSON format.`
+REQUIREMENTS:
+1. Executive Summary: Rich narrative with market context, strategic callouts (💡⚠️🚀), and conclusion
+2. Key Findings: Detailed insights grouped by category with specific data points and implications  
+3. Strategic Recommendations: Numbered priorities with comprehensive explanations, actions, and impact analysis
+
+Make each section substantial with specific percentages, strategic context, and actionable insights. Use professional language with concrete data points and business implications.`
         }
       ],
       temperature: 0.3,
