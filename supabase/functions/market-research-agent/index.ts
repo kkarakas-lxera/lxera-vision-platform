@@ -661,6 +661,261 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   };
 }
 
+async function enhanceSkillAnalysisWithLLM(jobData: any[], basicSkillAnalysis: any): Promise<any> {
+  console.log('[Market Research Agent] Enhancing skill analysis with LLM insights...');
+  
+  try {
+    const enhancedSkills = [];
+    const certificationMap: Record<string, number> = {};
+    const toolMap: Record<string, number> = {};
+    let hardSkillsCount = 0;
+    let softSkillsCount = 0;
+    let skillsWithExperience = 0;
+    let skillsWithCertifications = 0;
+    let skillsWithTools = 0;
+    
+    // Process top skills for enhanced analysis
+    for (const skillData of basicSkillAnalysis.top_skills.slice(0, 10)) {
+      const relevantJobs = jobData.filter(job => 
+        job.skills?.some((s: string) => normalizeSkill(s) === skillData.skill)
+      );
+      
+      if (relevantJobs.length === 0) continue;
+      
+      // Create sample job descriptions for LLM analysis
+      const sampleDescriptions = relevantJobs.slice(0, 5).map(job => ({
+        title: job.title,
+        description: job.description.slice(0, 500), // Limit context size
+        experience_level: job.experience_level
+      }));
+      
+      const skillContextPrompt = `
+Analyze how "${skillData.skill}" is mentioned in these job postings and extract:
+
+Job Data:
+${sampleDescriptions.map(job => `
+Job: ${job.title} (${job.experience_level || 'Not specified'})
+Description: ${job.description}
+`).join('\n')}
+
+For the skill "${skillData.skill}", extract:
+1. Experience requirements (years mentioned, seniority level)
+2. Certifications required (any certifications, licenses, or qualifications mentioned)
+3. Tools/technologies associated with this skill
+4. Classification: "hard" (technical/measurable) or "soft" (interpersonal/behavioral)
+5. Context examples (specific phrases mentioning this skill)
+
+Return ONLY valid JSON:
+{
+  "experience_patterns": {
+    "years_mentioned": ["3+ years", "5-7 years"],
+    "seniority_levels": ["mid", "senior"]
+  },
+  "certifications": ["PMP", "AWS"],
+  "tools": ["Excel", "Tableau"],
+  "skill_type": "hard" or "soft",
+  "context_examples": ["specific quote mentioning the skill"]
+}
+`;
+
+      try {
+        const enhancedData = await callGroqLLM(skillContextPrompt);
+        const parsedData = JSON.parse(enhancedData);
+        
+        // Aggregate certification and tool data
+        if (parsedData.certifications?.length > 0) {
+          skillsWithCertifications++;
+          parsedData.certifications.forEach((cert: string) => {
+            certificationMap[cert] = (certificationMap[cert] || 0) + 1;
+          });
+        }
+        
+        if (parsedData.tools?.length > 0) {
+          skillsWithTools++;
+          parsedData.tools.forEach((tool: string) => {
+            toolMap[tool] = (toolMap[tool] || 0) + 1;
+          });
+        }
+        
+        if (parsedData.experience_patterns?.years_mentioned?.length > 0) {
+          skillsWithExperience++;
+        }
+        
+        // Count skill types
+        if (parsedData.skill_type === 'hard') hardSkillsCount++;
+        else if (parsedData.skill_type === 'soft') softSkillsCount++;
+        
+        enhancedSkills.push({
+          skill: skillData.skill,
+          frequency: skillData.demand,
+          percentage: skillData.percentage,
+          category: skillData.category,
+          enhanced_data: parsedData
+        });
+        
+      } catch (llmError) {
+        console.warn(`[Market Research Agent] LLM analysis failed for skill: ${skillData.skill}`, llmError);
+        // Add basic structure without LLM data
+        enhancedSkills.push({
+          skill: skillData.skill,
+          frequency: skillData.demand,
+          percentage: skillData.percentage,
+          category: skillData.category,
+          enhanced_data: {
+            experience_patterns: { years_mentioned: [], seniority_levels: [] },
+            certifications: [],
+            tools: [],
+            skill_type: skillData.category.includes('Technical') ? 'hard' : 'soft',
+            context_examples: []
+          }
+        });
+      }
+    }
+    
+    // Generate summary analytics
+    const totalSkillsAnalyzed = enhancedSkills.length;
+    const hardSkillsPercentage = totalSkillsAnalyzed > 0 ? Math.round((hardSkillsCount / totalSkillsAnalyzed) * 100) : 0;
+    const softSkillsPercentage = totalSkillsAnalyzed > 0 ? Math.round((softSkillsCount / totalSkillsAnalyzed) * 100) : 0;
+    
+    // Top certifications and tools
+    const topCertifications = Object.entries(certificationMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .map(([cert, count]) => ({
+        name: cert,
+        frequency: count,
+        percentage: Math.round((count / totalSkillsAnalyzed) * 100)
+      }));
+      
+    const topTools = Object.entries(toolMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 15)
+      .map(([tool, count]) => ({
+        name: tool,
+        frequency: count,
+        category: categorizeSkill(tool) // Reuse existing categorization
+      }));
+    
+    return {
+      enhanced_skill_analysis: enhancedSkills,
+      technical_depth_summary: {
+        hard_skills_percentage: hardSkillsPercentage,
+        soft_skills_percentage: softSkillsPercentage,
+        total_skills_analyzed: totalSkillsAnalyzed,
+        skills_with_experience_req: skillsWithExperience,
+        skills_with_certifications: skillsWithCertifications,
+        skills_with_tools: skillsWithTools
+      },
+      certification_landscape: {
+        total_certifications_mentioned: Object.keys(certificationMap).length,
+        certification_categories: groupCertificationsByCategory(topCertifications),
+        top_certifications: topCertifications
+      },
+      tool_requirements: {
+        total_tools_mentioned: Object.keys(toolMap).length,
+        tool_categories: groupToolsByCategory(topTools),
+        most_demanded_tools: topTools
+      },
+      context_intelligence: {
+        experience_context_available: skillsWithExperience > 0,
+        skills_with_context: enhancedSkills.filter(s => s.enhanced_data.context_examples.length > 0).length,
+        context_quality_score: Math.round((skillsWithExperience / totalSkillsAnalyzed) * 100)
+      }
+    };
+    
+  } catch (error) {
+    console.error('[Market Research Agent] Enhanced skill analysis failed:', error);
+    // Return empty enhanced structure if analysis fails
+    return {
+      enhanced_skill_analysis: [],
+      technical_depth_summary: {
+        hard_skills_percentage: 0,
+        soft_skills_percentage: 0,
+        total_skills_analyzed: 0,
+        skills_with_experience_req: 0,
+        skills_with_certifications: 0,
+        skills_with_tools: 0
+      },
+      certification_landscape: {
+        total_certifications_mentioned: 0,
+        certification_categories: [],
+        top_certifications: []
+      },
+      tool_requirements: {
+        total_tools_mentioned: 0,
+        tool_categories: [],
+        most_demanded_tools: []
+      },
+      context_intelligence: {
+        experience_context_available: false,
+        skills_with_context: 0,
+        context_quality_score: 0
+      }
+    };
+  }
+}
+
+function groupCertificationsByCategory(certifications: any[]): any[] {
+  const categories: Record<string, any[]> = {
+    'Financial': [],
+    'Technology': [],
+    'Project Management': [],
+    'Risk Management': [],
+    'Other': []
+  };
+  
+  certifications.forEach(cert => {
+    const name = cert.name.toLowerCase();
+    if (['cfa', 'frm', 'cpa', 'cia'].some(fin => name.includes(fin))) {
+      categories['Financial'].push(cert);
+    } else if (['aws', 'azure', 'google', 'cisco', 'microsoft'].some(tech => name.includes(tech))) {
+      categories['Technology'].push(cert);
+    } else if (['pmp', 'prince2', 'agile', 'scrum'].some(pm => name.includes(pm))) {
+      categories['Project Management'].push(cert);
+    } else if (['frm', 'prmia', 'garp'].some(risk => name.includes(risk))) {
+      categories['Risk Management'].push(cert);
+    } else {
+      categories['Other'].push(cert);
+    }
+  });
+  
+  return Object.entries(categories)
+    .filter(([, certs]) => certs.length > 0)
+    .map(([category, certs]) => ({ category, certifications: certs }));
+}
+
+function groupToolsByCategory(tools: any[]): any[] {
+  const categories: Record<string, any[]> = {
+    'Analytics & Data': [],
+    'Communication': [],
+    'Productivity': [],
+    'Development': [],
+    'Finance': [],
+    'Other': []
+  };
+  
+  tools.forEach(tool => {
+    const name = tool.name.toLowerCase();
+    if (['tableau', 'power bi', 'python', 'sql', 'r', 'excel'].some(analytics => name.includes(analytics))) {
+      categories['Analytics & Data'].push(tool);
+    } else if (['slack', 'teams', 'zoom', 'outlook'].some(comm => name.includes(comm))) {
+      categories['Communication'].push(tool);
+    } else if (['office', 'word', 'powerpoint', 'sheets'].some(prod => name.includes(prod))) {
+      categories['Productivity'].push(tool);
+    } else if (['github', 'jira', 'jenkins', 'docker'].some(dev => name.includes(dev))) {
+      categories['Development'].push(tool);
+    } else if (['bloomberg', 'sap', 'oracle', 'quickbooks'].some(fin => name.includes(fin))) {
+      categories['Finance'].push(tool);
+    } else {
+      categories['Other'].push(tool);
+    }
+  });
+  
+  return Object.entries(categories)
+    .filter(([, tools]) => tools.length > 0)
+    .map(([category, tools]) => ({ category, tools }));
+}
+
 function comparePositionToMarket(positionRequirements: any, marketAnalysis: any): any {
   console.log('[Market Research Agent] Comparing position requirements to market demand...');
   
@@ -960,6 +1215,10 @@ serve(async (req) => {
       const skillAnalysis = await analyzeSkillTrends(aiEnhancedJobs, focus_area);
       console.log(`[Market Research Agent] Skill analysis complete. Top skills identified: ${skillAnalysis.top_skills.length}`);
       
+      // Enhanced LLM-powered skill analysis
+      const enhancedAnalysis = await enhanceSkillAnalysisWithLLM(aiEnhancedJobs, skillAnalysis);
+      console.log(`[Market Research Agent] Enhanced analysis complete. Skills with context: ${enhancedAnalysis.context_intelligence.skills_with_context}`);
+      
       // Add position requirements comparison
       let requirementsComparison = null;
       if (position_requirements) {
@@ -1026,7 +1285,9 @@ ${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) 
           },
           analysis_data: {
             skill_trends: skillAnalysis,
-            requirements_comparison: requirementsComparison
+            requirements_comparison: requirementsComparison,
+            // Enhanced LLM analysis
+            ...enhancedAnalysis
           },
           updated_at: new Date().toISOString()
         })

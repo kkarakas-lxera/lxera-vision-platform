@@ -89,6 +89,7 @@ export default function MarketIntelligence() {
   });
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
 
   const getRelativeTime = (date: string) => {
     const now = new Date();
@@ -109,14 +110,19 @@ export default function MarketIntelligence() {
       fetchMarketRequests();
       setupRealtimeSubscription();
     }
-    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile?.company_id]);
+
+  // Separate cleanup effect
+  useEffect(() => {
     return () => {
       // Cleanup subscription on unmount
-      if (supabase) {
-        supabase.removeAllChannels();
+      if (realtimeChannel) {
+        console.log('[Market Intelligence] 🧹 Cleaning up realtime subscription');
+        supabase.removeChannel(realtimeChannel);
       }
     };
-  }, [userProfile?.company_id]);
+  }, [realtimeChannel]);
 
   useEffect(() => {
     // Update UI state based on current data
@@ -145,12 +151,12 @@ export default function MarketIntelligence() {
 
 
   const setupRealtimeSubscription = () => {
-    if (!userProfile?.company_id) return;
+    if (!userProfile?.company_id || realtimeChannel) return;
 
-    console.log('[Market Intelligence] Setting up real-time subscription for company:', userProfile.company_id);
+    console.log('[Market Intelligence] 📡 Setting up real-time subscription for company:', userProfile.company_id);
 
     const channel = supabase
-      .channel('market-intelligence-updates')
+      .channel(`market-intelligence-${userProfile.company_id}`)
       .on(
         'postgres_changes',
         {
@@ -168,9 +174,16 @@ export default function MarketIntelligence() {
         console.log('[Market Intelligence] 📡 Realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
           console.log('[Market Intelligence] ✅ Successfully subscribed to real-time updates!');
+        } else if (status === 'CLOSED') {
+          console.log('[Market Intelligence] ❌ Realtime subscription closed');
+          setRealtimeChannel(null);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[Market Intelligence] ❌ Realtime subscription error');
+          setRealtimeChannel(null);
         }
       });
 
+    setRealtimeChannel(channel);
     return channel;
   };
 
