@@ -259,6 +259,60 @@ export default function MarketIntelligenceResults({
         )
       )}
 
+      {/* Skill Combinations Analysis */}
+      {skillTrends.skill_combinations && skillTrends.skill_combinations.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Top Skill Combinations</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('skill-combos', JSON.stringify(skillTrends.skill_combinations, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'skill-combos' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="space-y-3">
+              {skillTrends.skill_combinations.slice(0, 10).map((combo: any, index: number) => (
+                <div key={combo.combination} className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-6 text-sm font-medium text-gray-500">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      {combo.combination}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {combo.frequency} jobs • {combo.percentage}% of analyzed positions
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                      {combo.percentage}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {skillTrends.skill_combinations.length > 10 && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="text-center">
+                  <span className="text-sm text-gray-600">
+                    +{skillTrends.skill_combinations.length - 10} more combinations available
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Technical Depth Summary - Compact */}
       {analysisData.technical_depth_summary && Object.keys(analysisData.technical_depth_summary).length > 0 && (

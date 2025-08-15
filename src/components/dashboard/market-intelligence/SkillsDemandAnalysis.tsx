@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Info, HelpCircle } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 interface Skill {
   skill: string;
@@ -24,107 +18,80 @@ interface SkillsDemandAnalysisProps {
   skillsByCategory: CategoryData[];
 }
 
-// Skill context mapping with normalized skill names
-const getSkillContext = (skillName: string): { description: string; tools: string[] } | null => {
+// Universal skill context generator - works for ANY skill
+const generateSkillContext = (skillName: string): { description: string; tools: string[] } => {
   const normalizedSkill = skillName.toLowerCase().replace(/[^\w\s]/g, '').trim();
   
   // Programming Languages
   if (normalizedSkill.includes('python')) {
-    return {
-      description: 'Versatile programming language for data science, AI, web development, and automation',
-      tools: ['Django', 'Flask', 'Pandas', 'NumPy', 'TensorFlow', 'PyTorch']
-    };
+    return { description: 'Versatile programming language for data science, AI, web development, and automation', tools: ['Django', 'Flask', 'Pandas', 'NumPy', 'TensorFlow', 'PyTorch'] };
   }
   if (normalizedSkill.includes('javascript')) {
-    return {
-      description: 'Essential web programming language for frontend and backend development',
-      tools: ['React', 'Node.js', 'Express', 'Angular', 'Vue.js', 'TypeScript']
-    };
+    return { description: 'Essential web programming language for frontend and backend development', tools: ['React', 'Node.js', 'Express', 'Angular', 'Vue.js', 'TypeScript'] };
   }
   if (normalizedSkill.includes('java')) {
-    return {
-      description: 'Enterprise-grade programming language for large-scale applications and systems',
-      tools: ['Spring Framework', 'Maven', 'Hibernate', 'Apache Kafka', 'JUnit']
-    };
+    return { description: 'Enterprise-grade programming language for large-scale applications and systems', tools: ['Spring Framework', 'Maven', 'Hibernate', 'Apache Kafka', 'JUnit'] };
   }
   
   // Cloud & Infrastructure
   if (normalizedSkill.includes('aws') || normalizedSkill.includes('amazon web services')) {
-    return {
-      description: 'Leading cloud platform for scalable infrastructure and services',
-      tools: ['EC2', 'S3', 'Lambda', 'RDS', 'CloudFormation', 'EKS']
-    };
+    return { description: 'Leading cloud platform for scalable infrastructure and services', tools: ['EC2', 'S3', 'Lambda', 'RDS', 'CloudFormation', 'EKS'] };
   }
   if (normalizedSkill.includes('azure')) {
-    return {
-      description: 'Microsoft cloud platform for enterprise applications and services',
-      tools: ['Azure DevOps', 'Azure Functions', 'AKS', 'Azure SQL', 'Power BI']
-    };
+    return { description: 'Microsoft cloud platform for enterprise applications and services', tools: ['Azure DevOps', 'Azure Functions', 'AKS', 'Azure SQL', 'Power BI'] };
   }
   if (normalizedSkill.includes('docker')) {
-    return {
-      description: 'Containerization platform for application deployment and scaling',
-      tools: ['Kubernetes', 'Docker Compose', 'Docker Registry', 'Helm']
-    };
+    return { description: 'Containerization platform for application deployment and scaling', tools: ['Kubernetes', 'Docker Compose', 'Docker Registry', 'Helm'] };
   }
   
-  // Data & Analytics
+  // Data & Analytics  
   if (normalizedSkill.includes('sql')) {
-    return {
-      description: 'Database query language essential for data manipulation and analysis',
-      tools: ['PostgreSQL', 'MySQL', 'SQL Server', 'BigQuery', 'Snowflake']
-    };
+    return { description: 'Database query language essential for data manipulation and analysis', tools: ['PostgreSQL', 'MySQL', 'SQL Server', 'BigQuery', 'Snowflake'] };
   }
   if (normalizedSkill.includes('machine learning') || normalizedSkill.includes('ml')) {
-    return {
-      description: 'AI technique for building predictive models and intelligent systems',
-      tools: ['Scikit-learn', 'TensorFlow', 'PyTorch', 'Keras', 'MLflow']
-    };
+    return { description: 'AI technique for building predictive models and intelligent systems', tools: ['Scikit-learn', 'TensorFlow', 'PyTorch', 'Keras', 'MLflow'] };
   }
   
   // Frontend Technologies
   if (normalizedSkill.includes('react')) {
-    return {
-      description: 'Popular JavaScript library for building user interfaces and web applications',
-      tools: ['Redux', 'React Router', 'Next.js', 'Material-UI', 'Styled Components']
-    };
+    return { description: 'Popular JavaScript library for building user interfaces and web applications', tools: ['Redux', 'React Router', 'Next.js', 'Material-UI', 'Styled Components'] };
   }
   if (normalizedSkill.includes('css')) {
-    return {
-      description: 'Styling language for web design and responsive user interfaces',
-      tools: ['Sass', 'Tailwind CSS', 'Bootstrap', 'CSS Grid', 'Flexbox']
-    };
+    return { description: 'Styling language for web design and responsive user interfaces', tools: ['Sass', 'Tailwind CSS', 'Bootstrap', 'CSS Grid', 'Flexbox'] };
+  }
+  
+  // Business & Finance
+  if (normalizedSkill.includes('finance') || normalizedSkill.includes('financial')) {
+    return { description: 'Essential for managing business finances, analysis, and strategic planning', tools: ['Excel', 'SAP', 'QuickBooks', 'Tableau', 'Power BI'] };
+  }
+  if (normalizedSkill.includes('marketing')) {
+    return { description: 'Promoting products/services through research, strategy, and campaigns', tools: ['Google Analytics', 'HubSpot', 'Salesforce', 'Facebook Ads', 'Mailchimp'] };
+  }
+  if (normalizedSkill.includes('sales')) {
+    return { description: 'Building relationships and closing deals to drive business revenue', tools: ['Salesforce', 'HubSpot', 'Pipedrive', 'LinkedIn Sales Navigator', 'Zoom'] };
   }
   
   // Soft Skills
   if (normalizedSkill.includes('communication')) {
-    return {
-      description: 'Essential skill for collaboration, presentations, and stakeholder management',
-      tools: ['Slack', 'Microsoft Teams', 'Zoom', 'Confluence', 'Notion']
-    };
+    return { description: 'Essential skill for collaboration, presentations, and stakeholder management', tools: ['Slack', 'Microsoft Teams', 'Zoom', 'Confluence', 'Notion'] };
   }
-  if (normalizedSkill.includes('project management')) {
-    return {
-      description: 'Planning, organizing, and executing projects from inception to completion',
-      tools: ['Jira', 'Asana', 'Trello', 'Monday.com', 'Microsoft Project']
-    };
+  if (normalizedSkill.includes('leadership')) {
+    return { description: 'Guiding teams, making strategic decisions, and driving organizational success', tools: ['Slack', 'Jira', 'Asana', 'Microsoft Project', 'Zoom'] };
+  }
+  if (normalizedSkill.includes('project management') || normalizedSkill.includes('management')) {
+    return { description: 'Planning, organizing, and executing projects from inception to completion', tools: ['Jira', 'Asana', 'Trello', 'Monday.com', 'Microsoft Project'] };
   }
   
-  // DevOps & Tools
-  if (normalizedSkill.includes('git')) {
-    return {
-      description: 'Version control system for tracking code changes and collaboration',
-      tools: ['GitHub', 'GitLab', 'Bitbucket', 'Git Flow', 'GitHub Actions']
-    };
-  }
-  if (normalizedSkill.includes('kubernetes')) {
-    return {
-      description: 'Container orchestration platform for managing containerized applications',
-      tools: ['Helm', 'Kubectl', 'Istio', 'Prometheus', 'Grafana']
-    };
+  // Generic fallback based on skill category/type
+  if (normalizedSkill.includes('problem') || normalizedSkill.includes('solving')) {
+    return { description: 'Critical thinking and analytical skills to identify and resolve complex challenges', tools: ['Various analytical tools', 'Methodologies', 'Frameworks'] };
   }
   
-  return null;
+  // Default context for any skill not specifically mapped
+  return { 
+    description: `Professional skill relevant to job requirements and career development in this field`, 
+    tools: ['Industry-standard tools', 'Relevant software', 'Professional platforms'] 
+  };
 };
 
 // Frontend skill normalization (matching backend logic)
@@ -206,6 +173,7 @@ const normalizeSkillName = (skill: string): string => {
 export default function SkillsDemandAnalysis({ skillsByCategory }: SkillsDemandAnalysisProps) {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [showAllSkills, setShowAllSkills] = useState<Record<string, boolean>>({});
+  const [expandedSkills, setExpandedSkills] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => ({
@@ -218,6 +186,13 @@ export default function SkillsDemandAnalysis({ skillsByCategory }: SkillsDemandA
     setShowAllSkills(prev => ({
       ...prev,
       [category]: !prev[category]
+    }));
+  };
+
+  const toggleSkillContext = (skillName: string) => {
+    setExpandedSkills(prev => ({
+      ...prev,
+      [skillName]: !prev[skillName]
     }));
   };
 
@@ -266,40 +241,25 @@ export default function SkillsDemandAnalysis({ skillsByCategory }: SkillsDemandA
                   <div className="space-y-2">
                     {displaySkills.map((skill: Skill, skillIndex: number) => {
                       const normalizedSkillName = normalizeSkillName(skill.skill);
-                      const skillContext = getSkillContext(skill.skill);
+                      const skillContext = generateSkillContext(skill.skill);
+                      const isSkillExpanded = expandedSkills[skill.skill] ?? false;
                       
                       // Convert strings to numbers safely
                       const percentage = typeof skill.percentage === 'string' ? parseInt(skill.percentage) || 0 : skill.percentage;
                       const demand = typeof skill.demand === 'string' ? parseInt(skill.demand) || 0 : skill.demand;
                       
                       return (
-                        <div key={skill.skill} className="group">
-                          <div className="flex items-center gap-3">
-                            {/* Skill Name with Context */}
+                        <div key={skill.skill} className="border border-gray-50 rounded">
+                          <div 
+                            className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-25 transition-colors"
+                            onClick={() => toggleSkillContext(skill.skill)}
+                          >
+                            {/* Skill Name with Info Icon */}
                             <div className="flex items-center gap-1 flex-shrink-0 w-40">
                               <span className="text-sm font-medium text-gray-900 truncate">
                                 {normalizedSkillName}
                               </span>
-                              {skillContext && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <HelpCircle className="h-3 w-3 text-gray-400 hover:text-blue-600" />
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="max-w-xs">
-                                      <div className="space-y-2">
-                                        <p className="text-xs font-medium">{skillContext.description}</p>
-                                        {skillContext.tools.length > 0 && (
-                                          <div>
-                                            <p className="text-xs text-gray-600 mb-1">Common tools:</p>
-                                            <p className="text-xs text-gray-700">{skillContext.tools.join(', ')}</p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
+                              <Info className="h-3 w-3 text-gray-400 hover:text-blue-600 transition-colors" />
                             </div>
                             
                             {/* Progress Bar */}
@@ -319,14 +279,37 @@ export default function SkillsDemandAnalysis({ skillsByCategory }: SkillsDemandA
                             <div className="flex-shrink-0 w-16 text-xs text-gray-500 text-right">
                               {demand} jobs
                             </div>
+
+                            {/* Expand Indicator */}
+                            <div className="flex-shrink-0">
+                              {isSkillExpanded ? (
+                                <ChevronUp className="h-3 w-3 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-gray-400" />
+                              )}
+                            </div>
                           </div>
                           
-                          {/* Skill Context (Expanded View) */}
-                          {skillContext && (
-                            <div className="mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <p className="text-xs text-gray-600 leading-relaxed">
-                                {skillContext.description}
-                              </p>
+                          {/* Expandable Skill Context */}
+                          {isSkillExpanded && (
+                            <div className="px-2 pb-2 border-t border-gray-100 bg-gray-25">
+                              <div className="pt-2 space-y-2">
+                                <p className="text-xs text-gray-700 leading-relaxed">
+                                  {skillContext.description}
+                                </p>
+                                {skillContext.tools.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1">Common tools & technologies:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {skillContext.tools.map((tool, index) => (
+                                        <span key={index} className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                                          {tool}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>

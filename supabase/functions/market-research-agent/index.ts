@@ -1144,22 +1144,47 @@ async function generateMarketInsights(
       messages: [
         {
           role: "system",
-          content: `You are a strategic market intelligence analyst. Generate actionable insights and recommendations based on job market data. Focus on high-level strategic intelligence rather than detailed skill inventories:
+          content: `You are a market intelligence analyst. Generate a comprehensive, actionable market report based on job market data. Include specific numbers, percentages, and quantitative insights throughout your analysis.
 
-        1. **Market Trends**: Identify key patterns in hiring demand and talent requirements
-        2. **Skill Strategy**: Analyze the most critical skill combinations and what they mean for talent development 
-        3. **Competitive Intelligence**: Insights about salary trends, experience requirements, and market competition
-        4. **Training Recommendations**: Strategic recommendations for upskilling priorities based on market gaps
-        5. **Emerging Opportunities**: Forward-looking insights about technology trends and future demands
+        Structure your report with these sections:
+
+        ## Executive Summary
+        - Market overview with specific job counts and percentages
+        - Top 3-5 skills with exact demand percentages and job counts
+        - Experience level breakdown with specific numbers
+        - Key competitive landscape insights
+
+        ## Key Talent Trends and Skill Gaps
+        - Identify top skills in demand with specific percentages
+        - Highlight skill gaps and market opportunities
+        - Analyze experience level requirements with numbers
+
+        ## Skill Combination Patterns
+        - Analyze skill_combinations data to identify critical skill clusters
+        - Show which skills appear together frequently with percentages
+        - Explain what these combinations mean for talent strategy
+
+        ## Top Skill Combinations
+        - List top 5-7 skill combinations with frequency and percentage
+        - Format: "Skill A + Skill B: X frequency, Y% percentage"
+
+        ## Competitive Landscape Insights
+        - Reference sample job data for company insights
+        - Identify market patterns from job titles and requirements
+        - Salary trends if mentioned in data
+
+        ## Strategic Training Recommendations
+        - Specific upskilling priorities based on top skills
+        - Focus on skill combinations and market gaps
+        - Include emerging technology trends
 
         IMPORTANT: 
-        - DO NOT list individual skills or create skill inventories (the UI handles skill displays)
-        - Focus on strategic insights, patterns, and actionable recommendations
-        - Analyze skill_combinations to identify critical skill clusters that appear together
-        - Provide context about market dynamics and competitive landscape
-        - Keep it executive-level strategic insights, not operational details
+        - Include specific numbers, percentages, and job counts throughout
+        - Reference actual data points from the analysis
+        - Make it quantitative and data-driven, not just strategic
+        - DO NOT list out all individual skills - focus on top performers and combinations
         
-        Format the response in markdown with clear sections and strategic bullet points.`
+        Format in markdown with clear sections and bullet points.`
         },
         {
           role: "user",
