@@ -21,6 +21,7 @@ import {
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 import ReactMarkdown from 'react-markdown';
 import { toast } from '@/hooks/use-toast';
+import SkillsDemandAnalysis from './SkillsDemandAnalysis';
 
 interface MarketIntelligenceResultsProps {
   request: MarketIntelligenceRequest;
@@ -194,64 +195,9 @@ export default function MarketIntelligenceResults({
         </div>
       )}
 
-      {/* Skills Analysis by Category - Compact */}
+      {/* Skills Analysis by Category - Enhanced with Collapsible and Context */}
       {skillTrends.skills_by_category && skillTrends.skills_by_category.length > 0 ? (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900">Skills Demand Analysis</h2>
-          <div className="space-y-3">
-            {skillTrends.skills_by_category.map((categoryData: any, categoryIndex: number) => (
-              <div key={categoryData.category} className="bg-white border border-gray-100 rounded-lg p-3">
-                {/* Category Header - Compact */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-gray-900">{categoryData.category}</h3>
-                    <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                      {categoryData.total_percentage}%
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {categoryData.skill_count} skills
-                  </div>
-                </div>
-                
-                {/* Skills in Category - Compact */}
-                <div className="space-y-1">
-                  {categoryData.skills.slice(0, 10).map((skill: any, skillIndex: number) => (
-                    <div key={skill.skill} className="flex items-center gap-2">
-                      {/* Skill Name */}
-                      <div className="flex-shrink-0 w-32 text-xs font-medium text-gray-900 truncate">
-                        {skill.skill}
-                      </div>
-                      
-                      {/* Progress Bar - Smaller */}
-                      <div className="flex-1 bg-gray-100 rounded-full h-3 relative min-w-0">
-                        <div 
-                          className="bg-blue-500 h-3 rounded-full transition-all duration-500 ease-out"
-                          style={{ width: `${Math.max(2, skill.percentage)}%` }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-end pr-1">
-                          <span className="text-xs font-medium text-white mix-blend-difference">
-                            {skill.percentage}%
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Job Count */}
-                      <div className="flex-shrink-0 w-12 text-xs text-gray-500 text-right">
-                        {skill.demand}
-                      </div>
-                    </div>
-                  ))}
-                  {categoryData.skills.length > 10 && (
-                    <div className="text-xs text-gray-500 text-center pt-1">
-                      +{categoryData.skills.length - 10} more skills
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SkillsDemandAnalysis skillsByCategory={skillTrends.skills_by_category} />
       ) : (
         /* Fallback to old view if categories not available */
         skillTrends.top_skills && skillTrends.top_skills.length > 0 && (
@@ -313,78 +259,6 @@ export default function MarketIntelligenceResults({
         )
       )}
 
-      {/* Enhanced Skill Context Analysis - Compact */}
-      {analysisData.enhanced_skill_analysis && analysisData.enhanced_skill_analysis.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Skill Context Intelligence</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCopySection('skill-context', JSON.stringify(analysisData.enhanced_skill_analysis, null, 2))}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              {copiedSection === 'skill-context' ? (
-                <Check className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-4">
-            <div className="space-y-2">
-              {analysisData.enhanced_skill_analysis.slice(0, 25).map((skillData: any, index: number) => (
-                <div key={skillData.skill || index} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-b-0">
-                  {/* Skill Name & Type */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm text-gray-900 truncate">{skillData.skill}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium shrink-0 ${
-                        skillData.enhanced_data?.skill_type === 'hard' 
-                          ? 'bg-blue-50 text-blue-700' 
-                          : 'bg-purple-50 text-purple-700'
-                      }`}>
-                        {skillData.enhanced_data?.skill_type === 'hard' ? 'Tech' : 'Soft'}
-                      </span>
-                    </div>
-                    
-                    {/* Compact Details */}
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                      {/* Experience */}
-                      {skillData.enhanced_data?.experience_patterns?.years_mentioned?.length > 0 && (
-                        <span className="bg-gray-100 px-2 py-0.5 rounded">
-                          Exp: {skillData.enhanced_data.experience_patterns.years_mentioned.slice(0, 2).join(', ')}
-                        </span>
-                      )}
-                      
-                      {/* Seniority */}
-                      {skillData.enhanced_data?.experience_patterns?.seniority_levels?.length > 0 && (
-                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
-                          {skillData.enhanced_data.experience_patterns.seniority_levels.slice(0, 3).join(', ')}
-                        </span>
-                      )}
-                      
-                      {/* Tools */}
-                      {skillData.enhanced_data?.tools?.length > 0 && (
-                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                          Tools: {skillData.enhanced_data.tools.slice(0, 2).join(', ')}
-                        </span>
-                      )}
-                      
-                      {/* Certifications */}
-                      {skillData.enhanced_data?.certifications?.length > 0 && (
-                        <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                          Certs: {skillData.enhanced_data.certifications.slice(0, 1).join(', ')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Technical Depth Summary - Compact */}
       {analysisData.technical_depth_summary && Object.keys(analysisData.technical_depth_summary).length > 0 && (

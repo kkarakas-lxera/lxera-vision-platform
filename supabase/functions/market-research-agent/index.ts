@@ -499,38 +499,118 @@ async function executeScraping(
   };
 }
 
-// Skill normalization function
+// Generic skill normalization function with smart language detection and consolidation
 function normalizeSkill(skill: string): string {
   if (!skill || typeof skill !== 'string') return skill;
   
   // Convert to lowercase and trim
   let normalized = skill.toLowerCase().trim();
   
-  // Handle plurals and variations
-  const skillMappings: Record<string, string> = {
-    'communications': 'communication',
-    'leaderships': 'leadership',
-    'managements': 'management',
-    'marketings': 'marketing',
-    'brand managements': 'brand management',
-    'problem solvings': 'problem-solving',
-    'problem solving': 'problem-solving',
-    'team work': 'teamwork',
-    'team-work': 'teamwork',
-    'project managements': 'project management',
-    'data analysis': 'data analytics',
-    'customer service': 'customer support',
-    'sales and marketing': 'sales',
-    'digital marketing': 'digital marketing'
+  // Generic translation patterns (language-agnostic)
+  const genericTranslations: Record<string, string> = {
+    // Turkish common patterns
+    'analiz': 'analysis', 'analizci': 'analyst', 'pazarlama': 'marketing', 'satış': 'sales',
+    'yönetim': 'management', 'liderlik': 'leadership', 'iletişim': 'communication',
+    'proje yönetimi': 'project management', 'veri analizi': 'data analysis',
+    'dijital pazarlama': 'digital marketing', 'sosyal medya': 'social media',
+    'müşteri hizmetleri': 'customer service', 'insan kaynakları': 'human resources',
+    'bilgi teknolojileri': 'information technology', 'yazılım geliştirme': 'software development',
+    
+    // French common patterns  
+    'marketing': 'marketing', 'ventes': 'sales', 'gestion': 'management',
+    'communication': 'communication', 'développement': 'development',
+    'analyse': 'analysis', 'stratégie': 'strategy', 'finance': 'finance',
+    'comptabilité': 'accounting', 'ressources humaines': 'human resources',
+    'technologie': 'technology', 'informatique': 'information technology',
+    
+    // German common patterns
+    'marketing': 'marketing', 'vertrieb': 'sales', 'verwaltung': 'management',
+    'kommunikation': 'communication', 'entwicklung': 'development',
+    'analyse': 'analysis', 'strategie': 'strategy', 'finanzen': 'finance',
+    'buchhaltung': 'accounting', 'personalwesen': 'human resources',
+    'technologie': 'technology', 'informatik': 'information technology',
+    
+    // Spanish common patterns
+    'mercadeo': 'marketing', 'ventas': 'sales', 'gestión': 'management',
+    'comunicación': 'communication', 'desarrollo': 'development',
+    'análisis': 'analysis', 'estrategia': 'strategy', 'finanzas': 'finance',
+    'contabilidad': 'accounting', 'recursos humanos': 'human resources',
+    'tecnología': 'technology', 'informática': 'information technology'
   };
   
-  // Apply mappings
-  if (skillMappings[normalized]) {
-    normalized = skillMappings[normalized];
+  // Apply generic translations
+  if (genericTranslations[normalized]) {
+    normalized = genericTranslations[normalized];
+  }
+  
+  // Smart consolidation patterns (works for any domain)
+  let consolidated = normalized;
+  
+  // Remove common prefixes/suffixes that create duplicates
+  consolidated = consolidated
+    .replace(/^(digital|online|web|mobile|social)\s+/, '') // Remove digital prefixes
+    .replace(/\s+(specialist|expert|professional|manager|coordinator|assistant)$/, '') // Remove job titles
+    .replace(/\s+(skills?|knowledge|experience)$/, '') // Remove redundant suffixes
+    .replace(/\s+(and|&)\s+.+$/, '') // Remove "X and Y" - keep first part
+    .replace(/^(advanced|basic|intermediate)\s+/, '') // Remove skill levels
+    .replace(/\s+(services|solutions|systems|tools)$/, '') // Remove generic endings
+    ;
+  
+  // Generic pluralization handling
+  if (consolidated.endsWith('s') && consolidated.length > 3) {
+    const singular = consolidated.slice(0, -1);
+    // Only remove 's' if it makes sense (not for words like 'analysis', 'business')
+    if (!['analysis', 'business', 'process', 'focus', 'class'].includes(consolidated)) {
+      consolidated = singular;
+    }
+  }
+  
+  // Handle compound skills intelligently
+  consolidated = consolidated
+    .replace(/\s+management$/, ' management') // Preserve "X management"
+    .replace(/\s+analysis$/, ' analysis') // Preserve "X analysis"
+    .replace(/\s+marketing$/, ' marketing') // Preserve "X marketing"
+    .replace(/\s+development$/, ' development') // Preserve "X development"
+    ;
+  
+  // Common word variations
+  const variations: Record<string, string> = {
+    'communication': 'communication',
+    'communications': 'communication',
+    'analytic': 'analysis',
+    'analytics': 'analysis',
+    'analyzing': 'analysis',
+    'analysing': 'analysis',
+    'marketing': 'marketing',
+    'marketings': 'marketing',
+    'sale': 'sales',
+    'selling': 'sales',
+    'management': 'management',
+    'managing': 'management',
+    'leadership': 'leadership',
+    'leading': 'leadership',
+    'development': 'development',
+    'developing': 'development',
+    'problem solving': 'problem-solving',
+    'problem-solving': 'problem-solving',
+    'team work': 'teamwork',
+    'team-work': 'teamwork',
+    'customer service': 'customer support',
+    'client service': 'customer support'
+  };
+  
+  if (variations[consolidated]) {
+    consolidated = variations[consolidated];
+  }
+  
+  // Remove very generic terms that are not meaningful skills
+  const stopWords = ['specialist', 'expert', 'professional', 'trainee', 'intern', 'services', 'business', 'work', 'experience', 'skills', 'knowledge'];
+  if (stopWords.includes(consolidated) || consolidated.length < 2) {
+    return ''; // Return empty to filter out
   }
   
   // Capitalize first letter for display
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  return consolidated.charAt(0).toUpperCase() + consolidated.slice(1);
 }
 
 // Skill categorization function
@@ -569,18 +649,22 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
     // Normalize and count skill frequency
     jobSkills.forEach((skill: string) => {
       const normalizedSkill = normalizeSkill(skill);
-      skillFrequency[normalizedSkill] = (skillFrequency[normalizedSkill] || 0) + 1;
-      
-      // Track skills by experience level (using normalized skill)
-      const expLevel = job.experience_level || 'Not specified';
-      if (!skillsByExperience[expLevel]) {
-        skillsByExperience[expLevel] = {};
+      if (normalizedSkill && normalizedSkill.trim()) { // Filter out empty skills
+        skillFrequency[normalizedSkill] = (skillFrequency[normalizedSkill] || 0) + 1;
+        
+        // Track skills by experience level (using normalized skill)
+        const expLevel = job.experience_level || 'Not specified';
+        if (!skillsByExperience[expLevel]) {
+          skillsByExperience[expLevel] = {};
+        }
+        skillsByExperience[expLevel][normalizedSkill] = (skillsByExperience[expLevel][normalizedSkill] || 0) + 1;
       }
-      skillsByExperience[expLevel][normalizedSkill] = (skillsByExperience[expLevel][normalizedSkill] || 0) + 1;
     });
     
     // Analyze skill combinations (pairs and triads) using normalized skills
-    const normalizedJobSkills = jobSkills.map((skill: string) => normalizeSkill(skill));
+    const normalizedJobSkills = jobSkills
+      .map((skill: string) => normalizeSkill(skill))
+      .filter((skill: string) => skill && skill.trim()); // Filter out empty skills
     if (normalizedJobSkills.length > 1) {
       // Two-skill combinations
       for (let i = 0; i < normalizedJobSkills.length; i++) {
@@ -612,7 +696,7 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   // Sort skills by frequency and add categories
   const topSkills = Object.entries(skillFrequency)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 15) // Increased from 10 to show more after deduplication
+    // No limit - analyze ALL skills found
     .map(([skill, count]) => ({
       skill,
       demand: count,
@@ -642,7 +726,7 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
   const topCombinations = Object.entries(skillCombinations)
     .filter(([, count]) => count >= 3)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 8)
+    // No limit on skill combinations
     .map(([combo, count]) => ({
       combination: combo,
       frequency: count,
@@ -675,7 +759,7 @@ async function enhanceSkillAnalysisWithLLM(jobData: any[], basicSkillAnalysis: a
     let skillsWithTools = 0;
     
     // Process top skills for enhanced analysis
-    for (const skillData of basicSkillAnalysis.top_skills.slice(0, 10)) {
+    for (const skillData of basicSkillAnalysis.top_skills) {
       const relevantJobs = jobData.filter(job => 
         job.skills?.some((s: string) => normalizeSkill(s) === skillData.skill)
       );
@@ -850,7 +934,7 @@ Return ONLY valid JSON:
     // Top certifications and tools
     const topCertifications = Object.entries(certificationMap)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
+      // No limit on certifications
       .map(([cert, count]) => ({
         name: cert,
         frequency: count,
@@ -859,7 +943,7 @@ Return ONLY valid JSON:
       
     const topTools = Object.entries(toolMap)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 15)
+      // No limit on tools
       .map(([tool, count]) => ({
         name: tool,
         frequency: count,
@@ -1060,16 +1144,22 @@ async function generateMarketInsights(
       messages: [
         {
           role: "system",
-          content: `You are a market intelligence analyst. Generate a comprehensive, actionable market report based on the provided job market data. Focus on:
-        1. Key talent trends and skill gaps
-        2. Skill combination patterns that appear together frequently in job requirements
-        3. Competitive landscape insights
-        4. Strategic training recommendations
-        5. Emerging technology trends
+          content: `You are a strategic market intelligence analyst. Generate actionable insights and recommendations based on job market data. Focus on high-level strategic intelligence rather than detailed skill inventories:
+
+        1. **Market Trends**: Identify key patterns in hiring demand and talent requirements
+        2. **Skill Strategy**: Analyze the most critical skill combinations and what they mean for talent development 
+        3. **Competitive Intelligence**: Insights about salary trends, experience requirements, and market competition
+        4. **Training Recommendations**: Strategic recommendations for upskilling priorities based on market gaps
+        5. **Emerging Opportunities**: Forward-looking insights about technology trends and future demands
+
+        IMPORTANT: 
+        - DO NOT list individual skills or create skill inventories (the UI handles skill displays)
+        - Focus on strategic insights, patterns, and actionable recommendations
+        - Analyze skill_combinations to identify critical skill clusters that appear together
+        - Provide context about market dynamics and competitive landscape
+        - Keep it executive-level strategic insights, not operational details
         
-        IMPORTANT: Pay special attention to skill_combinations data - analyze which skills are commonly required together and what this means for talent strategy. Include insights about skill bundles that employers are seeking.
-        
-        Format the response in markdown with clear sections and bullet points.`
+        Format the response in markdown with clear sections and strategic bullet points.`
         },
         {
           role: "user",
@@ -1089,30 +1179,21 @@ async function generateMarketInsights(
 
   const aiInsights = groqResult.choices[0]?.message?.content || '';
 
-  // Combine structured data with AI insights
-  const fullReport = `# Market Intelligence Report${positionTitle ? ` - ${positionTitle}` : ''}
+  // Return strategic AI insights only (UI handles detailed skill displays)
+  const fullReport = aiInsights || `# Market Intelligence Report${positionTitle ? ` - ${positionTitle}` : ''}
 
-## Data Overview
-- **Position**: ${positionTitle || 'General'}
-- **Total Jobs Analyzed**: ${scrapedData.total_scraped}
-- **Locations**: ${locations}
-- **Time Period**: ${dateWindow === '24h' ? 'Last 24 hours' : dateWindow === '7d' ? 'Last 7 days' : dateWindow === '30d' ? 'Last 30 days' : dateWindow === '90d' ? 'Last 90 days' : 'Last 30 days'}
-- **Data Collection**: ${new Date().toISOString()}
+## Executive Summary
 
-## Skills Analysis
-${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) => 
-  `- **${s.skill}**: ${s.percentage}% of jobs (${s.demand} postings)`
-).join('\n') : '- No skill data available'}
+Based on analysis of ${scrapedData.total_scraped} job postings across ${locations}, we've identified key market trends and strategic opportunities for talent development.
 
-## Experience Requirements
-${skillAnalysis.experience_distribution ? Object.entries(skillAnalysis.experience_distribution).map(([level, count]) => 
-  `- **${level}**: ${count} positions`
-).join('\n') : '- No experience level data available'}
+## Key Findings
 
-${aiInsights}
+- **Market Activity**: ${scrapedData.total_scraped} active positions analyzed across target locations
+- **Analysis Period**: ${dateWindow === '24h' ? 'Last 24 hours' : dateWindow === '7d' ? 'Last 7 days' : dateWindow === '30d' ? 'Last 30 days' : dateWindow === '90d' ? 'Last 90 days' : 'Last 30 days'}
+- **Skills Identified**: ${skillAnalysis.top_skills?.length || 0} distinct skill categories
+- **Experience Levels**: ${Object.keys(skillAnalysis.experience_distribution || {}).length} experience segments
 
----
-*Report generated on ${new Date().toISOString()}*`;
+*Strategic insights and recommendations are being generated. Detailed skill breakdowns are available in the Skills Demand Analysis section.*`;
 
   return fullReport;
 }
@@ -1327,17 +1408,20 @@ serve(async (req) => {
         // Generate basic insights without AI if it fails
         marketInsights = `# Market Intelligence Report - ${position_title || 'General'}
 
-## Data Overview
-- **Total Jobs Analyzed**: ${aiEnhancedJobs.length}
-- **Locations**: ${locations.join(', ')}
-- **Time Period**: ${date_window === '24h' ? 'Last 24 hours' : date_window === '7d' ? 'Last 7 days' : date_window === '30d' ? 'Last 30 days' : 'Last 90 days'}
+## Executive Summary
 
-## Top Skills Analysis
-${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) => 
-  `- **${s.skill}**: ${s.percentage}% of jobs (${s.demand} postings)`
-).join('\n') : '- No skill data available'}
+Analysis of ${aiEnhancedJobs.length} job postings across ${locations.join(', ')} has been completed. This report provides market intelligence for ${position_title || 'the selected role'} based on recent hiring activity.
 
-*Note: Advanced AI insights unavailable due to processing timeout. Basic analysis provided.*`;
+## Key Findings
+
+- **Market Activity**: ${aiEnhancedJobs.length} active positions analyzed
+- **Geographic Coverage**: ${locations.join(', ')}
+- **Analysis Period**: ${date_window === '24h' ? 'Last 24 hours' : date_window === '7d' ? 'Last 7 days' : date_window === '30d' ? 'Last 30 days' : 'Last 90 days'}
+- **Skills Identified**: ${skillAnalysis.top_skills?.length || 0} distinct skill categories
+
+The job market shows active demand for ${position_title || 'this role'} across the analyzed regions. Detailed skill breakdowns and experience requirements are available in the Skills Demand Analysis section.
+
+*Note: Advanced AI insights temporarily unavailable. Detailed skill analysis available in interactive sections below.*`;
       }
 
       // Save final results
@@ -1372,7 +1456,7 @@ ${skillAnalysis.top_skills ? skillAnalysis.top_skills.slice(0, 10).map((s: any) 
         summary: {
           total_jobs_analyzed: aiEnhancedJobs.length,
           locations_covered: locations,
-          top_skills: skillAnalysis.top_skills.slice(0, 5)
+          top_skills: skillAnalysis.top_skills // Show all skills found
         },
         status: "Pipeline completed successfully"
       }), {
