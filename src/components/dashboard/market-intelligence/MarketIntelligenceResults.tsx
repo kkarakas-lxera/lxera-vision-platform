@@ -526,7 +526,7 @@ export default function MarketIntelligenceResults({
               {/* Essential Tools */}
               {analysisData.tool_requirements.essential && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Essential Tools (>70% mentions)</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Essential Tools (&gt;70% mentions)</h3>
                   <div className="space-y-2">
                     {analysisData.tool_requirements.essential.map((tool: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
@@ -556,7 +556,7 @@ export default function MarketIntelligenceResults({
               {/* Nice to Have Tools */}
               {analysisData.tool_requirements.nice_to_have && (
                 <div className="md:col-span-2">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Nice to Have Tools (<30% mentions)</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Nice to Have Tools (&lt;30% mentions)</h3>
                   <div className="flex flex-wrap gap-2">
                     {analysisData.tool_requirements.nice_to_have.map((tool: any, index: number) => (
                       <span key={index} className="px-2 py-1 bg-gray-50 text-gray-700 rounded text-xs">
