@@ -511,7 +511,7 @@ export default function MarketIntelligenceResults({
                   }
                 };
                 
-                const styles = getCategoryStyles(recommendation.category);
+                const styles = getCategoryStyles(recommendation.category || 'general');
                 
                 return (
                   <div key={index} className={`p-5 rounded-lg border ${styles.bg}`}>
@@ -522,7 +522,7 @@ export default function MarketIntelligenceResults({
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${styles.badge}`}>
-                          {recommendation.category.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                          {recommendation.category ? recommendation.category.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Strategy'}
                         </span>
                         {recommendation.priority && (
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
