@@ -363,7 +363,7 @@ export default function MarketIntelligenceResults({
       )}
 
       {/* Key Findings from Structured Data */}
-      {(request as any).structured_insights?.key_findings?.key_findings && (
+      {(request as any).structured_insights?.key_findings && Array.isArray((request as any).structured_insights.key_findings) && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Key Findings</h2>
@@ -382,7 +382,7 @@ export default function MarketIntelligenceResults({
           </div>
           <div className="bg-white border border-gray-100 rounded-lg p-6">
             <div className="space-y-3">
-              {(request as any).structured_insights.key_findings.key_findings.map((finding: any, index: number) => {
+              {(request as any).structured_insights.key_findings.map((finding: any, index: number) => {
                 const getTypeStyles = (type: string) => {
                   switch (type) {
                     case 'high_demand':
@@ -451,7 +451,7 @@ export default function MarketIntelligenceResults({
       )}
 
       {/* Strategic Recommendations from Structured Data */}
-      {(request as any).structured_insights?.strategic_recommendations?.strategic_recommendations && (
+      {(request as any).structured_insights?.strategic_recommendations && Array.isArray((request as any).structured_insights.strategic_recommendations) && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Strategic Recommendations</h2>
@@ -470,7 +470,7 @@ export default function MarketIntelligenceResults({
           </div>
           <div className="bg-white border border-gray-100 rounded-lg p-6">
             <div className="space-y-4">
-              {(request as any).structured_insights.strategic_recommendations.strategic_recommendations.map((recommendation: any, index: number) => {
+              {(request as any).structured_insights.strategic_recommendations.map((recommendation: any, index: number) => {
                 const getCategoryStyles = (category: string) => {
                   switch (category) {
                     case 'training_priorities':
