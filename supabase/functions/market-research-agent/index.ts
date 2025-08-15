@@ -719,7 +719,46 @@ Return ONLY valid JSON:
 `;
 
       try {
-        const enhancedData = await callGroqLLM(skillContextPrompt);
+        // Call Groq API for skill analysis
+        const groqApiKey = Deno.env.get('GROQ_API_KEY');
+        if (!groqApiKey) {
+          throw new Error('GROQ_API_KEY environment variable is not set');
+        }
+
+        const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-70b-versatile',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a market research analyst. Return only valid JSON without markdown formatting or explanation.'
+              },
+              {
+                role: 'user',
+                content: skillContextPrompt
+              }
+            ],
+            max_tokens: 1500,
+            temperature: 0.1
+          })
+        });
+
+        if (!aiResponse.ok) {
+          throw new Error(`Groq API error: ${aiResponse.status} ${await aiResponse.text()}`);
+        }
+
+        const groqResult: GroqResponse = await aiResponse.json();
+        const enhancedData = groqResult.choices[0]?.message?.content;
+        
+        if (!enhancedData) {
+          throw new Error('No response from Groq API');
+        }
+        
         const parsedData = JSON.parse(enhancedData);
         
         // Aggregate certification and tool data
