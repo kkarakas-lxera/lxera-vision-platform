@@ -736,7 +736,7 @@ Return ONLY valid JSON:
             messages: [
               {
                 role: 'system',
-                content: 'You are a market research analyst. Return only valid JSON without markdown formatting or explanation.'
+                content: 'You are a market research analyst. Return ONLY valid JSON. Do NOT use markdown code blocks, backticks, or any formatting. Start directly with { and end with }. No explanations.'
               },
               {
                 role: 'user',
@@ -759,7 +759,38 @@ Return ONLY valid JSON:
           throw new Error('No response from Groq API');
         }
         
-        const parsedData = JSON.parse(enhancedData);
+        // Clean the response to handle markdown formatting and escape characters
+        let cleanedData = enhancedData;
+        
+        // Remove markdown code blocks if present
+        if (cleanedData.includes('```json')) {
+          cleanedData = cleanedData.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+        }
+        
+        // Remove any leading/trailing whitespace
+        cleanedData = cleanedData.trim();
+        
+        // Try to parse, with fallback for common issues
+        let parsedData;
+        try {
+          parsedData = JSON.parse(cleanedData);
+        } catch (parseError) {
+          console.log(`[Market Research Agent] JSON parse failed for skill: ${skillData.skill}, attempting to fix common issues`);
+          // Try to fix common escape character issues
+          const fixedData = cleanedData
+            .replace(/\\/g, '\\\\') // Fix single backslashes
+            .replace(/\\\\n/g, '\\n') // Fix over-escaped newlines
+            .replace(/\\\\"/g, '\\"') // Fix over-escaped quotes
+            .replace(/\n/g, ' ') // Replace actual newlines with spaces
+            .replace(/\t/g, ' '); // Replace tabs with spaces
+          
+          try {
+            parsedData = JSON.parse(fixedData);
+          } catch (secondError) {
+            console.log(`[Market Research Agent] Failed to parse JSON for skill: ${skillData.skill}, skipping enhanced analysis for this skill`);
+            continue; // Skip this skill if we can't parse the JSON
+          }
+        }
         
         // Aggregate certification and tool data
         if (parsedData.certifications?.length > 0) {
