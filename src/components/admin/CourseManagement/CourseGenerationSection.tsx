@@ -53,6 +53,7 @@ export const CourseGenerationSection = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [pendingOutlines, setPendingOutlines] = useState<PendingOutline[]>([]);
+  const [enableMultimedia, setEnableMultimedia] = useState(false);
   
   // Filters
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -344,7 +345,8 @@ export const CourseGenerationSection = () => {
             is_preview: previewMode,
             is_approval: outlineOnlyEmployeeIds.length > 0,
             outline_employee_ids: outlineOnlyEmployeeIds,
-            employee_plan_id_map: employeePlanIdMap  // Map of employee_id to plan_id for first_module generation
+            employee_plan_id_map: employeePlanIdMap,  // Map of employee_id to plan_id for first_module generation
+            enable_multimedia: enableMultimedia  // Pass multimedia flag
           }
         })
         .select()
@@ -468,6 +470,20 @@ export const CourseGenerationSection = () => {
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   Preview mode
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="enable-multimedia"
+                  checked={enableMultimedia}
+                  onCheckedChange={(checked) => setEnableMultimedia(checked as boolean)}
+                  disabled={previewMode} // Disable multimedia for preview mode
+                />
+                <label 
+                  htmlFor="enable-multimedia" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Generate videos
                 </label>
               </div>
               <Badge variant="outline">

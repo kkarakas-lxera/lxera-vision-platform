@@ -43,7 +43,8 @@ class LXERADatabasePipeline:
         assigned_by_id: str,
         job_id: Optional[str] = None,
         generation_mode: str = 'full',
-        plan_id: Optional[str] = None
+        plan_id: Optional[str] = None,
+        enable_multimedia: bool = False
     ) -> Dict[str, Any]:
         """
         Generate a personalized course for an employee using their existing skills gap analysis.
@@ -446,6 +447,35 @@ class LXERADatabasePipeline:
             
             logger.info(f"✅ SDK Pipeline completed with {len(content_ids)} modules")
             
+            # Phase 5: Multimedia Generation (if enabled and full course completed)
+            multimedia_generation_enabled = enable_multimedia  # Use the parameter passed from frontend
+            if multimedia_generation_enabled and generation_mode == 'full' and len(content_ids) == total_modules:
+                logger.info("🎬 Starting multimedia generation for completed course")
+                multimedia_result = await self._generate_course_multimedia(
+                    content_ids=content_ids,
+                    plan_id=plan_id,
+                    employee_data=employee_data,
+                    job_id=job_id
+                )
+                
+                return {
+                    'pipeline_success': True,
+                    'generation_mode': generation_mode,
+                    'content_ids': content_ids,  # List of all module content IDs
+                    'content_id': content_ids[0]['content_id'] if content_ids else None,  # First module for compatibility
+                    'plan_id': plan_id,
+                    'research_id': research_id,
+                    'multimedia_session_id': multimedia_result.get('session_id'),
+                    'multimedia_status': multimedia_result.get('status', 'not_started'),
+                    'agent_result': f"Course generated successfully: {len(content_ids)} modules created with multimedia ({generation_mode} mode)",
+                    'agent_name': 'full_pipeline',
+                    'sdk_handoffs': True,
+                    'modules_generated': len(content_ids),
+                    'total_modules_planned': total_modules,
+                    'can_resume': generation_mode == 'first_module',
+                    'partial_generation': generation_mode == 'first_module'
+                }
+            
             return {
                 'pipeline_success': True,
                 'generation_mode': generation_mode,
@@ -798,9 +828,9 @@ class LXERADatabasePipeline:
             return False
     
     async def _retrieve_employee_data(self, employee_id: str) -> Dict[str, Any]:
-        """Retrieve employee data from Supabase database."""
+        """Retrieve employee data from Supabase database including CV analysis data."""
         try:
-            # Get employee with user data
+            # Get employee with user data and CV analysis data
             response = self.supabase.table('employees').select(
                 """
                 id,
@@ -809,6 +839,8 @@ class LXERADatabasePipeline:
                 career_goal,
                 key_tools,
                 company_id,
+                cv_extracted_data,
+                cv_analysis_data,
                 users!inner (
                     full_name,
                     email
@@ -821,7 +853,46 @@ class LXERADatabasePipeline:
             
             employee = response.data
             
-            # Transform to expected format
+            # Extract CV analysis data
+            cv_extracted_data = employee.get('cv_extracted_data') or {}
+            cv_analysis_data = employee.get('cv_analysis_data') or {}
+            
+            # Get detailed skills with context from CV analysis
+            detailed_skills = cv_analysis_data.get('skills', [])
+            
+            # Create skills context mapping for easy access
+            skills_context = {}
+            for skill in detailed_skills:
+                skill_name = skill.get('skill_name', '')
+                skills_context[skill_name] = {
+                    'proficiency_level': skill.get('proficiency_level', 0),
+                    'years_experience': skill.get('years_experience', 0),
+                    'context': skill.get('context', ''),
+                    'usage_examples': skill.get('usage_examples', [])
+                }
+            
+            # Build enhanced tools list combining key_tools with CV-extracted tools
+            cv_tools = []
+            for exp in cv_extracted_data.get('work_experience', []):
+                # Extract tools/technologies mentioned in job descriptions
+                description = exp.get('description', '').lower()
+                tools_mentioned = []
+                common_tools = ['excel', 'powerpoint', 'word', 'sap', 'salesforce', 'powerbi', 'tableau', 'python', 'sql', 'r', 'java', 'javascript']
+                for tool in common_tools:
+                    if tool in description:
+                        tools_mentioned.append(tool.title())
+                cv_tools.extend(tools_mentioned)
+            
+            # Combine and deduplicate tools
+            all_tools = list(set((employee['key_tools'] or []) + cv_tools))
+            
+            # Infer learning style from CV data
+            learning_style = self._infer_learning_style(cv_extracted_data, detailed_skills)
+            
+            # Calculate experience level from work history
+            experience_level = self._calculate_experience_level(cv_extracted_data.get('work_experience', []))
+            
+            # Transform to expected format with enhanced CV data
             return {
                 'id': employee['id'],
                 'full_name': employee['users']['full_name'],
@@ -829,14 +900,146 @@ class LXERADatabasePipeline:
                 'job_title_current': employee['position'],
                 'department': employee['department'],
                 'career_aspirations_next_role': employee['career_goal'] or f"Senior {employee['position']}",
-                'tools_software_used_regularly': employee['key_tools'] or [],
+                'tools_software_used_regularly': all_tools,
                 'company_id': employee['company_id'],
-                'position': employee['position']
+                'position': employee['position'],
+                # Enhanced CV analysis data
+                'work_experience': cv_extracted_data.get('work_experience', []),
+                'education': cv_extracted_data.get('education', []),
+                'professional_summary': cv_extracted_data.get('professional_summary', ''),
+                'certifications': cv_extracted_data.get('certifications', []),
+                'languages': cv_extracted_data.get('languages', []),
+                'key_achievements': cv_extracted_data.get('key_achievements', []),
+                'detailed_skills': detailed_skills,
+                'skills_context': skills_context,
+                'learning_style': learning_style,
+                'experience_level': experience_level,
+                'years_total_experience': self._calculate_total_years_experience(cv_extracted_data.get('work_experience', []))
             }
             
         except Exception as e:
             logger.error(f"Failed to retrieve employee data: {e}")
             raise
+    
+    def _infer_learning_style(self, cv_extracted_data: Dict, detailed_skills: List) -> str:
+        """Infer learning style preferences from CV data."""
+        try:
+            # Analyze work experience patterns
+            work_experience = cv_extracted_data.get('work_experience', [])
+            
+            # Look for patterns that suggest learning preferences
+            practical_indicators = 0
+            analytical_indicators = 0
+            collaborative_indicators = 0
+            
+            for exp in work_experience:
+                description = exp.get('description', '').lower()
+                
+                # Practical/hands-on indicators
+                if any(term in description for term in ['hands-on', 'implementation', 'execution', 'operational', 'project management', 'troubleshooting']):
+                    practical_indicators += 1
+                
+                # Analytical indicators
+                if any(term in description for term in ['analysis', 'research', 'data', 'metrics', 'reporting', 'modeling', 'strategy']):
+                    analytical_indicators += 1
+                
+                # Collaborative indicators
+                if any(term in description for term in ['team', 'collaboration', 'leadership', 'mentoring', 'training', 'communication']):
+                    collaborative_indicators += 1
+            
+            # Determine dominant learning style
+            if practical_indicators >= max(analytical_indicators, collaborative_indicators):
+                return "Prefers practical, hands-on learning with real-world applications and workplace examples"
+            elif analytical_indicators >= collaborative_indicators:
+                return "Prefers analytical learning with data-driven insights, case studies, and structured frameworks"
+            else:
+                return "Prefers collaborative learning with team-based exercises, discussions, and peer interactions"
+                
+        except Exception as e:
+            logger.warning(f"Error inferring learning style: {e}")
+            return "Prefers practical application and real-world examples"
+    
+    def _calculate_experience_level(self, work_experience: List) -> str:
+        """Calculate experience level from work history."""
+        try:
+            if not work_experience:
+                return "entry"
+            
+            # Count total positions and look for progression
+            total_positions = len(work_experience)
+            
+            # Look for leadership/senior keywords in titles
+            senior_positions = 0
+            leadership_positions = 0
+            
+            for exp in work_experience:
+                title = exp.get('title', '').lower()
+                
+                if any(term in title for term in ['senior', 'lead', 'principal', 'architect', 'specialist']):
+                    senior_positions += 1
+                
+                if any(term in title for term in ['manager', 'director', 'head', 'chief', 'supervisor', 'team lead']):
+                    leadership_positions += 1
+            
+            # Determine experience level
+            if leadership_positions >= 2 or any(term in exp.get('title', '').lower() for exp in work_experience for term in ['director', 'chief', 'head']):
+                return "executive"
+            elif senior_positions >= 2 or leadership_positions >= 1:
+                return "senior"
+            elif total_positions >= 3 or senior_positions >= 1:
+                return "mid-level"
+            elif total_positions >= 2:
+                return "junior"
+            else:
+                return "entry"
+                
+        except Exception as e:
+            logger.warning(f"Error calculating experience level: {e}")
+            return "mid-level"
+    
+    def _calculate_total_years_experience(self, work_experience: List) -> int:
+        """Calculate total years of work experience."""
+        try:
+            total_years = 0
+            
+            for exp in work_experience:
+                duration = exp.get('duration', '')
+                
+                # Parse duration strings like "2020-2023", "3-5 years", "Current"
+                if '-' in duration and 'years' not in duration.lower():
+                    # Format: "2020-2023" or "2020-Current"
+                    parts = duration.split('-')
+                    if len(parts) == 2:
+                        try:
+                            start_year = int(parts[0].strip())
+                            end_part = parts[1].strip()
+                            
+                            if end_part.lower() == 'current':
+                                end_year = datetime.now().year
+                            else:
+                                end_year = int(end_part)
+                            
+                            years = max(0, end_year - start_year)
+                            total_years += years
+                        except ValueError:
+                            pass
+                elif 'years' in duration.lower():
+                    # Format: "3-5 years", "2 years"
+                    import re
+                    numbers = re.findall(r'\d+', duration)
+                    if numbers:
+                        # Take the first number or average if range
+                        if len(numbers) == 1:
+                            total_years += int(numbers[0])
+                        elif len(numbers) == 2:
+                            # Take average of range
+                            total_years += (int(numbers[0]) + int(numbers[1])) / 2
+            
+            return max(0, int(total_years))
+            
+        except Exception as e:
+            logger.warning(f"Error calculating total years experience: {e}")
+            return 3  # Default fallback
     
     async def _fetch_course_plan(self, plan_id: str) -> Dict[str, Any]:
         """Fetch course plan details from database."""
@@ -848,6 +1051,159 @@ class LXERADatabasePipeline:
         except Exception as e:
             logger.error(f"Error fetching course plan: {e}")
             return None
+    
+    async def _generate_course_multimedia(
+        self,
+        content_ids: List[Dict[str, Any]],
+        plan_id: str,
+        employee_data: Dict[str, Any],
+        job_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate multimedia content for all course modules sequentially.
+        This runs AFTER content generation is complete.
+        
+        Args:
+            content_ids: List of module content IDs
+            plan_id: Course plan ID
+            employee_data: Employee information
+            job_id: Optional job tracking ID
+            
+        Returns:
+            Dict with multimedia generation results
+        """
+        try:
+            logger.info(f"🎬 Initiating multimedia generation for {len(content_ids)} modules")
+            
+            # Import multimedia tools
+            from tools.multimedia_tools import get_multimedia_manager
+            multimedia_manager = get_multimedia_manager()
+            
+            # Create multimedia session
+            session_id = multimedia_manager.create_multimedia_session(
+                execution_id=str(uuid.uuid4()),
+                course_id=plan_id,  # Use plan_id as course identifier
+                employee_name=employee_data.get('full_name', 'Employee'),
+                employee_id=employee_data.get('id', ''),
+                course_title=f"Course for {employee_data.get('full_name', 'Employee')}",
+                total_modules=len(content_ids),
+                company_id=employee_data.get('company_id')
+            )
+            
+            logger.info(f"Created multimedia session: {session_id}")
+            
+            # Update job progress
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Generating multimedia content',
+                    'multimedia_status': 'in_progress',
+                    'multimedia_session_id': session_id,
+                    'progress_percentage': 91
+                })
+            
+            generated_videos = []
+            
+            # Process each module sequentially
+            for idx, content_info in enumerate(content_ids):
+                module_number = idx + 1
+                content_id = content_info['content_id']
+                module_title = content_info.get('module_title', f'Module {module_number}')
+                
+                logger.info(f"📹 Generating video for Module {module_number}: {module_title}")
+                
+                try:
+                    # Update progress
+                    if job_id:
+                        multimedia_progress = 91 + (8 * (idx / len(content_ids)))  # 91-99% range
+                        await self._update_job_progress(job_id, {
+                            'current_phase': f'Generating video for Module {module_number}/{len(content_ids)}',
+                            'multimedia_progress': multimedia_progress
+                        })
+                    
+                    # Import educational video service
+                    from multimedia.educational_video_service import EducationalVideoService
+                    video_service = EducationalVideoService()
+                    
+                    # Generate educational video
+                    video_result = await video_service.generate_educational_video(
+                        content_id=content_id,
+                        employee_context={
+                            'name': employee_data.get('full_name', 'Employee'),
+                            'role': employee_data.get('job_title_current', 'Professional'),
+                            'id': employee_data.get('id', '')
+                        },
+                        options={
+                            'voice': 'nova',  # Professional voice
+                            'speed': 1.0,
+                            'design_theme': 'professional',
+                            'target_duration': 10,  # 10 minutes per module
+                            'include_animations': True
+                        }
+                    )
+                    
+                    # Register video asset
+                    asset_id = multimedia_manager.register_multimedia_asset(
+                        session_id=session_id,
+                        content_id=content_id,
+                        course_id=plan_id,
+                        module_name=module_title,
+                        asset_type='video',
+                        asset_category='educational',
+                        file_path=video_result.get('video_path'),
+                        file_name=f"module_{module_number}_video.mp4",
+                        section_name=f"module_{module_number}",
+                        duration_seconds=video_result.get('duration', 0),
+                        mime_type='video/mp4'
+                    )
+                    
+                    generated_videos.append({
+                        'module_number': module_number,
+                        'content_id': content_id,
+                        'asset_id': asset_id,
+                        'video_url': video_result.get('video_url'),
+                        'duration': video_result.get('duration')
+                    })
+                    
+                    logger.info(f"✅ Video generated for Module {module_number}")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to generate video for Module {module_number}: {e}")
+                    # Continue with next module even if one fails
+                    continue
+            
+            # Finalize multimedia package
+            multimedia_manager.finalize_multimedia_package(
+                session_id=session_id,
+                course_id=plan_id,
+                employee_name=employee_data.get('full_name', 'Employee')
+            )
+            
+            # Update course plan with multimedia info
+            self.supabase.table('cm_course_plans').update({
+                'multimedia_generated': True,
+                'multimedia_session_id': session_id,
+                'multimedia_generated_at': datetime.now().isoformat(),
+                'metadata': {
+                    'multimedia_videos': generated_videos
+                }
+            }).eq('plan_id', plan_id).execute()
+            
+            logger.info(f"✅ Multimedia generation completed: {len(generated_videos)}/{len(content_ids)} videos")
+            
+            return {
+                'status': 'completed',
+                'session_id': session_id,
+                'videos_generated': len(generated_videos),
+                'total_modules': len(content_ids),
+                'generated_videos': generated_videos
+            }
+            
+        except Exception as e:
+            logger.error(f"Multimedia generation failed: {e}")
+            return {
+                'status': 'failed',
+                'error': str(e)
+            }
     
     async def _retrieve_skills_gaps(self, employee_id: str, position: str) -> List[Dict[str, Any]]:
         """Retrieve skills gap analysis from database by comparing position requirements with employee skills."""
@@ -1180,7 +1536,8 @@ async def generate_course_with_agents(
     assigned_by_id: str,
     job_id: Optional[str] = None,
     generation_mode: str = 'full',
-    plan_id: Optional[str] = None
+    plan_id: Optional[str] = None,
+    enable_multimedia: bool = False
 ) -> Dict[str, Any]:
     """
     Generate a course using the full agent pipeline with database integration.
@@ -1240,7 +1597,8 @@ async def generate_course_with_agents(
         assigned_by_id,
         job_id,
         generation_mode,
-        plan_id  # Pass the plan_id if available
+        plan_id,  # Pass the plan_id if available
+        enable_multimedia  # Pass the multimedia flag
     )
 
 async def resume_course_generation(

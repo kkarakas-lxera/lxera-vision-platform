@@ -34,25 +34,25 @@ class SectionVideoGenerator:
     
     SECTION_CONFIGS = {
         'introduction': {
-            'max_duration': 180,  # 3 minutes
+            'max_duration': 900,  # 15 minutes - Realistic tutorial duration
             'max_slides': 5,
             'voice': 'nova',  # Warm and friendly
             'theme': 'professional'
         },
         'practical_applications': {
-            'max_duration': 300,  # 5 minutes
+            'max_duration': 900,  # 15 minutes - Realistic tutorial duration
             'max_slides': 8,
             'voice': 'onyx',  # Authoritative
             'theme': 'modern'
         },
         'case_studies': {
-            'max_duration': 240,  # 4 minutes
+            'max_duration': 900,  # 15 minutes - Realistic tutorial duration
             'max_slides': 6,
             'voice': 'echo',  # Confident
             'theme': 'case_study'
         },
         'assessments': {
-            'max_duration': 120,  # 2 minutes
+            'max_duration': 600,  # 10 minutes - Realistic assessment duration  
             'max_slides': 4,
             'voice': 'alloy',  # Neutral
             'theme': 'quiz'
@@ -60,13 +60,10 @@ class SectionVideoGenerator:
     }
     
     def __init__(self, educational_video_service):
-        """Initialize with reference to main video service"""
+        """Initialize with reference to main video service for enhanced Remotion generation"""
         self.video_service = educational_video_service
-        self.script_generator = educational_video_service.script_generator
-        self.content_extractor = educational_video_service.content_extractor
-        self.slide_generator = educational_video_service.slide_generator
-        self.timeline_generator = educational_video_service.timeline_generator
-        self.video_assembler = educational_video_service.video_assembler
+        # Only keep components needed for Remotion-based generation
+        self.content_manager = educational_video_service.content_manager
         self.multimedia_manager = educational_video_service.multimedia_manager
         
     async def generate_section_videos(
@@ -192,76 +189,86 @@ class SectionVideoGenerator:
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # 1. Generate educational script for this section only
-        logger.info(f"Generating script for {section_name}...")
-        script = self.script_generator.generate_educational_script(
-            content=section_content,
-            employee_context=employee_context,
-            target_duration=config['max_duration']
+        # NEW: Use enhanced Remotion video generation for realistic 15-minute tutorials
+        logger.info(f"Generating enhanced Remotion video for {section_name}...")
+        
+        # Initialize Remotion generator
+        from multimedia.remotion_video_generator import RemotionVideoGenerator
+        remotion_generator = RemotionVideoGenerator()
+        
+        # Extract relevant content for this section
+        section_text = self._get_section_text(section_content)
+        
+        # Generate enhanced tutorial video using the new pipeline
+        video_path = remotion_generator.generate_tutorial_video(
+            section_content=section_text,
+            section_name=section_name,
+            learner_name=employee_context.get('name', 'Learner'),
+            learner_role=employee_context.get('position', 'Professional'),
+            module_title=content.get('module_name', section_name),
+            output_dir=output_dir,
+            course_context={
+                'title': content.get('module_name', section_name),
+                'description': content.get('description', 'Professional training')
+            },
+            employee_id=employee_context.get('id')
         )
         
-        # Limit slides to max for section
-        if len(script.slides) > config['max_slides']:
-            script.slides = script.slides[:config['max_slides']]
-            
-        # 2. Extract slide content
-        logger.info(f"Extracting slide content for {section_name}...")
-        extracted_content = self.content_extractor.extract_slide_content(
-            content=section_content,
-            script_data={
-                'slides': [s.__dict__ for s in script.slides],
-                'learning_objectives': script.learning_objectives
-            }
-        )
-        
-        # 3. Generate slides
-        logger.info(f"Generating slides for {section_name}...")
-        slides_dir = output_dir / 'slides'
-        slides_dir.mkdir(exist_ok=True)
-        
-        slide_metadata = self.slide_generator.generate_slide_deck(
-            slide_notes=extracted_content.slide_notes,
-            output_dir=str(slides_dir),
-            design_theme=config['theme'],
-            include_animations=True,
-            employee_context=employee_context
-        )
-        
-        # 4. Generate timeline with audio
-        logger.info(f"Generating audio timeline for {section_name}...")
-        timeline = await self.timeline_generator.generate_educational_timeline(
-            script=script,
-            extracted_content=extracted_content,
-            output_dir=str(output_dir),
-            voice=config['voice'],
-            speed=1.0
-        )
-        
-        # 5. Assemble video
-        logger.info(f"Assembling video for {section_name}...")
-        video_path = output_dir / f"{section_name}_video.mp4"
-        
-        video_result = await self.video_assembler.assemble_educational_video(
-            timeline=timeline,
-            slide_metadata=slide_metadata,
-            output_path=str(video_path)
-        )
+        # Get video duration
+        duration = remotion_generator._get_audio_duration(video_path) if video_path.exists() else config['max_duration']
         
         # Create section video object
         section_video = SectionVideo(
             section_name=section_name,
             video_path=str(video_path),
-            duration=video_result.duration,
-            slide_count=len(slide_metadata),
+            duration=duration,
+            slide_count=0,  # Remotion videos don't use traditional slides
             metadata={
+                'generation_method': 'remotion_enhanced',
                 'voice': config['voice'],
                 'theme': config['theme'],
-                'word_count': section_content.get('total_word_count', 0),
-                'generated_at': datetime.now().isoformat()
+                'word_count': len(section_text.split()) if section_text else 0,
+                'generated_at': datetime.now().isoformat(),
+                'realistic_duration': True,
+                'multi_layer_teaching': True
             }
         )
         
         return section_video
+    
+    def _get_section_text(self, section_content: Dict[str, Any]) -> str:
+        """Extract text content from section for tutorial generation"""
+        text_parts = []
+        
+        # Extract text from various content fields
+        if isinstance(section_content, dict):
+            # Add description/overview
+            if 'description' in section_content:
+                text_parts.append(section_content['description'])
+            
+            # Add detailed content
+            if 'content' in section_content:
+                content = section_content['content']
+                if isinstance(content, str):
+                    text_parts.append(content)
+                elif isinstance(content, dict):
+                    # Extract text from structured content
+                    for key, value in content.items():
+                        if isinstance(value, str):
+                            text_parts.append(value)
+            
+            # Add objectives if available
+            if 'objectives' in section_content:
+                objectives = section_content['objectives']
+                if isinstance(objectives, list):
+                    text_parts.extend(objectives)
+                elif isinstance(objectives, str):
+                    text_parts.append(objectives)
+        
+        elif isinstance(section_content, str):
+            text_parts.append(section_content)
+        
+        return " ".join(text_parts) if text_parts else "Professional training content"
     
     def _get_available_sections(self, content: Dict[str, Any]) -> List[str]:
         """Get list of available sections in content"""

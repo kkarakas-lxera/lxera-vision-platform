@@ -29,63 +29,165 @@ openai_client = OpenAI(api_key=OPENAI_API_KEY)
 @function_tool
 def analyze_employee_profile(employee_data: str) -> str:
     """
-    Analyze employee profile and extract key characteristics for course planning.
+    Analyze employee profile and extract key characteristics for course planning using rich CV data.
     
     Args:
-        employee_data: JSON string containing employee information
+        employee_data: JSON string containing enhanced employee information including CV analysis
         
     Returns:
         JSON string with analyzed employee profile including experience level, 
-        learning preferences, career goals, and skill gaps
+        learning preferences, career goals, skill gaps, and work experience context
     """
     try:
-        logger.info("🔍 Analyzing employee profile with agent tool...")
+        logger.info("🔍 Analyzing employee profile with enhanced CV data...")
         
         # Parse employee data
         employee_info = json.loads(employee_data) if isinstance(employee_data, str) else employee_data
         
-        # Extract key information
+        # Extract basic information
         full_name = employee_info.get("full_name", "Unknown")
-        current_role = employee_info.get("job_title_specific", "")
+        current_role = employee_info.get("job_title_current", employee_info.get("job_title_specific", ""))
         career_goal = employee_info.get("career_aspirations_next_role", "")
         learning_style = employee_info.get("learning_style", "")
-        skills = employee_info.get("skills", [])
         tools_used = employee_info.get("tools_software_used_regularly", [])
         
-        # Determine experience level
-        experience_level = "junior" if "junior" in current_role.lower() else "mid" if "senior" not in current_role.lower() else "senior"
+        # Extract rich CV data
+        work_experience = employee_info.get("work_experience", [])
+        education = employee_info.get("education", [])
+        professional_summary = employee_info.get("professional_summary", "")
+        certifications = employee_info.get("certifications", [])
+        detailed_skills = employee_info.get("detailed_skills", [])
+        skills_context = employee_info.get("skills_context", {})
+        experience_level = employee_info.get("experience_level", "mid-level")
+        years_total_experience = employee_info.get("years_total_experience", 3)
         
-        # Categorize skills
-        technical_skills = [skill for skill in skills if any(term in skill.lower() for term in ["excel", "sap", "powerbi", "data", "analysis"])]
-        transferable_skills = [skill for skill in skills if any(term in skill.lower() for term in ["project", "management", "stakeholder"])]
+        # Enhanced skill categorization using detailed skills
+        technical_skills = []
+        soft_skills = []
+        industry_skills = []
         
-        # Assess technical readiness
-        tech_readiness = "advanced" if "advanced" in str(skills).lower() else "intermediate" if "intermediate" in str(skills).lower() else "basic"
+        for skill in detailed_skills:
+            skill_name = skill.get('skill_name', '')
+            proficiency = skill.get('proficiency_level', 0)
+            context = skill.get('context', '')
+            
+            # Categorize based on skill name and context
+            if any(term in skill_name.lower() for term in ["excel", "sap", "powerbi", "sql", "python", "tableau", "data", "analytics", "modeling"]):
+                technical_skills.append({
+                    "skill": skill_name,
+                    "proficiency": proficiency,
+                    "context": context,
+                    "years_experience": skill.get('years_experience', 0)
+                })
+            elif any(term in skill_name.lower() for term in ["project management", "leadership", "communication", "team", "stakeholder", "presentation"]):
+                soft_skills.append({
+                    "skill": skill_name,
+                    "proficiency": proficiency,
+                    "context": context
+                })
+            else:
+                industry_skills.append({
+                    "skill": skill_name,
+                    "proficiency": proficiency,
+                    "context": context
+                })
+        
+        # Analyze work experience for industry context and career progression
+        industry_context = []
+        career_progression_pattern = []
+        key_achievements = []
+        
+        for exp in work_experience:
+            title = exp.get('title', '')
+            company = exp.get('company', '')
+            duration = exp.get('duration', '')
+            description = exp.get('description', '')
+            
+            # Extract industry context
+            if company and title:
+                industry_context.append(f"{title} at {company}")
+            
+            # Track career progression
+            career_progression_pattern.append({
+                "role": title,
+                "company": company,
+                "duration": duration,
+                "seniority_level": "senior" if any(term in title.lower() for term in ["senior", "lead", "manager", "director"]) else "mid" if any(term in title.lower() for term in ["analyst", "specialist"]) else "junior"
+            })
+            
+            # Extract key achievements from descriptions
+            if description and len(description) > 50:
+                key_achievements.append(description[:200] + "..." if len(description) > 200 else description)
+        
+        # Analyze educational background for learning foundation
+        educational_foundation = []
+        for edu in education:
+            degree = edu.get('degree', '')
+            field = edu.get('fieldOfStudy', '')
+            institution = edu.get('institution', '')
+            
+            if degree or field:
+                educational_foundation.append({
+                    "degree": degree,
+                    "field": field,
+                    "institution": institution,
+                    "relevance": "high" if any(term in field.lower() for term in ["business", "finance", "data", "analytics", "management"]) else "medium"
+                })
+        
+        # Enhanced learning preferences from CV analysis
+        enhanced_learning_preferences = {
+            "practical_emphasis": 0.8 if "practical" in learning_style.lower() else 0.7,
+            "real_world_examples": "real-world" in learning_style.lower() or len(work_experience) > 2,
+            "problem_solving": "problem-solving" in learning_style.lower(),
+            "preferred_style": learning_style,
+            "industry_experience": len(set([exp.get('company', '') for exp in work_experience])),
+            "hands_on_preference": any("implementation" in exp.get('description', '').lower() for exp in work_experience)
+        }
+        
+        # Assess technical readiness based on detailed skills
+        high_proficiency_skills = [s for s in detailed_skills if s.get('proficiency_level', 0) >= 3]
+        mid_proficiency_skills = [s for s in detailed_skills if s.get('proficiency_level', 0) == 2]
+        
+        tech_readiness = "advanced" if len(high_proficiency_skills) >= 3 else "intermediate" if len(mid_proficiency_skills) >= 3 else "basic"
         
         profile_analysis = {
             "employee_name": full_name,
             "current_role": current_role,
             "experience_level": experience_level,
+            "years_total_experience": years_total_experience,
             "career_timeline": "2-3 years" if "2-3" in career_goal else "short-term",
-            "learning_preferences": {
-                "practical_emphasis": 0.8 if "practical" in learning_style.lower() else 0.7,
-                "real_world_examples": "real-world" in learning_style.lower(),
-                "problem_solving": "problem-solving" in learning_style.lower()
-            },
+            "learning_preferences": enhanced_learning_preferences,
             "skill_inventory": {
                 "technical_skills": technical_skills,
-                "transferable_skills": transferable_skills,
+                "soft_skills": soft_skills,
+                "industry_skills": industry_skills,
                 "tool_proficiency": tools_used,
-                "technical_readiness": tech_readiness
+                "technical_readiness": tech_readiness,
+                "skills_with_context": skills_context
             },
             "career_progression": {
                 "target_role": career_goal,
-                "progression_type": "vertical" if "senior" in career_goal.lower() and "junior" in current_role.lower() else "lateral"
+                "progression_type": "vertical" if "senior" in career_goal.lower() and experience_level in ["junior", "entry"] else "lateral",
+                "career_pattern": career_progression_pattern,
+                "industry_context": industry_context
+            },
+            "professional_background": {
+                "work_experience": work_experience,
+                "educational_foundation": educational_foundation,
+                "certifications": certifications,
+                "professional_summary": professional_summary,
+                "key_achievements": key_achievements[:3]  # Top 3 achievements
+            },
+            "personalization_context": {
+                "companies_worked": list(set([exp.get('company', '') for exp in work_experience if exp.get('company')])),
+                "roles_held": list(set([exp.get('title', '') for exp in work_experience if exp.get('title')])),
+                "industry_tools_used": tools_used,
+                "learning_foundation": f"{len(educational_foundation)} degree(s), {len(certifications)} certification(s), {years_total_experience} years experience"
             },
             "analysis_timestamp": datetime.now().isoformat()
         }
         
-        logger.info(f"✅ Employee profile analyzed: {experience_level} level, {len(technical_skills)} technical skills")
+        logger.info(f"✅ Enhanced employee profile analyzed: {experience_level} level, {len(technical_skills)} technical skills, {len(work_experience)} work experiences")
         return json.dumps(profile_analysis)
         
     except Exception as e:
@@ -112,27 +214,57 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         profile = json.loads(profile_data) if isinstance(profile_data, str) else profile_data
         gaps = json.loads(skills_gaps) if isinstance(skills_gaps, str) else skills_gaps
         
-        # Prepare planning prompt for OpenAI
+        # Extract rich professional context
+        professional_bg = profile.get('professional_background', {})
+        work_experience = professional_bg.get('work_experience', [])
+        educational_foundation = professional_bg.get('educational_foundation', [])
+        key_achievements = professional_bg.get('key_achievements', [])
+        personalization_context = profile.get('personalization_context', {})
+        
+        # Prepare enhanced planning prompt for OpenAI
         planning_prompt = f"""
         Create a comprehensive course structure plan for employee: {profile.get('employee_name', 'Learner')}
         
-        EMPLOYEE CONTEXT:
+        ENHANCED EMPLOYEE CONTEXT:
         - Current Role: {profile.get('current_role', '')}
-        - Experience Level: {profile.get('experience_level', 'junior')}
+        - Experience Level: {profile.get('experience_level', 'junior')} ({profile.get('years_total_experience', 3)} years total experience)
         - Career Goal: {profile.get('career_progression', {}).get('target_role', '')}
-        - Learning Style: Practical emphasis {profile.get('learning_preferences', {}).get('practical_emphasis', 0.7)*100:.0f}%
+        - Learning Style: {profile.get('learning_preferences', {}).get('preferred_style', 'Practical emphasis')}
         - Technical Readiness: {profile.get('skill_inventory', {}).get('technical_readiness', 'basic')}
         - Tools Used: {', '.join(profile.get('skill_inventory', {}).get('tool_proficiency', []))}
+        
+        PROFESSIONAL BACKGROUND:
+        - Companies Worked: {', '.join(personalization_context.get('companies_worked', [])[:3])}
+        - Previous Roles: {', '.join(personalization_context.get('roles_held', [])[:3])}
+        - Educational Background: {personalization_context.get('learning_foundation', '')}
+        - Professional Summary: {professional_bg.get('professional_summary', '')[:200]}...
+        
+        WORK EXPERIENCE CONTEXT:
+        {json.dumps([{
+            'role': exp.get('title', ''), 
+            'company': exp.get('company', ''), 
+            'key_description': exp.get('description', '')[:150] + '...' if exp.get('description') else ''
+        } for exp in work_experience[:3]], indent=2)}
+        
+        KEY ACHIEVEMENTS TO REFERENCE:
+        {json.dumps(key_achievements[:2], indent=2) if key_achievements else '["Include relevant workplace examples"]'}
         
         CRITICAL SKILL GAPS:
         {json.dumps(gaps.get('Critical Skill Gaps', {}), indent=2)}
         
-        REQUIREMENTS:
+        ENHANCED REQUIREMENTS:
         1. Create 4-week course structure with 6-8 modules total
         2. Prioritize critical skill gaps (60% of content focus)
         3. Include tool-specific applications for their actual tools
         4. Progressive difficulty from foundational to advanced
         5. Emphasize practical, real-world applications
+        6. PERSONALIZATION REQUIREMENTS:
+           - Reference their actual work experience and companies when possible
+           - Use industry-specific examples from their background
+           - Build on their educational foundation and certifications
+           - Include scenarios relevant to their career progression pattern
+           - Incorporate their key achievements as learning examples
+           - Align with their demonstrated learning preferences
         
         WORD ALLOCATION STRATEGY:
         - Critical priority modules: 5000-6000 words total

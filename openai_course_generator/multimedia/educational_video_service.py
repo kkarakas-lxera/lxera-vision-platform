@@ -20,12 +20,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from multimedia.educational_script_generator import EducationalScriptGenerator
 from multimedia.slide_content_extractor import SlideContentExtractor
-from multimedia.educational_slide_generator import EducationalSlideGenerator
+from multimedia.remotion_video_generator import RemotionVideoGenerator
 from multimedia.timeline_generator import TimelineGenerator
-from multimedia.video_assembly_service import VideoAssemblyService, VideoSettings
 from multimedia.section_video_generator import SectionVideoGenerator
+from multimedia.content_essence_extractor import ContentEssenceExtractor
+from multimedia.database_integration import DatabaseMultimediaIntegrator
 from database.content_manager import ContentManager
 from tools.multimedia_tools import MultimediaManager, get_multimedia_manager
+# Webhook notifier removed - unused
+get_webhook_notifier = lambda: None  # Stub for compatibility
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +43,15 @@ class EducationalVideoService:
         
         # Initialize components
         self.script_generator = EducationalScriptGenerator(self.openai_api_key)
-        self.content_extractor = SlideContentExtractor(enable_gpt_enrichment=True)
-        self.slide_generator = EducationalSlideGenerator(self.openai_api_key)
+        self.content_extractor = SlideContentExtractor(enable_gpt_enrichment=False)  # Disable GPT enrichment for speed
+        self.remotion_generator = RemotionVideoGenerator()  # NEW: Remotion-based video generation
         self.timeline_generator = TimelineGenerator(self.openai_api_key)
-        self.video_assembler = VideoAssemblyService()
+        
+        # Restored components
+        self.essence_extractor = ContentEssenceExtractor()
+        self.db_integrator = DatabaseMultimediaIntegrator()
+        
+        logger.info("✅ Educational Video Service initialized with Remotion support")
         
         # Database components
         self.content_manager = ContentManager()
@@ -52,7 +60,50 @@ class EducationalVideoService:
         # Section-based generator
         self.section_generator = SectionVideoGenerator(self)
         
-        logger.info("Educational Video Service initialized")
+        # Webhook notifier for progress tracking
+        self.webhook_notifier = get_webhook_notifier()
+        
+        logger.info("Educational Video Service initialized with restored components")
+    
+    async def generate_educational_video_with_essence(
+        self,
+        content_id: str,
+        employee_context: Dict[str, Any],
+        company_id: str,
+        options: Optional[Dict[str, Any]] = None,
+        output_dir: Optional[str] = None,
+        progress_callback: Optional[callable] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate educational video with content essence extraction for optimal multimedia
+        
+        This method integrates content essence extraction for multimedia-optimized generation
+        """
+        logger.info(f"Starting essence-integrated video generation for content: {content_id}")
+        
+        try:
+            # Use direct processor for essence-integrated generation
+            result = await self.direct_processor.process_content_to_multimedia(
+                content_id=content_id,
+                employee_context=employee_context,
+                company_id=company_id,
+                sections_to_process=options.get('sections') if options else None,
+                multimedia_options=options,
+                output_dir=output_dir
+            )
+            
+            if progress_callback:
+                progress_callback(100, "Essence-integrated video generation complete")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Essence-integrated video generation failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'content_id': content_id
+            }
     
     async def generate_educational_video(
         self,
@@ -94,9 +145,16 @@ class EducationalVideoService:
             output_path = Path(output_dir)
             output_path.mkdir(parents=True, exist_ok=True)
             
+            # Set session ID for webhook tracking
+            if options.get('session_id'):
+                self.webhook_notifier.set_session(options.get('session_id'))
+            
             # Progress tracking
             if progress_callback:
                 progress_callback(5, "Fetching content from database")
+            
+            # Webhook notification
+            self.webhook_notifier.notify('initialization', 5, 'Starting video generation pipeline')
             
             # Step 1: Fetch content from database
             content = self.content_manager.get_module_content(content_id)
@@ -109,11 +167,15 @@ class EducationalVideoService:
             if progress_callback:
                 progress_callback(15, "Generating educational script")
             
+            self.webhook_notifier.notify_script_generation(15, 0)
+            
             script = self.script_generator.generate_educational_script(
                 content=content,
                 employee_context=employee_context,
                 target_duration=target_duration
             )
+            
+            self.webhook_notifier.notify_script_generation(20, len(script.slides))
             
             # Export script for reference
             script_path = output_path / 'script.json'
@@ -176,42 +238,40 @@ class EducationalVideoService:
                 speed=speed
             )
             
-            # Step 6: Assemble video
+            # Step 6: Generate video using Remotion
             if progress_callback:
-                progress_callback(80, "Assembling educational video")
+                progress_callback(80, "Generating video with Remotion")
             
             video_filename = f"{content['module_name'].lower().replace(' ', '_')}_educational.mp4"
             video_path = output_path / video_filename
             
-            video_settings = VideoSettings(
-                resolution=(1920, 1080),
-                fps=30,
-                video_codec='libx264',
-                preset='medium',
-                crf=23
-            )
-            
-            assembled_video = await self.video_assembler.assemble_educational_video(
-                timeline=timeline,
-                slide_metadata=slide_metadata,
+            # Generate video using the Remotion pipeline with real content
+            video_result = await self.remotion_generator.generate_video_from_content(
+                content_id=content_id,
+                employee_context=employee_context,
                 output_path=str(video_path),
-                settings=video_settings,
                 progress_callback=lambda percent, msg: progress_callback(80 + int(percent * 0.15), msg) if progress_callback else None
             )
             
-            if not assembled_video.success:
-                raise RuntimeError(f"Video assembly failed: {assembled_video.error_message}")
+            if not video_result.get('success'):
+                raise RuntimeError(f"Remotion video generation failed: {video_result.get('error', 'Unknown error')}")
             
-            # Step 7: Create thumbnail
+            # Step 7: Create thumbnail from video
             if progress_callback:
                 progress_callback(95, "Creating thumbnail")
             
             thumbnail_path = output_path / 'thumbnail.jpg'
-            self.video_assembler.create_thumbnail(
-                assembled_video.video_path,
-                str(thumbnail_path),
-                timestamp=5.0
-            )
+            # Use ffmpeg to extract thumbnail from generated video
+            import subprocess
+            try:
+                subprocess.run([
+                    'ffmpeg', '-i', str(video_path), '-ss', '5',
+                    '-vframes', '1', '-y', str(thumbnail_path)
+                ], check=True, capture_output=True)
+            except subprocess.CalledProcessError as e:
+                logger.warning(f"Thumbnail generation failed: {e}")
+                # Create a placeholder thumbnail path
+                thumbnail_path = None
             
             # Step 8: Store results in database
             if progress_callback:
@@ -228,11 +288,11 @@ class EducationalVideoService:
                     course_id=content_id,
                     module_name=content['module_name'],
                     asset_type='video',
-                    file_path=assembled_video.video_path,
+                    file_path=video_result.get('video_path') or str(video_path),
                     file_name=video_filename,
                     section_name='complete_module',
-                    duration_seconds=assembled_video.duration,
-                    file_size_bytes=assembled_video.file_size,
+                    duration_seconds=video_result.get('duration_seconds', 0),
+                    file_size_bytes=video_result.get('file_size_bytes', 0),
                     mime_type='video/mp4',
                     generation_config={
                         'voice': options.get('voice'),
@@ -240,8 +300,9 @@ class EducationalVideoService:
                         'design_theme': options.get('design_theme'),
                         'target_duration': options.get('target_duration'),
                         'use_content_analysis': options.get('use_content_analysis', True),
-                        'actual_duration': timeline.total_duration,
-                        'complexity_adjusted': True
+                        'actual_duration': video_result.get('duration_seconds', 0),
+                        'remotion_generated': True,
+                        'layer_system': True
                     },
                     company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
                 )
@@ -317,29 +378,21 @@ class EducationalVideoService:
                     accuracy_percentage = (min(estimated_total, actual_total) / max(estimated_total, actual_total)) * 100
                     logger.info(f"Timing accuracy: {accuracy_percentage:.1f}% (Estimated: {estimated_total:.1f}s, Actual: {actual_total:.1f}s)")
             
-            # Prepare result
+            # Prepare result using Remotion video data
             result = {
                 'success': True,
                 'content_id': content_id,
                 'module_name': content['module_name'],
-                'timeline_id': timeline.timeline_id,
-                'video_path': assembled_video.video_path,
+                'video_path': video_result.get('video_path') or str(video_path),
                 'video_url': f"/multimedia/videos/{video_filename}",  # Relative URL
-                'audio_url': f"/multimedia/audio/{Path(timeline.narration_file).name}",
-                'slides_url': f"/multimedia/slides/",
-                'timeline_url': f"/multimedia/timeline.json",
-                'thumbnail_path': str(thumbnail_path),
-                'total_duration': timeline.total_duration,
-                'duration_formatted': f"{int(timeline.total_duration // 60)}:{int(timeline.total_duration % 60):02d}",
-                'video_duration': assembled_video.duration,
-                'video_file_size': assembled_video.file_size,
-                'video_resolution': assembled_video.metadata.get('resolution', '1920x1080'),
-                'video_fps': assembled_video.metadata.get('fps', 30),
-                'slide_count': len(slide_metadata),
-                'narration_file': timeline.narration_file,
-                'audio_segments': len(timeline.audio_segments),
-                'slide_transitions': len(timeline.slide_transitions),
-                'assets_generated': 2 + len(slide_metadata),  # video + audio + slides
+                'thumbnail_path': str(thumbnail_path) if thumbnail_path else None,
+                'total_duration': video_result.get('duration_seconds', 0),
+                'duration_formatted': f"{int(video_result.get('duration_seconds', 0) // 60)}:{int(video_result.get('duration_seconds', 0) % 60):02d}",
+                'video_duration': video_result.get('duration_seconds', 0),
+                'video_file_size': video_result.get('file_size_bytes', 0),
+                'video_resolution': '1920x1080',  # Remotion default
+                'video_fps': 30,  # Remotion default
+                'assets_generated': 1,  # Remotion generates complete video
                 'output_directory': str(output_path),
                 'metadata': {
                     'employee_name': employee_context.get('name'),
@@ -348,13 +401,11 @@ class EducationalVideoService:
                     'design_theme': design_theme,
                     'include_animations': include_animations,
                     'generated_at': datetime.now().isoformat(),
-                    'content_analysis_used': use_content_analysis
+                    'content_analysis_used': use_content_analysis,
+                    'remotion_generated': True,
+                    'layer_system': True
                 },
-                'timing_analysis': {
-                    'total_duration': timeline.total_duration,
-                    'average_slide_duration': timeline.total_duration / len(script.slides) if script.slides else 0,
-                    'complexity_adjusted': True
-                }
+                'remotion_result': video_result  # Include full Remotion result for debugging
             }
             
             if progress_callback:

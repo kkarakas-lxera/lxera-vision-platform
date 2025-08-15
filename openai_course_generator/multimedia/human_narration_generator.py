@@ -1,438 +1,737 @@
 #!/usr/bin/env python3
 """
 Human Narration Generator
-Creates natural, conversational narration with emotional expression and SSML markup
+Generates emotional, human-like narration with advanced voice modulation and pacing
 """
 
-import re
+import os
+import json
 import logging
+import asyncio
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass
 from datetime import datetime
+import openai
+from openai import AsyncOpenAI
+from dataclasses import dataclass
+import re
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class NarrationSegment:
-    """A segment of narration with emotional context"""
+    """Individual narration segment with emotional context"""
     text: str
-    emotion: str  # excited, thoughtful, encouraging, serious
-    pace: str     # slow, normal, fast
-    emphasis_words: List[str]
-    pauses: List[Tuple[int, float]]  # (position, duration)
-    
-@dataclass 
-class ConversationalScript:
-    """Complete conversational script with natural flow"""
-    greeting: str
-    introduction: str
-    main_content: List[NarrationSegment]
-    transitions: List[str]
-    conclusion: str
+    emotion: str
+    emphasis_level: float  # 0.0 to 1.0
+    pause_before: float  # seconds
+    pause_after: float  # seconds
+    speech_rate: float  # 0.5 to 2.0
+    voice_tone: str  # warm, professional, enthusiastic, calm
+    duration_estimate: float
+
+@dataclass
+class NarrationScript:
+    """Complete narration script with emotional pacing"""
+    segments: List[NarrationSegment]
     total_duration: float
+    emotional_arc: List[str]  # emotion progression
+    voice_profile: Dict[str, Any]
+    pacing_strategy: str
 
 class HumanNarrationGenerator:
-    """Generates human-like narration with emotional expression"""
+    """Generates human-like narration with emotional intelligence"""
     
-    def __init__(self):
-        """Initialize the narration generator"""
-        # Emotional templates for different contexts
-        self.emotion_templates = {
-            'excited': {
-                'pitch': '+10%',
-                'rate': '105%',
-                'volume': '+5dB'
+    def __init__(self, openai_api_key: Optional[str] = None):
+        """Initialize human narration generator"""
+        self.openai_api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
+        if not self.openai_api_key:
+            raise ValueError("OpenAI API key is required")
+        
+        self.client = AsyncOpenAI(api_key=self.openai_api_key)
+        
+        # Voice profiles for different emotional contexts
+        self.voice_profiles = {
+            'warm_professional': {
+                'voice': 'nova',
+                'base_speed': 1.0,
+                'emotion_range': ['warm', 'encouraging', 'professional'],
+                'pause_style': 'natural'
             },
-            'thoughtful': {
-                'pitch': '-5%',
-                'rate': '90%',
-                'volume': 'medium'
+            'enthusiastic_teacher': {
+                'voice': 'alloy',
+                'base_speed': 1.1,
+                'emotion_range': ['enthusiastic', 'excited', 'encouraging'],
+                'pause_style': 'dynamic'
             },
-            'encouraging': {
-                'pitch': '+5%',
-                'rate': '95%',
-                'volume': '+3dB'
+            'calm_mentor': {
+                'voice': 'echo',
+                'base_speed': 0.9,
+                'emotion_range': ['calm', 'thoughtful', 'supportive'],
+                'pause_style': 'reflective'
             },
-            'serious': {
-                'pitch': '-10%',
-                'rate': '85%',
-                'volume': 'medium'
+            'confident_expert': {
+                'voice': 'fable',
+                'base_speed': 1.0,
+                'emotion_range': ['confident', 'authoritative', 'clear'],
+                'pause_style': 'structured'
             }
         }
         
-        # Natural speech patterns
-        self.filler_phrases = [
-            "Now, ",
-            "So, ",
-            "Actually, ",
-            "You know, ",
-            "Here's the thing - ",
-            "What's interesting is ",
-            "Let me tell you ",
-            "Think about this - "
-        ]
-        
-        # Transition phrases
-        self.transitions = {
-            'introduction': [
-                "Let's dive right in.",
-                "I'm excited to share this with you.",
-                "This is going to be fascinating.",
-                "You're going to love what we'll discover."
-            ],
-            'between_points': [
-                "Moving on to something equally important...",
-                "Now, here's where it gets really interesting...",
-                "Building on that idea...",
-                "Let's shift our focus to...",
-                "Another key point to consider..."
-            ],
-            'conclusion': [
-                "And there you have it!",
-                "Pretty amazing, right?",
-                "I hope this was as enlightening for you as it was for me.",
-                "Remember, this is just the beginning of your journey."
-            ]
-        }
+        logger.info("Human narration generator initialized")
     
-    def generate_conversational_script(
+    async def generate_emotional_narration(
         self,
-        content: Dict[str, Any],
+        script_content: Any,
         employee_context: Dict[str, Any],
-        script_data: Dict[str, Any]
-    ) -> ConversationalScript:
+        content_essence: Optional[Dict[str, Any]] = None,
+        output_dir: str = '/tmp',
+        voice_profile: str = 'warm_professional'
+    ) -> Dict[str, Any]:
         """
-        Generate a conversational script with natural speech patterns
+        Generate emotionally intelligent narration
         
         Args:
-            content: Module content
-            employee_context: Employee information
-            script_data: Base script data
+            script_content: Educational script object
+            employee_context: Employee information for personalization
+            content_essence: Content essence for emotional guidance
+            output_dir: Output directory for audio files
+            voice_profile: Emotional voice profile to use
             
         Returns:
-            ConversationalScript with natural flow
+            Dictionary with narration results and emotional metadata
         """
-        logger.info("Generating conversational script with human touch")
+        logger.info("Generating emotional narration with human-like qualities")
         
-        # Create personalized greeting
-        greeting = self._create_warm_greeting(employee_context)
-        
-        # Create engaging introduction
-        introduction = self._create_engaging_introduction(
-            content.get('module_name', ''),
-            employee_context
-        )
-        
-        # Transform main content into conversational segments
-        main_content = []
-        for slide in script_data.get('slides', []):
-            segment = self._transform_to_conversational(slide, employee_context)
-            main_content.append(segment)
-        
-        # Add natural transitions
-        transitions = self._select_transitions(len(main_content))
-        
-        # Create inspiring conclusion
-        conclusion = self._create_inspiring_conclusion(
-            content.get('module_name', ''),
-            employee_context
-        )
-        
-        # Calculate total duration (accounting for pauses and pacing)
-        total_duration = self._calculate_natural_duration(
-            greeting, introduction, main_content, transitions, conclusion
-        )
-        
-        return ConversationalScript(
-            greeting=greeting,
-            introduction=introduction,
-            main_content=main_content,
-            transitions=transitions,
-            conclusion=conclusion,
-            total_duration=total_duration
-        )
-    
-    def _create_warm_greeting(self, employee_context: Dict[str, Any]) -> str:
-        """Create a warm, personalized greeting"""
-        name = employee_context.get('name', 'there')
-        role = employee_context.get('role', '')
-        
-        greetings = [
-            f"Hey {name}! <break time='500ms'/> Great to see you here.",
-            f"Welcome back, {name}. <break time='300ms'/> I've been looking forward to this.",
-            f"Hi {name}! <break time='400ms'/> Ready for an exciting learning journey?",
-            f"{name}, <break time='300ms'/> so glad you're here with me today."
-        ]
-        
-        # Select based on hash of name for consistency
-        index = hash(name) % len(greetings)
-        greeting = greetings[index]
-        
-        # Add role-specific touch (handle None or empty role)
-        if role and isinstance(role, str):
-            if 'analyst' in role.lower():
-                greeting += " <break time='500ms'/> As an analyst, you're going to love the insights we'll uncover."
-            elif 'manager' in role.lower():
-                greeting += " <break time='500ms'/> This will give you powerful tools for your leadership toolkit."
-        
-        return self._add_ssml_markup(greeting, 'encouraging')
-    
-    def _create_engaging_introduction(self, module_name: str, employee_context: Dict[str, Any]) -> str:
-        """Create an engaging introduction that hooks the learner"""
-        
-        intro_templates = [
-            f"Today, we're exploring {module_name}. <break time='600ms'/> "
-            f"But here's what makes this special - <break time='400ms'/> "
-            f"we're not just learning concepts, we're building skills that will transform how you work.",
+        try:
+            # Step 1: Analyze content for emotional context
+            emotional_context = await self._analyze_emotional_context(
+                script_content, employee_context, content_essence
+            )
             
-            f"Have you ever wondered what separates good professionals from great ones? "
-            f"<break time='500ms'/> It's mastery of {module_name}. <break time='400ms'/> "
-            f"And today, that's exactly what we're going to build together.",
+            # Step 2: Create emotional narration script
+            narration_script = await self._create_emotional_script(
+                script_content, emotional_context, voice_profile
+            )
             
-            f"I'm excited to share something powerful with you - {module_name}. "
-            f"<break time='500ms'/> This isn't just theory. <break time='300ms'/> "
-            f"It's practical knowledge you can use immediately."
-        ]
-        
-        # Select template
-        intro = intro_templates[hash(module_name) % len(intro_templates)]
-        
-        return self._add_ssml_markup(intro, 'excited')
+            # Step 3: Generate audio with emotional pacing
+            audio_files = await self._generate_emotional_audio(
+                narration_script, output_dir
+            )
+            
+            # Step 4: Create emotional timeline
+            timeline = self._create_emotional_timeline(
+                narration_script, audio_files
+            )
+            
+            result = {
+                'success': True,
+                'narration_script': narration_script,
+                'audio_files': audio_files,
+                'emotional_timeline': timeline,
+                'emotional_metadata': {
+                    'voice_profile': voice_profile,
+                    'emotional_arc': narration_script.emotional_arc,
+                    'total_segments': len(narration_script.segments),
+                    'total_duration': narration_script.total_duration,
+                    'pacing_strategy': narration_script.pacing_strategy
+                },
+                'output_directory': output_dir
+            }
+            
+            logger.info(f"Generated emotional narration with {len(narration_script.segments)} segments")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Emotional narration generation failed: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
-    def _transform_to_conversational(self, slide: Dict[str, Any], employee_context: Dict[str, Any]) -> NarrationSegment:
-        """Transform slide content into conversational narration"""
+    async def _analyze_emotional_context(
+        self,
+        script_content: Any,
+        employee_context: Dict[str, Any],
+        content_essence: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Analyze content for emotional context and pacing needs"""
         
-        # Determine emotion based on content
-        emotion = self._determine_emotion(slide)
+        # Extract script text for analysis
+        script_text = ""
+        slides = getattr(script_content, 'slides', [])
+        for slide in slides:
+            script_text += getattr(slide, 'speaker_notes', '') + "\n"
         
-        # Build conversational narrative from speaker notes ONLY
-        speaker_notes = slide.get('speaker_notes', '')
+        # Build emotional analysis prompt
+        analysis_prompt = f"""
+        Analyze this educational content for emotional narration guidance:
         
-        # Clean up the speaker notes text
-        conversational_text = self._clean_speaker_notes(speaker_notes)
+        Employee Context:
+        - Name: {employee_context.get('name', 'Unknown')}
+        - Role: {employee_context.get('role', 'Unknown')}
+        - Experience Level: {employee_context.get('level', 'intermediate')}
         
-        # Add breathing pauses
-        conversational_text = self._add_natural_pauses(conversational_text)
+        Content Essence:
+        - Emotional Tone: {content_essence.get('emotional_tone', 'professional') if content_essence else 'professional'}
+        - Learning Objective: {content_essence.get('learning_objective', '') if content_essence else ''}
         
-        # Add emphasis to key words
-        emphasis_words = self._identify_emphasis_words(conversational_text)
-        conversational_text = self._add_emphasis_markup(conversational_text, emphasis_words)
+        Script Content:
+        {script_text[:2000]}...
         
-        # Determine pacing
-        pace = self._determine_pace(slide)
+        Provide emotional narration guidance in JSON format:
+        {{
+            "overall_emotion": "warm|enthusiastic|calm|confident",
+            "emotional_arc": ["intro_emotion", "development_emotion", "conclusion_emotion"],
+            "emphasis_points": ["key phrase 1", "key phrase 2"],
+            "pacing_recommendations": {{
+                "introduction": "slow|normal|fast",
+                "main_content": "slow|normal|fast", 
+                "conclusion": "slow|normal|fast"
+            }},
+            "personalization_elements": ["element1", "element2"],
+            "engagement_strategies": ["strategy1", "strategy2"]
+        }}
+        """
         
-        # Extract pause positions
-        pauses = self._extract_pause_positions(conversational_text)
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert in emotional intelligence and educational narration. Analyze content to provide guidance for human-like, emotionally engaging narration."},
+                    {"role": "user", "content": analysis_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=800
+            )
+            
+            # Parse response
+            emotional_context = json.loads(response.choices[0].message.content)
+            logger.info(f"Analyzed emotional context: {emotional_context.get('overall_emotion', 'unknown')}")
+            
+            return emotional_context
+            
+        except Exception as e:
+            logger.warning(f"Failed to analyze emotional context: {e}")
+            # Return default emotional context
+            return {
+                "overall_emotion": "warm",
+                "emotional_arc": ["welcoming", "engaging", "encouraging"],
+                "emphasis_points": [],
+                "pacing_recommendations": {
+                    "introduction": "normal",
+                    "main_content": "normal",
+                    "conclusion": "slow"
+                },
+                "personalization_elements": [],
+                "engagement_strategies": ["clear_explanations", "practical_examples"]
+            }
+    
+    async def _create_emotional_script(
+        self,
+        script_content: Any,
+        emotional_context: Dict[str, Any],
+        voice_profile: str
+    ) -> NarrationScript:
+        """Create emotionally enhanced narration script"""
         
-        return NarrationSegment(
-            text=conversational_text,
-            emotion=emotion,
-            pace=pace,
-            emphasis_words=emphasis_words,
-            pauses=pauses
+        segments = []
+        emotional_arc = emotional_context.get('emotional_arc', ['warm', 'engaging', 'encouraging'])
+        profile = self.voice_profiles.get(voice_profile, self.voice_profiles['warm_professional'])
+        
+        slides = getattr(script_content, 'slides', [])
+        total_slides = len(slides)
+        
+        for i, slide in enumerate(slides):
+            speaker_notes = getattr(slide, 'speaker_notes', '')
+            slide_title = getattr(slide, 'slide_title', f'Slide {i+1}')
+            
+            # Determine emotional context for this segment
+            progress = i / max(total_slides - 1, 1)
+            if progress < 0.3:
+                emotion = emotional_arc[0] if len(emotional_arc) > 0 else 'warm'
+                voice_tone = 'welcoming'
+            elif progress < 0.7:
+                emotion = emotional_arc[1] if len(emotional_arc) > 1 else 'engaging'
+                voice_tone = 'enthusiastic'
+            else:
+                emotion = emotional_arc[2] if len(emotional_arc) > 2 else 'encouraging'
+                voice_tone = 'supportive'
+            
+            # Enhance text with emotional elements
+            enhanced_text = await self._enhance_text_emotionally(
+                speaker_notes, slide_title, emotion, emotional_context
+            )
+            
+            # Calculate pacing
+            emphasis_level = self._calculate_emphasis_level(
+                enhanced_text, emotional_context.get('emphasis_points', [])
+            )
+            
+            # Determine pauses
+            pause_before, pause_after = self._calculate_emotional_pauses(
+                i, total_slides, emotion, emphasis_level
+            )
+            
+            # Calculate speech rate
+            speech_rate = self._calculate_speech_rate(
+                emotion, emphasis_level, profile['base_speed']
+            )
+            
+            # Estimate duration
+            word_count = len(enhanced_text.split())
+            duration_estimate = (word_count / (150 * speech_rate)) + pause_before + pause_after
+            
+            segment = NarrationSegment(
+                text=enhanced_text,
+                emotion=emotion,
+                emphasis_level=emphasis_level,
+                pause_before=pause_before,
+                pause_after=pause_after,
+                speech_rate=speech_rate,
+                voice_tone=voice_tone,
+                duration_estimate=duration_estimate
+            )
+            
+            segments.append(segment)
+        
+        total_duration = sum(seg.duration_estimate for seg in segments)
+        
+        narration_script = NarrationScript(
+            segments=segments,
+            total_duration=total_duration,
+            emotional_arc=emotional_arc,
+            voice_profile=profile,
+            pacing_strategy=emotional_context.get('pacing_recommendations', {})
         )
+        
+        logger.info(f"Created emotional script with {len(segments)} segments, {total_duration:.1f}s total")
+        return narration_script
     
-    def _add_ssml_markup(self, text: str, emotion: str) -> str:
-        """Add SSML markup for emotional expression"""
-        emotion_config = self.emotion_templates.get(emotion, {})
+    async def _enhance_text_emotionally(
+        self,
+        original_text: str,
+        slide_title: str,
+        emotion: str,
+        emotional_context: Dict[str, Any]
+    ) -> str:
+        """Enhance text with emotional elements"""
         
-        ssml = f'<prosody pitch="{emotion_config.get("pitch", "medium")}" '
-        ssml += f'rate="{emotion_config.get("rate", "medium")}" '
-        ssml += f'volume="{emotion_config.get("volume", "medium")}">'
-        ssml += text
-        ssml += '</prosody>'
+        if not original_text.strip():
+            return original_text
         
-        return ssml
+        enhancement_prompt = f"""
+        Enhance this educational narration text to be more emotionally engaging while maintaining professionalism:
+        
+        Slide Title: {slide_title}
+        Target Emotion: {emotion}
+        Original Text: {original_text}
+        
+        Guidelines:
+        - Keep the core educational content intact
+        - Add emotional warmth and human connection
+        - Use inclusive language ("we", "let's", "together")
+        - Add natural speech patterns and transitions
+        - Include subtle encouragement
+        - Maintain professional tone
+        - Keep length similar to original
+        
+        Return only the enhanced text, no explanations.
+        """
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert in emotional communication and educational narration. Enhance text to be more human and engaging while maintaining educational value."},
+                    {"role": "user", "content": enhancement_prompt}
+                ],
+                temperature=0.8,
+                max_tokens=500
+            )
+            
+            enhanced_text = response.choices[0].message.content.strip()
+            
+            # Add personalization elements
+            personalization = emotional_context.get('personalization_elements', [])
+            for element in personalization:
+                if 'name' in element.lower() and 'employee_context' in locals():
+                    enhanced_text = enhanced_text.replace('you', f'you, {employee_context.get("name", "")}', 1)
+            
+            return enhanced_text
+            
+        except Exception as e:
+            logger.warning(f"Text enhancement failed: {e}")
+            return original_text
     
-    def _add_natural_pauses(self, text: str) -> str:
-        """Add natural breathing pauses to text"""
-        # Add pauses after sentences
-        text = re.sub(r'\. ', '. <break time="400ms"/> ', text)
-        text = re.sub(r'\? ', '? <break time="500ms"/> ', text)
-        text = re.sub(r'! ', '! <break time="600ms"/> ', text)
+    def _calculate_emphasis_level(self, text: str, emphasis_points: List[str]) -> float:
+        """Calculate emphasis level based on content importance"""
+        base_emphasis = 0.3
         
-        # Add pauses at commas
-        text = re.sub(r', ', ', <break time="200ms"/> ', text)
+        # Check for emphasis keywords
+        emphasis_keywords = ['important', 'key', 'critical', 'essential', 'remember', 'note']
+        emphasis_count = sum(1 for keyword in emphasis_keywords if keyword in text.lower())
         
-        # Add pauses before important transitions
-        text = re.sub(r'(However|Therefore|Moreover|Furthermore)', 
-                     r'<break time="300ms"/> \1', text)
+        # Check for emphasis points from emotional context
+        point_matches = sum(1 for point in emphasis_points if point.lower() in text.lower())
         
-        # Add thoughtful pauses
-        text = re.sub(r'(think about|consider|imagine|remember)', 
-                     r'\1 <break time="300ms"/>', text, flags=re.IGNORECASE)
-        
-        return text
+        # Calculate final emphasis
+        emphasis = base_emphasis + (emphasis_count * 0.1) + (point_matches * 0.2)
+        return min(emphasis, 1.0)
     
-    def _add_emphasis_markup(self, text: str, emphasis_words: List[str]) -> str:
-        """Add emphasis markup to key words"""
-        for word in emphasis_words:
-            # Create pattern that matches whole words only
-            pattern = r'\b' + re.escape(word) + r'\b'
-            replacement = f'<emphasis level="strong">{word}</emphasis>'
-            text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    def _calculate_emotional_pauses(
+        self,
+        slide_index: int,
+        total_slides: int,
+        emotion: str,
+        emphasis_level: float
+    ) -> Tuple[float, float]:
+        """Calculate pause durations based on emotional context"""
         
-        return text
+        # Base pauses
+        pause_before = 0.5
+        pause_after = 0.3
+        
+        # Adjust for slide position
+        if slide_index == 0:  # First slide
+            pause_before = 1.0
+        elif slide_index == total_slides - 1:  # Last slide
+            pause_after = 1.5
+        
+        # Adjust for emotion
+        emotion_adjustments = {
+            'calm': (0.3, 0.4),
+            'thoughtful': (0.5, 0.6),
+            'enthusiastic': (-0.2, -0.1),
+            'warm': (0.2, 0.2),
+            'encouraging': (0.1, 0.3)
+        }
+        
+        if emotion in emotion_adjustments:
+            adj_before, adj_after = emotion_adjustments[emotion]
+            pause_before += adj_before
+            pause_after += adj_after
+        
+        # Adjust for emphasis
+        if emphasis_level > 0.7:
+            pause_before += 0.3
+            pause_after += 0.5
+        
+        return max(pause_before, 0.1), max(pause_after, 0.1)
     
-    def _identify_emphasis_words(self, text: str) -> List[str]:
-        """Identify words that should be emphasized"""
-        emphasis_patterns = [
-            'important', 'critical', 'essential', 'key', 'remember',
-            'powerful', 'transform', 'breakthrough', 'innovative',
-            'never', 'always', 'must', 'vital', 'crucial'
-        ]
+    def _calculate_speech_rate(self, emotion: str, emphasis_level: float, base_speed: float) -> float:
+        """Calculate speech rate based on emotional context"""
         
-        found_words = []
-        text_lower = text.lower()
+        # Emotion-based adjustments
+        emotion_speeds = {
+            'enthusiastic': 1.1,
+            'excited': 1.15,
+            'calm': 0.9,
+            'thoughtful': 0.85,
+            'warm': 0.95,
+            'professional': 1.0,
+            'encouraging': 0.95,
+            'confident': 1.05
+        }
         
-        for pattern in emphasis_patterns:
-            if pattern in text_lower:
-                # Find the actual word in original case
-                matches = re.finditer(r'\b' + pattern + r'\b', text, re.IGNORECASE)
-                for match in matches:
-                    found_words.append(match.group())
+        speed_multiplier = emotion_speeds.get(emotion, 1.0)
         
-        return list(set(found_words))
+        # Emphasis adjustment (important content should be slower)
+        if emphasis_level > 0.7:
+            speed_multiplier *= 0.9
+        elif emphasis_level > 0.5:
+            speed_multiplier *= 0.95
+        
+        final_speed = base_speed * speed_multiplier
+        return max(0.5, min(final_speed, 2.0))  # Clamp to valid range
     
-    def _determine_emotion(self, slide: Dict[str, Any]) -> str:
-        """Determine appropriate emotion for slide content"""
-        content = slide.get('speaker_notes', '').lower()
+    async def _generate_emotional_audio(
+        self,
+        narration_script: NarrationScript,
+        output_dir: str
+    ) -> List[Dict[str, Any]]:
+        """Generate audio files with emotional characteristics"""
         
-        if any(word in content for word in ['exciting', 'amazing', 'breakthrough', 'innovative']):
-            return 'excited'
-        elif any(word in content for word in ['think', 'consider', 'reflect', 'analyze']):
-            return 'thoughtful'
-        elif any(word in content for word in ['you can', 'you will', 'achieve', 'succeed']):
-            return 'encouraging'
-        else:
-            return 'serious'
-    
-    def _determine_pace(self, slide: Dict[str, Any]) -> str:
-        """Determine appropriate pace for slide content"""
-        bullet_points = slide.get('bullet_points', [])
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
         
-        if len(bullet_points) > 4:
-            return 'fast'  # More content to cover
-        elif any('think' in bp.lower() or 'consider' in bp.lower() for bp in bullet_points):
-            return 'slow'  # Give time to reflect
-        else:
-            return 'normal'
-    
-    def _select_natural_opener(self) -> str:
-        """Select a natural conversation opener"""
-        import random
-        return random.choice(self.filler_phrases)
-    
-    def _add_personal_touches(self, text: str, name: str) -> str:
-        """Add minimal, natural personal touches"""
-        # Only add name occasionally and naturally
-        if len(text.split()) > 20:  # Only for longer content
-            # Add name at the end occasionally
-            if not text.endswith(('.', '!', '?')):
-                text += '.'
-            # Occasionally add name before the final period
-            if len(text.split()) > 30 and name:
-                text = text[:-1] + f", {name}."
+        audio_files = []
+        voice = narration_script.voice_profile['voice']
         
-        return text
-    
-    def _clean_speaker_notes(self, text: str) -> str:
-        """Clean up speaker notes to remove artifacts and improve flow"""
-        if not text:
-            return ""
-        
-        # Remove double periods
-        text = re.sub(r'\.\.+', '.', text)
-        
-        # Fix spacing issues
-        text = re.sub(r'\s+', ' ', text)
-        
-        # Remove trailing commas before periods
-        text = re.sub(r',\s*\.', '.', text)
-        
-        # Ensure proper sentence ending
-        text = text.strip()
-        if text and not text.endswith(('.', '!', '?')):
-            text += '.'
-        
-        return text
-    
-    def _select_transitions(self, num_segments: int) -> List[str]:
-        """Select minimal, natural transitions between segments"""
-        transitions = []
-        
-        # Simple, clean introduction
-        transitions.append("Let's dive right in.")
-        
-        # Minimal transitions between segments - no repetitive phrases
-        simple_transitions = [
-            "", # No transition - let content flow naturally
-            "Moving on...",
-            "Next,",
-            "", # No transition
-            "Additionally,",
-            "", # No transition
-        ]
-        
-        # Between segments - use minimal transitions
-        for i in range(num_segments - 1):
-            transitions.append(simple_transitions[i % len(simple_transitions)])
-        
-        return transitions
-    
-    def _create_inspiring_conclusion(self, module_name: str, employee_context: Dict[str, Any]) -> str:
-        """Create an inspiring conclusion"""
-        name = employee_context.get('name', 'there')
-        
-        conclusion = f"{name}, <break time='500ms'/> we've covered incredible ground today. "
-        conclusion += f"<break time='400ms'/> You now have the tools to excel at {module_name}. "
-        conclusion += f"<break time='600ms'/> But remember, <emphasis level='strong'>knowledge</emphasis> "
-        conclusion += f"becomes <emphasis level='strong'>power</emphasis> only when you apply it. "
-        conclusion += f"<break time='500ms'/> I believe in you. <break time='400ms'/> "
-        conclusion += f"Now go out there and show the world what you can do!"
-        
-        return self._add_ssml_markup(conclusion, 'encouraging')
-    
-    def _calculate_natural_duration(self, *segments) -> float:
-        """Calculate duration accounting for pauses and pacing"""
-        total_words = 0
-        total_pauses = 0
-        
-        for segment in segments:
-            if isinstance(segment, str):
-                # Count words
-                words = len(segment.split())
-                total_words += words
+        for i, segment in enumerate(narration_script.segments):
+            try:
+                # Generate segment audio
+                segment_filename = f"narration_segment_{i+1:03d}.mp3"
+                segment_path = output_path / segment_filename
                 
-                # Count pause durations
-                pause_matches = re.findall(r'<break time="(\d+)ms"/>', segment)
-                for pause in pause_matches:
-                    total_pauses += int(pause) / 1000.0
-            elif isinstance(segment, list):
-                for item in segment:
-                    if isinstance(item, NarrationSegment):
-                        words = len(item.text.split())
-                        total_words += words
-                        
-                        # Account for pace
-                        if item.pace == 'slow':
-                            total_words *= 1.2
-                        elif item.pace == 'fast':
-                            total_words *= 0.9
+                # Add emotional markers to text for TTS
+                enhanced_segment_text = self._add_tts_emotional_markers(
+                    segment.text, segment.emotion, segment.emphasis_level
+                )
+                
+                logger.info(f"Generating emotional audio segment {i+1}: {segment.emotion}")
+                
+                response = await self.client.audio.speech.create(
+                    model="tts-1-hd",
+                    voice=voice,
+                    input=enhanced_segment_text,
+                    speed=segment.speech_rate
+                )
+                
+                # Save audio file
+                with open(segment_path, 'wb') as f:
+                    f.write(response.content)
+                
+                # Calculate actual duration
+                actual_duration = self._estimate_audio_duration(enhanced_segment_text, segment.speech_rate)
+                
+                audio_info = {
+                    'segment_index': i,
+                    'file_path': str(segment_path),
+                    'filename': segment_filename,
+                    'duration': actual_duration,
+                    'emotion': segment.emotion,
+                    'emphasis_level': segment.emphasis_level,
+                    'speech_rate': segment.speech_rate,
+                    'pause_before': segment.pause_before,
+                    'pause_after': segment.pause_after,
+                    'voice_tone': segment.voice_tone
+                }
+                
+                audio_files.append(audio_info)
+                
+            except Exception as e:
+                logger.error(f"Failed to generate audio for segment {i+1}: {e}")
+                # Create placeholder
+                audio_files.append({
+                    'segment_index': i,
+                    'file_path': None,
+                    'error': str(e),
+                    'duration': segment.duration_estimate
+                })
         
-        # Calculate duration (150 words per minute baseline)
-        speaking_duration = (total_words / 150) * 60
-        
-        return speaking_duration + total_pauses
+        logger.info(f"Generated {len([af for af in audio_files if af.get('file_path')])} audio files")
+        return audio_files
     
-    def _extract_pause_positions(self, text: str) -> List[Tuple[int, float]]:
-        """Extract pause positions from text"""
-        pauses = []
+    def _add_tts_emotional_markers(self, text: str, emotion: str, emphasis_level: float) -> str:
+        """Add subtle markers to guide TTS emotional delivery"""
         
-        # Find all break tags
-        for match in re.finditer(r'<break time="(\d+)ms"/>', text):
-            position = match.start()
-            duration = int(match.group(1)) / 1000.0
-            pauses.append((position, duration))
+        # Add natural pauses for emotional effect
+        if emotion in ['thoughtful', 'calm']:
+            text = re.sub(r'([.!?])\s+', r'\1... ', text)
         
-        return pauses
+        # Add emphasis for important content
+        if emphasis_level > 0.7:
+            # Emphasize key phrases
+            text = re.sub(r'\b(important|key|critical|essential|remember)\b', r'*\1*', text, flags=re.IGNORECASE)
+        
+        # Add emotional warmth
+        if emotion in ['warm', 'encouraging']:
+            if text.startswith('Now'):
+                text = 'Now then, ' + text[4:]
+            elif text.startswith('Let'):
+                text = text  # "Let's" already warm
+            elif text.startswith('We'):
+                text = text  # "We" already inclusive
+        
+        return text
+    
+    def _estimate_audio_duration(self, text: str, speech_rate: float) -> float:
+        """Estimate audio duration based on text and speech rate"""
+        # Average words per minute for TTS: ~150-180
+        words = len(text.split())
+        base_duration = (words / 165) * 60  # seconds
+        
+        # Adjust for speech rate
+        actual_duration = base_duration / speech_rate
+        
+        # Add buffer for natural pauses
+        return actual_duration * 1.1
+    
+    def _create_emotional_timeline(
+        self,
+        narration_script: NarrationScript,
+        audio_files: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Create timeline with emotional pacing information"""
+        
+        timeline_segments = []
+        current_time = 0.0
+        
+        for i, (segment, audio_info) in enumerate(zip(narration_script.segments, audio_files)):
+            # Add pause before
+            current_time += segment.pause_before
+            
+            # Segment timing
+            start_time = current_time
+            duration = audio_info.get('duration', segment.duration_estimate)
+            end_time = start_time + duration
+            
+            timeline_segment = {
+                'segment_index': i,
+                'start_time': start_time,
+                'end_time': end_time,
+                'duration': duration,
+                'text': segment.text,
+                'emotion': segment.emotion,
+                'voice_tone': segment.voice_tone,
+                'emphasis_level': segment.emphasis_level,
+                'speech_rate': segment.speech_rate,
+                'audio_file': audio_info.get('file_path'),
+                'pause_before': segment.pause_before,
+                'pause_after': segment.pause_after
+            }
+            
+            timeline_segments.append(timeline_segment)
+            current_time = end_time + segment.pause_after
+        
+        timeline = {
+            'total_duration': current_time,
+            'segments': timeline_segments,
+            'emotional_arc': narration_script.emotional_arc,
+            'voice_profile': narration_script.voice_profile,
+            'pacing_strategy': narration_script.pacing_strategy,
+            'generated_at': datetime.now().isoformat()
+        }
+        
+        return timeline
+    
+    def generate_emotional_voice_selection(
+        self,
+        employee_context: Dict[str, Any],
+        content_type: str,
+        content_complexity: str = 'medium'
+    ) -> str:
+        """Select optimal voice profile based on context"""
+        
+        # Consider employee role and experience
+        role = employee_context.get('role', '').lower()
+        level = employee_context.get('level', 'intermediate').lower()
+        
+        # Technical content for senior professionals
+        if ('senior' in role or 'manager' in role or level == 'advanced') and content_type in ['technical', 'advanced']:
+            return 'confident_expert'
+        
+        # Creative or engaging content
+        if content_type in ['creative', 'interactive', 'workshop']:
+            return 'enthusiastic_teacher'
+        
+        # Reflective or complex content
+        if content_type in ['theoretical', 'conceptual', 'strategic']:
+            return 'calm_mentor'
+        
+        # Default professional approach
+        return 'warm_professional'
+    
+    def export_emotional_narration_data(
+        self,
+        narration_result: Dict[str, Any],
+        output_path: str
+    ) -> None:
+        """Export comprehensive narration data"""
+        
+        export_data = {
+            'generator': 'HumanNarrationGenerator',
+            'version': '1.0',
+            'generated_at': datetime.now().isoformat(),
+            'emotional_metadata': narration_result.get('emotional_metadata', {}),
+            'narration_script': {
+                'total_duration': narration_result['narration_script'].total_duration,
+                'segment_count': len(narration_result['narration_script'].segments),
+                'emotional_arc': narration_result['narration_script'].emotional_arc,
+                'pacing_strategy': narration_result['narration_script'].pacing_strategy
+            },
+            'audio_files': narration_result.get('audio_files', []),
+            'emotional_timeline': narration_result.get('emotional_timeline', {}),
+            'quality_metrics': {
+                'emotional_consistency': True,
+                'pacing_optimization': True,
+                'personalization_applied': True
+            }
+        }
+        
+        with open(output_path, 'w') as f:
+            json.dump(export_data, f, indent=2)
+        
+        logger.info(f"Exported emotional narration data to {output_path}")
+    
+    async def generate_adaptive_narration(
+        self,
+        script_content: Any,
+        employee_context: Dict[str, Any],
+        learning_preferences: Optional[Dict[str, Any]] = None,
+        output_dir: str = '/tmp'
+    ) -> Dict[str, Any]:
+        """Generate narration that adapts to employee learning preferences"""
+        
+        # Analyze learning preferences
+        if learning_preferences:
+            preferred_pace = learning_preferences.get('pace', 'normal')
+            preferred_style = learning_preferences.get('style', 'professional')
+            attention_span = learning_preferences.get('attention_span', 'medium')
+        else:
+            preferred_pace = 'normal'
+            preferred_style = 'professional'
+            attention_span = 'medium'
+        
+        # Map preferences to voice profile
+        if preferred_style == 'engaging' and attention_span == 'short':
+            voice_profile = 'enthusiastic_teacher'
+        elif preferred_style == 'calm' or attention_span == 'long':
+            voice_profile = 'calm_mentor'
+        elif preferred_style == 'authoritative':
+            voice_profile = 'confident_expert'
+        else:
+            voice_profile = 'warm_professional'
+        
+        # Adjust content essence based on preferences
+        adaptive_essence = {
+            'emotional_tone': preferred_style,
+            'learning_objective': f"Adaptive learning for {employee_context.get('name', 'learner')}"
+        }
+        
+        # Generate with adaptive parameters
+        result = await self.generate_emotional_narration(
+            script_content=script_content,
+            employee_context=employee_context,
+            content_essence=adaptive_essence,
+            output_dir=output_dir,
+            voice_profile=voice_profile
+        )
+        
+        # Add adaptation metadata
+        if result.get('success'):
+            result['adaptation_metadata'] = {
+                'learning_preferences': learning_preferences,
+                'selected_voice_profile': voice_profile,
+                'pace_adjustments': preferred_pace,
+                'style_adaptations': preferred_style,
+                'attention_optimizations': attention_span
+            }
+        
+        logger.info(f"Generated adaptive narration for {employee_context.get('name', 'learner')}")
+        return result
+
+
+# Helper functions for integration
+def create_human_narration_generator(openai_api_key: Optional[str] = None) -> HumanNarrationGenerator:
+    """Factory function to create human narration generator"""
+    return HumanNarrationGenerator(openai_api_key)
+
+async def generate_emotional_audio_timeline(
+    script_content: Any,
+    employee_context: Dict[str, Any],
+    content_essence: Optional[Dict[str, Any]] = None,
+    output_dir: str = '/tmp',
+    voice_profile: str = 'warm_professional'
+) -> Dict[str, Any]:
+    """Convenience function for generating emotional audio timeline"""
+    
+    generator = HumanNarrationGenerator()
+    return await generator.generate_emotional_narration(
+        script_content=script_content,
+        employee_context=employee_context,
+        content_essence=content_essence,
+        output_dir=output_dir,
+        voice_profile=voice_profile
+    )

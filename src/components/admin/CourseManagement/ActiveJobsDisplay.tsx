@@ -36,6 +36,9 @@ interface Job {
   updated_at: string;
   initiated_by?: string;
   error_message?: string;
+  multimedia_status?: 'not_started' | 'in_progress' | 'completed' | 'failed';
+  multimedia_progress?: number;
+  multimedia_session_id?: string;
   metadata?: {
     priority?: string;
     generation_mode?: string;
@@ -259,6 +262,27 @@ export const ActiveJobsDisplay = () => {
                       <span> • Processing {job.current_employee_name}</span>
                     )}
                   </p>
+                  {/* Multimedia Status */}
+                  {job.multimedia_status && job.multimedia_status !== 'not_started' && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge 
+                        variant={
+                          job.multimedia_status === 'completed' ? 'success' :
+                          job.multimedia_status === 'in_progress' ? 'secondary' :
+                          'destructive'
+                        }
+                        className="text-xs"
+                      >
+                        {job.multimedia_status === 'in_progress' && (
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        )}
+                        Multimedia: {job.multimedia_status}
+                        {job.multimedia_progress && job.multimedia_status === 'in_progress' && (
+                          <span className="ml-1">({Math.round(job.multimedia_progress)}%)</span>
+                        )}
+                      </Badge>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                     {job.status === 'queued' ? (
                       <>

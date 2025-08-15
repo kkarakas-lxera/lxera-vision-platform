@@ -2,7 +2,7 @@
 """
 Slide Content Extractor
 Extracts structured content for slides with synchronized notes from course modules
-Enhanced with GPT-4 Turbo for richer slide content generation
+Enhanced with Groq LLMs for richer slide content generation
 """
 
 import os
@@ -23,17 +23,24 @@ except:
     NLTK_AVAILABLE = False
     logging.warning("NLTK not available, using basic text processing")
 
-# Import OpenAI for content enrichment
+# Import Groq for content enrichment
 try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-except:
-    OPENAI_AVAILABLE = False
-    openai_client = None
-    logging.warning("OpenAI not available, using basic extraction")
+    from groq import Groq
+    GROQ_AVAILABLE = True
+    groq_client = None  # Initialize later when API key is available
+except ImportError:
+    GROQ_AVAILABLE = False
+    groq_client = None
+    logging.warning("Groq not available, using basic extraction")
 
 logger = logging.getLogger(__name__)
+
+# Import webhook notifier
+try:
+    from multimedia.webhook_notifier import get_webhook_notifier
+    webhook_notifier = get_webhook_notifier()
+except:
+    webhook_notifier = None
 
 @dataclass
 class SlideNote:
@@ -45,6 +52,10 @@ class SlideNote:
     timing_cues: List[Dict[str, Any]]  # [{"start": 0, "end": 5, "text": "..."}]
     visual_elements: List[str]
     transitions: Dict[str, str]
+    # Visual metadata for dynamic slide generation
+    visual_type: str = 'minimal_text'
+    text_display: str = 'moderate'
+    animation_sequence: List[str] = field(default_factory=list)
 
 @dataclass
 class ExtractedSlideContent:
@@ -57,19 +68,20 @@ class ExtractedSlideContent:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class SlideContentExtractor:
-    """Extracts and structures content for educational slides with optional GPT-4 enrichment"""
+    """Extracts and structures content for educational slides with optional Groq LLM enrichment"""
     
     def __init__(self, enable_gpt_enrichment: bool = True, employee_context: Dict[str, Any] = None):
-        """Initialize the content extractor with optional GPT enrichment"""
+        """Initialize the content extractor with optional Groq enrichment"""
         # Configuration
         self.max_points_per_slide = 5
         self.min_points_per_slide = 2
         self.ideal_note_length = 150  # words
         self.max_note_length = 200   # words
         
-        # GPT enrichment settings
-        self.enable_gpt_enrichment = enable_gpt_enrichment and OPENAI_AVAILABLE
+        # Groq enrichment settings
+        self.enable_groq_enrichment = enable_gpt_enrichment and GROQ_AVAILABLE
         self.employee_context = employee_context or {}
+        self.groq_client = None  # Initialize when needed
         
         # Text processing
         if NLTK_AVAILABLE:
@@ -77,10 +89,22 @@ class SlideContentExtractor:
         else:
             self.stop_words = set()
         
-        if self.enable_gpt_enrichment:
-            logger.info("🚀 Slide Content Extractor initialized with GPT-4 Turbo enrichment")
+        if self.enable_groq_enrichment:
+            logger.info("🚀 Slide Content Extractor initialized with Groq LLM enrichment")
         else:
             logger.info("📝 Slide Content Extractor initialized with basic extraction")
+    
+    def _ensure_groq_client(self):
+        """Ensure Groq client is initialized with current API key"""
+        if GROQ_AVAILABLE and not self.groq_client:
+            api_key = os.getenv("GROQ_API_KEY")
+            if api_key:
+                try:
+                    self.groq_client = Groq(api_key=api_key)
+                    logger.info("✅ Groq client initialized successfully")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Groq client: {e}")
+                    self.groq_client = None
     
     def extract_slide_content(
         self,
@@ -129,9 +153,23 @@ class SlideContentExtractor:
         slide_id_counter += 1
         
         # Process each content section
+        total_sections = len([s for s in content_hierarchy.keys() if s != 'metadata'])
+        current_section_num = 0
+        
         for section_name, section_data in content_hierarchy.items():
             if section_name == 'metadata':
                 continue
+            
+            current_section_num += 1
+            
+            # Webhook notification for section extraction
+            if webhook_notifier:
+                progress = 25 + (current_section_num / total_sections * 15)  # 25-40% progress
+                webhook_notifier.notify_slide_extraction(
+                    progress, 
+                    current_section_num, 
+                    total_sections
+                )
                 
             section_notes = self._extract_section_slides(
                 section_name,
@@ -219,18 +257,20 @@ class SlideContentExtractor:
         return cleaned
     
     def _extract_key_points(self, text: str) -> List[str]:
-        """Extract key points from text, with optional GPT-4 enrichment"""
+        """Extract key points from text, with optional Groq enrichment"""
         
         # First, try basic extraction
         basic_points = self._extract_basic_key_points(text)
         
-        # If GPT enrichment is enabled and we have meaningful content, enhance it
-        if self.enable_gpt_enrichment and text and len(text) > 100:
+        # If Groq enrichment is enabled and we have meaningful content, enhance it
+        if self.enable_groq_enrichment and text and len(text) > 100:
             try:
-                enriched_points = self._enrich_key_points_with_gpt(text, basic_points)
+                logger.info(f"Starting Groq enrichment with {len(basic_points)} basic points")
+                enriched_points = self._enrich_key_points_with_groq(text, basic_points)
+                logger.info(f"Groq enrichment completed: {len(enriched_points)} enriched points")
                 return enriched_points
             except Exception as e:
-                logger.warning(f"GPT enrichment failed, falling back to basic extraction: {e}")
+                logger.warning(f"Groq enrichment failed, falling back to basic extraction: {e}")
                 return basic_points
         
         return basic_points
@@ -277,10 +317,15 @@ class SlideContentExtractor:
         
         return unique_points[:8]  # Return more points for better coverage
     
-    def _enrich_key_points_with_gpt(self, text: str, basic_points: List[str]) -> List[str]:
-        """Enrich key points using GPT-4 Turbo with full context"""
+    def _enrich_key_points_with_groq(self, text: str, basic_points: List[str]) -> List[str]:
+        """Enrich key points using Groq LLMs with full context"""
         try:
-            # Build context for GPT
+            # Ensure Groq client is available
+            self._ensure_groq_client()
+            if not self.groq_client:
+                logger.warning("Groq client not available, using basic points")
+                return basic_points
+            # Build context
             employee_name = self.employee_context.get('name', 'Learner')
             employee_role = self.employee_context.get('role', 'Professional')
             current_role = self.employee_context.get('current_role', employee_role)
@@ -290,6 +335,14 @@ class SlideContentExtractor:
             course_title = self.course_plan.get('course_title', 'Professional Development Course')
             module_number = self.course_plan.get('current_module', 1)
             total_modules = self.course_plan.get('total_modules', 1)
+            
+            # Determine model based on content complexity
+            # Use Llama 3.3 70B for rich content generation, Llama 3.1 8B for simpler tasks
+            content_length = len(text)
+            if content_length > 2000 or "personalize" in str(current_role).lower():
+                model = "llama-3.3-70b-versatile"  # Complex enrichment
+            else:
+                model = "llama-3.1-8b-instant"     # Simple extraction
             
             # Create enrichment prompt
             prompt = f"""
@@ -335,9 +388,12 @@ Example format:
 Generate 4-6 rich, detailed points that transform this content into an engaging learning experience.
 """
             
-            # Call GPT-4 Turbo with proper error handling
-            response = openai_client.chat.completions.create(
-                model="gpt-4-turbo",
+            # Ensure we have a client before making the call
+            self._ensure_groq_client()
+            
+            # Call Groq with proper error handling
+            response = self.groq_client.chat.completions.create(
+                model=model,
                 messages=[
                     {
                         "role": "system",
@@ -354,7 +410,7 @@ Generate 4-6 rich, detailed points that transform this content into an engaging 
             try:
                 result = json.loads(response.choices[0].message.content)
             except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse GPT-4 JSON response: {e}")
+                logger.error(f"Failed to parse Groq JSON response: {e}")
                 logger.debug(f"Raw response: {response.choices[0].message.content}")
                 return basic_points
             
@@ -363,7 +419,7 @@ Generate 4-6 rich, detailed points that transform this content into an engaging 
             if isinstance(result, dict) and 'points' in result:
                 enriched_points = result['points']
             else:
-                logger.warning(f"Unexpected GPT-4 response format: {type(result)}")
+                logger.warning(f"Unexpected Groq response format: {type(result)}")
                 return basic_points
             
             # Validate and clean points
@@ -379,15 +435,15 @@ Generate 4-6 rich, detailed points that transform this content into an engaging 
             
             # If we got good enriched content, use it; otherwise fall back
             if len(valid_points) >= 2:
-                logger.info(f"✅ GPT enriched {len(basic_points)} basic points into {len(valid_points)} rich points")
+                logger.info(f"✅ Groq enriched {len(basic_points)} basic points into {len(valid_points)} rich points")
                 # Return enriched points, maintaining quality over quantity
                 return valid_points[:5]  # Limit to 5 points for better slide focus
             else:
-                logger.warning("GPT enrichment produced insufficient points, using basic extraction")
+                logger.warning("Groq enrichment produced insufficient points, using basic extraction")
                 return basic_points[:5]  # Also limit basic points
                 
         except Exception as e:
-            logger.error(f"GPT enrichment failed: {e}")
+            logger.error(f"Groq enrichment failed: {e}")
             return basic_points
     
     def _extract_examples(self, text: str) -> List[Dict[str, str]]:
@@ -497,7 +553,7 @@ immediately apply in your professional role.
             {"start": 15, "end": 20, "text": "Transition to first content slide"}
         ]
         
-        return SlideNote(
+        slide_note = SlideNote(
             slide_id=slide_id,
             content_section="title",
             main_points=main_points,
@@ -506,6 +562,10 @@ immediately apply in your professional role.
             visual_elements=["Module title", "Professional backdrop", "Learning objectives list"],
             transitions={"entry": "fade_in", "exit": "slide_left"}
         )
+        
+        # Also populate bullet_points for template generator compatibility
+        slide_note.bullet_points = main_points
+        return slide_note
     
     def _extract_section_slides(
         self,
@@ -598,6 +658,12 @@ immediately apply in your professional role.
                 }
             )
             
+            # Also populate bullet_points for template generator compatibility
+            slide_note.bullet_points = slide_points
+            
+            # Debug logging
+            logger.info(f"Created slide {slide_id} with {len(slide_points)} points: {slide_points[:2] if slide_points else 'NONE'}")
+            
             slides.append(slide_note)
         
         return slides
@@ -608,10 +674,10 @@ immediately apply in your professional role.
         points: List[str],
         section_name: str
     ) -> str:
-        """Create detailed speaker notes for a slide, with optional GPT enrichment"""
+        """Create detailed speaker notes for a slide, with optional Groq enrichment"""
         
-        # If GPT enrichment is enabled, generate comprehensive speaker notes
-        if self.enable_gpt_enrichment and points:
+        # If Groq enrichment is enabled, generate comprehensive speaker notes
+        if self.enable_groq_enrichment and points:
             try:
                 enriched_notes = self._generate_enriched_speaker_notes(
                     paragraph, points, section_name
@@ -673,10 +739,13 @@ immediately apply in your professional role.
         points: List[str],
         section_name: str
     ) -> Optional[str]:
-        """Generate rich speaker notes using GPT-4 Turbo"""
+        """Generate rich speaker notes using Groq LLMs"""
         try:
             employee_name = self.employee_context.get('name', 'Learner')
             employee_role = self.employee_context.get('role', 'Professional')
+            
+            # Use Llama 3.1 8B for speaker notes (simpler task)
+            model = "llama-3.1-8b-instant"
             
             prompt = f"""
 Generate comprehensive speaker notes for presenting this slide to {employee_name} ({employee_role}).
@@ -704,8 +773,11 @@ Style: Conversational, engaging, educational
 The notes should guide the presenter to deliver an engaging, personalized learning experience.
 """
             
-            response = openai_client.chat.completions.create(
-                model="gpt-4-turbo",
+            # Ensure we have a client before making the call
+            self._ensure_groq_client()
+            
+            response = self.groq_client.chat.completions.create(
+                model=model,
                 messages=[
                     {
                         "role": "system",
@@ -853,7 +925,7 @@ knowledge to apply in your role. Keep these points in mind as you move forward.
             {"start": 20, "end": 25, "text": "Closing message and encouragement"}
         ]
         
-        return SlideNote(
+        slide_note = SlideNote(
             slide_id=slide_id,
             content_section="summary",
             main_points=key_takeaways,
@@ -862,6 +934,10 @@ knowledge to apply in your role. Keep these points in mind as you move forward.
             visual_elements=["Summary infographic", "Success celebration", "Next steps"],
             transitions={"entry": "fade_in", "exit": "fade_out"}
         )
+        
+        # Also populate bullet_points for template generator compatibility
+        slide_note.bullet_points = key_takeaways
+        return slide_note
     
     def _split_into_sentences(self, text: str) -> List[str]:
         """Split text into sentences"""

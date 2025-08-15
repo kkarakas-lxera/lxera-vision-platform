@@ -1,6 +1,7 @@
 # Core dependencies
 supabase>=2.0.0
 openai>=1.0.0
+groq>=0.4.2
 python-dotenv>=1.0.0
 
 # Web framework for Render deployment

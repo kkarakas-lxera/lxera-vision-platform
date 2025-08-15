@@ -1281,3 +1281,72 @@ def optimize_audio_timing(
             'success': False,
             'error': f'Timing optimization failed: {str(e)}'
         })
+
+@function_tool
+def generate_educational_video_with_essence(
+    content_id: str,
+    employee_context: Dict[str, Any],
+    company_id: str,
+    multimedia_options: Optional[Dict[str, Any]] = None
+) -> str:
+    """
+    Generate educational video with content essence extraction for optimal multimedia generation.
+    
+    This tool uses the restored content essence extractor and direct multimedia processor
+    for enhanced multimedia generation with content-multimedia co-design.
+    
+    Args:
+        content_id: ID of content in cm_module_content table
+        employee_context: Employee information for personalization  
+        company_id: Company ID for session tracking
+        multimedia_options: Optional settings for voice, speed, theme, etc.
+    
+    Returns:
+        JSON string with video generation results including essence data
+    """
+    logger.info(f"Generating educational video with essence for content: {content_id}")
+    
+    try:
+        # Import direct processor
+        sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+        from multimedia.direct_multimedia_processor import DirectMultimediaProcessor
+        
+        # Initialize processor
+        processor = DirectMultimediaProcessor()
+        
+        # Process content with essence integration
+        result = asyncio.run(
+            processor.process_content_to_multimedia(
+                content_id=content_id,
+                employee_context=employee_context,
+                company_id=company_id,
+                multimedia_options=multimedia_options
+            )
+        )
+        
+        if result['success']:
+            logger.info(f"✅ Essence-integrated video generation completed: {result['session_id']}")
+            response_data = {
+                'success': True,
+                'session_id': result['session_id'],
+                'content_id': content_id,
+                'essence_applied': True,
+                'video_path': result['assets']['video']['file_path'],
+                'audio_path': result['assets']['audio']['file_path'],
+                'duration': result['assets']['video']['duration'],
+                'slide_count': len(result['assets']['slides']),
+                'content_essence': result['content_essence'],
+                'processing_type': 'direct_with_essence',
+                'output_directory': result['output_directory']
+            }
+            return json.dumps(response_data)
+        else:
+            return json.dumps(result)
+        
+    except Exception as e:
+        logger.error(f"Essence-integrated video generation failed: {e}")
+        return json.dumps({
+            'success': False,
+            'error': str(e),
+            'content_id': content_id
+        })

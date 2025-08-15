@@ -123,7 +123,8 @@ def generate_course():
                 assigned_by_id=data['assigned_by_id'],
                 job_id=data.get('job_id'),
                 generation_mode=data.get('generation_mode', 'full'),
-                plan_id=data.get('plan_id')  # Pass plan_id for remaining_modules mode
+                plan_id=data.get('plan_id'),  # Pass plan_id for remaining_modules mode
+                enable_multimedia=data.get('enable_multimedia', False)  # Pass multimedia flag
             )
         )
         

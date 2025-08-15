@@ -13,6 +13,7 @@ interface CourseGenerationRequest {
   job_id?: string
   generation_mode?: 'full' | 'first_module' | 'remaining_modules' | 'outline_only'
   plan_id?: string // Optional plan_id for tracking outline to full course conversion
+  enable_multimedia?: boolean // Optional flag to enable multimedia generation
 }
 
 serve(async (req) => {
@@ -22,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full', plan_id } = await req.json() as CourseGenerationRequest
+    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full', plan_id, enable_multimedia = false } = await req.json() as CourseGenerationRequest
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -302,6 +303,7 @@ serve(async (req) => {
       job_id,
       generation_mode,
       plan_id,  // Pass plan_id for tracking and remaining_modules mode
+      enable_multimedia,  // Pass multimedia flag
       course_metadata: courseMetadata,
       skills_gaps: priorityGaps
     }
@@ -389,6 +391,16 @@ serve(async (req) => {
       }
     }
 
+    // Check if multimedia was generated
+    const multimedia_info = pipelineResult.multimedia_session_id ? {
+      multimedia_generated: true,
+      multimedia_session_id: pipelineResult.multimedia_session_id,
+      multimedia_status: pipelineResult.multimedia_status,
+      videos_generated: pipelineResult.videos_generated || 0
+    } : {
+      multimedia_generated: false
+    }
+
     // Return success response with pipeline results
     return new Response(
       JSON.stringify({
@@ -402,7 +414,8 @@ serve(async (req) => {
         is_partial_generation: generation_mode === 'first_module',
         is_completion: generation_mode === 'remaining_modules',
         token_savings: pipelineResult.token_savings,
-        processing_time: pipelineResult.total_processing_time
+        processing_time: pipelineResult.total_processing_time,
+        ...multimedia_info
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
