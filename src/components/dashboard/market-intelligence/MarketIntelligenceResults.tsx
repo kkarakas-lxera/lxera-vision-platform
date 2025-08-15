@@ -332,30 +332,54 @@ export default function MarketIntelligenceResults({
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-gray-900">{skillData.skill}</h3>
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    skillData.classification === 'hard' 
+                    skillData.enhanced_data?.skill_type === 'hard' 
                       ? 'bg-blue-50 text-blue-700' 
                       : 'bg-purple-50 text-purple-700'
                   }`}>
-                    {skillData.classification === 'hard' ? 'Technical' : 'Soft Skill'}
+                    {skillData.enhanced_data?.skill_type === 'hard' ? 'Technical' : 'Soft Skill'}
                   </span>
                 </div>
                 
                 {/* Experience Requirements */}
-                {skillData.experience_requirements && (
+                {skillData.enhanced_data?.experience_patterns?.years_mentioned?.length > 0 && (
                   <div className="mb-3">
                     <div className="text-xs font-medium text-gray-700 mb-1">Experience Required</div>
                     <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                      {skillData.experience_requirements}
+                      {skillData.enhanced_data.experience_patterns.years_mentioned.join(', ')}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Seniority Levels */}
+                {skillData.enhanced_data?.experience_patterns?.seniority_levels?.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Seniority Levels</div>
+                    <div className="flex flex-wrap gap-1">
+                      {skillData.enhanced_data.experience_patterns.seniority_levels.map((level: string, levelIndex: number) => (
+                        <span key={levelIndex} className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs capitalize">
+                          {level}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Context Examples */}
+                {skillData.enhanced_data?.context_examples?.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Context Examples</div>
+                    <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-16 overflow-y-auto">
+                      {skillData.enhanced_data.context_examples.slice(0, 3).join(', ')}
                     </div>
                   </div>
                 )}
                 
                 {/* Certifications */}
-                {skillData.certifications && skillData.certifications.length > 0 && (
+                {skillData.enhanced_data?.certifications?.length > 0 && (
                   <div className="mb-3">
                     <div className="text-xs font-medium text-gray-700 mb-1">Common Certifications</div>
                     <div className="flex flex-wrap gap-1">
-                      {skillData.certifications.slice(0, 3).map((cert: string, certIndex: number) => (
+                      {skillData.enhanced_data.certifications.slice(0, 3).map((cert: string, certIndex: number) => (
                         <span key={certIndex} className="px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-xs">
                           {cert}
                         </span>
@@ -365,11 +389,11 @@ export default function MarketIntelligenceResults({
                 )}
                 
                 {/* Associated Tools */}
-                {skillData.tools && skillData.tools.length > 0 && (
+                {skillData.enhanced_data?.tools?.length > 0 && (
                   <div>
                     <div className="text-xs font-medium text-gray-700 mb-1">Associated Tools</div>
                     <div className="flex flex-wrap gap-1">
-                      {skillData.tools.slice(0, 4).map((tool: string, toolIndex: number) => (
+                      {skillData.enhanced_data.tools.slice(0, 4).map((tool: string, toolIndex: number) => (
                         <span key={toolIndex} className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
                           {tool}
                         </span>
@@ -402,43 +426,38 @@ export default function MarketIntelligenceResults({
             </Button>
           </div>
           <div className="bg-white border border-gray-100 rounded-lg p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Senior Level Requirements */}
-              {analysisData.technical_depth_summary.senior_level_focus && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Senior Level Focus</h3>
-                  <div className="text-xs text-gray-600 bg-red-50 p-3 rounded">
-                    {analysisData.technical_depth_summary.senior_level_focus}
-                  </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-900">
+                  {analysisData.technical_depth_summary.hard_skills_percentage || 0}%
                 </div>
-              )}
-              
-              {/* Mid Level Requirements */}
-              {analysisData.technical_depth_summary.mid_level_focus && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Mid Level Focus</h3>
-                  <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded">
-                    {analysisData.technical_depth_summary.mid_level_focus}
-                  </div>
+                <div className="text-xs text-blue-700 mt-1">Technical Skills</div>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-900">
+                  {analysisData.technical_depth_summary.soft_skills_percentage || 0}%
                 </div>
-              )}
-              
-              {/* Entry Level Requirements */}
-              {analysisData.technical_depth_summary.entry_level_focus && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Entry Level Focus</h3>
-                  <div className="text-xs text-gray-600 bg-green-50 p-3 rounded">
-                    {analysisData.technical_depth_summary.entry_level_focus}
-                  </div>
+                <div className="text-xs text-purple-700 mt-1">Soft Skills</div>
+              </div>
+              <div className="p-4 bg-yellow-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-900">
+                  {analysisData.technical_depth_summary.skills_with_certifications || 0}
                 </div>
-              )}
+                <div className="text-xs text-yellow-700 mt-1">With Certifications</div>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-900">
+                  {analysisData.technical_depth_summary.total_skills_analyzed || 0}
+                </div>
+                <div className="text-xs text-green-700 mt-1">Total Analyzed</div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Certification Landscape */}
-      {analysisData.certification_landscape && Object.keys(analysisData.certification_landscape).length > 0 && (
+      {analysisData.certification_landscape && analysisData.certification_landscape.total_certifications_mentioned > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Certification Landscape</h2>
@@ -504,7 +523,7 @@ export default function MarketIntelligenceResults({
       )}
 
       {/* Tool Requirements Analysis */}
-      {analysisData.tool_requirements && Object.keys(analysisData.tool_requirements).length > 0 && (
+      {analysisData.tool_requirements && analysisData.tool_requirements.total_tools_mentioned > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Tool & Technology Requirements</h2>
