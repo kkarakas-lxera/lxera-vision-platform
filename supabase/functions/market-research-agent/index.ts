@@ -874,14 +874,29 @@ async function analyzeSkillTrends(jobData: any[], focusArea: string): Promise<an
     skillsByCategory[skill.category].push(skill);
   });
   
-  // Calculate category totals
-  const categoryTotals = Object.entries(skillsByCategory).map(([category, skills]) => ({
-    category,
-    skills: skills.sort((a, b) => b.demand - a.demand),
-    total_demand: skills.reduce((sum, skill) => sum + skill.demand, 0),
-    total_percentage: Math.round(skills.reduce((sum, skill) => sum + skill.percentage, 0)),
-    skill_count: skills.length
-  })).sort((a, b) => b.total_percentage - a.total_percentage);
+  // Calculate category totals - FIX: Percentage should be based on jobs containing ANY skill from category
+  const categoryTotals = Object.entries(skillsByCategory).map(([category, skills]) => {
+    // Count unique jobs that have at least one skill from this category
+    const jobsWithCategorySkills = new Set();
+    skills.forEach(skill => {
+      // For each job, check if it has this skill
+      jobData.forEach((job, jobIndex) => {
+        const jobSkills = job.skills || [];
+        const normalizedJobSkills = jobSkills.map((s: string) => normalizeSkill(s));
+        if (normalizedJobSkills.includes(skill.skill)) {
+          jobsWithCategorySkills.add(jobIndex);
+        }
+      });
+    });
+    
+    return {
+      category,
+      skills: skills.sort((a, b) => b.demand - a.demand),
+      total_demand: skills.reduce((sum, skill) => sum + skill.demand, 0),
+      total_percentage: Math.round((jobsWithCategorySkills.size / jobData.length) * 100),
+      skill_count: skills.length
+    };
+  }).sort((a, b) => b.total_percentage - a.total_percentage);
   
   // Sort skill combinations by frequency (minimum 3 occurrences for relevance)
   const topCombinations = Object.entries(skillCombinations)
@@ -2285,8 +2300,10 @@ The job market shows active demand for ${position_title || 'this role'} across t
       // Extract structured insights if available
       let structuredInsights = null;
       try {
-        if (typeof insightsResult === 'object' && insightsResult.structured) {
-          structuredInsights = insightsResult.structured;
+        // insightsResult IS the structured insights from generateStructuredInsights
+        if (typeof insightsResult === 'object' && insightsResult && !insightsResult.markdown) {
+          structuredInsights = insightsResult;
+          console.log('[Market Research Agent] ✅ Structured insights extracted successfully');
         }
       } catch (e) {
         console.warn('[Market Research Agent] Could not extract structured insights:', e);
