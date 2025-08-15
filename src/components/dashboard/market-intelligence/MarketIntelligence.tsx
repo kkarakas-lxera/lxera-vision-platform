@@ -89,7 +89,6 @@ export default function MarketIntelligence() {
   });
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   const getRelativeTime = (date: string) => {
     const now = new Date();
@@ -108,7 +107,15 @@ export default function MarketIntelligence() {
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchMarketRequests();
+      setupRealtimeSubscription();
     }
+    
+    return () => {
+      // Cleanup subscription on unmount
+      if (supabase) {
+        supabase.removeAllChannels();
+      }
+    };
   }, [userProfile?.company_id]);
 
   useEffect(() => {
@@ -136,14 +143,104 @@ export default function MarketIntelligence() {
     }
   }, [loading, activeRequest, currentRequest, marketRequests]);
 
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
+
+  const setupRealtimeSubscription = () => {
+    if (!userProfile?.company_id) return;
+
+    console.log('[Market Intelligence] Setting up real-time subscription for company:', userProfile.company_id);
+
+    const channel = supabase
+      .channel('market-intelligence-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'market_intelligence_requests',
+          filter: `company_id=eq.${userProfile.company_id}`
+        },
+        (payload) => {
+          console.log('[Market Intelligence] 🔄 Real-time update received:', payload);
+          handleRealtimeUpdate(payload);
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Market Intelligence] 📡 Realtime subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('[Market Intelligence] ✅ Successfully subscribed to real-time updates!');
+        }
+      });
+
+    return channel;
+  };
+
+  const handleRealtimeUpdate = (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload;
+    console.log('[Market Intelligence] 📝 Processing real-time event:', eventType);
+    
+    if (eventType === 'INSERT') {
+      const newRequest = newRecord as MarketIntelligenceRequest;
+      console.log('[Market Intelligence] ➕ New request created:', newRequest.id, newRequest.status);
+      setMarketRequests(prev => [newRequest, ...prev.filter(req => req.id !== newRequest.id)]);
+      
+      if (['queued', 'scraping', 'analyzing'].includes(newRequest.status)) {
+        console.log('[Market Intelligence] 🚀 Setting as active request');
+        setActiveRequest(newRequest);
+        setCurrentRequest(newRequest);
       }
-    };
-  }, [pollingInterval]);
+    } else if (eventType === 'UPDATE') {
+      const updatedRequest = newRecord as MarketIntelligenceRequest;
+      console.log('[Market Intelligence] 🔄 Request updated:', updatedRequest.id, 
+                  'Status:', updatedRequest.status, 
+                  'Message:', updatedRequest.status_message);
+      
+      // Update requests list
+      setMarketRequests(prev => 
+        prev.map(req => req.id === updatedRequest.id ? updatedRequest : req)
+      );
+      
+      // Update current request if it's the one being updated
+      if (currentRequest?.id === updatedRequest.id) {
+        console.log('[Market Intelligence] 🎯 Updating current request display');
+        setCurrentRequest(updatedRequest);
+      }
+      
+      // Update active request if it's the one being updated
+      if (activeRequest?.id === updatedRequest.id) {
+        console.log('[Market Intelligence] ⚡ Updating active request progress');
+        setActiveRequest(updatedRequest);
+        
+        // Check if analysis completed or failed
+        if (['completed', 'failed'].includes(updatedRequest.status)) {
+          console.log('[Market Intelligence] 🏁 Analysis finished with status:', updatedRequest.status);
+          setActiveRequest(null);
+          
+          if (updatedRequest.status === 'completed') {
+            toast({
+              title: 'Analysis Complete! 🎉',
+              description: 'Your market intelligence report is ready!',
+            });
+          } else {
+            toast({
+              title: 'Analysis Failed',
+              description: updatedRequest.status_message || 'Please try again',
+              variant: 'destructive'
+            });
+          }
+        }
+      }
+    } else if (eventType === 'DELETE') {
+      const deletedId = oldRecord.id;
+      console.log('[Market Intelligence] 🗑️ Request deleted:', deletedId);
+      setMarketRequests(prev => prev.filter(req => req.id !== deletedId));
+      if (currentRequest?.id === deletedId) {
+        setCurrentRequest(null);
+      }
+      if (activeRequest?.id === deletedId) {
+        setActiveRequest(null);
+      }
+    }
+  };
 
   const fetchMarketRequests = async () => {
     if (!userProfile?.company_id) return;
@@ -165,7 +262,7 @@ export default function MarketIntelligence() {
       const active = requests.find(req => ['queued', 'scraping', 'analyzing'].includes(req.status));
       if (active) {
         setActiveRequest(active);
-        startPolling(active.id);
+        // No need to start polling with real-time updates
       }
       
       // Set the most recent completed request as current
@@ -276,9 +373,6 @@ export default function MarketIntelligence() {
         throw response.error;
       }
 
-      // Start polling for updates
-      startPolling(request.id);
-
       toast({
         title: 'Analysis Started',
         description: `Analyzing market demand for ${config.positionTitle}...`,
@@ -294,78 +388,6 @@ export default function MarketIntelligence() {
     }
   };
 
-  const startPolling = (requestId: string) => {
-    // Clear existing interval if any
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-    }
-
-    const maxAttempts = 120; // 5 minutes
-    let attempts = 0;
-
-    const interval = setInterval(async () => {
-      attempts++;
-      
-      try {
-        const { data, error } = await supabase
-          .from('market_intelligence_requests' as any)
-          .select('*')
-          .eq('id', requestId)
-          .single();
-
-        if (error) throw error;
-
-        const request = data as MarketIntelligenceRequest;
-        
-        // Update state
-        setCurrentRequest(request);
-        setMarketRequests(prev => 
-          prev.map(req => req.id === requestId ? request : req)
-        );
-
-        // Check if completed or failed
-        if (['completed', 'failed'].includes(request.status)) {
-          clearInterval(interval);
-          setPollingInterval(null);
-          setActiveRequest(null);
-
-          if (request.status === 'completed') {
-            toast({
-              title: 'Analysis Complete',
-              description: 'Your market intelligence report is ready!',
-            });
-          } else {
-            toast({
-              title: 'Analysis Failed',
-              description: request.status_message || 'Please try again',
-              variant: 'destructive'
-            });
-          }
-        }
-        
-        // Check for timeout
-        if (attempts >= maxAttempts) {
-          clearInterval(interval);
-          setPollingInterval(null);
-          setUiState('timeout');
-          
-          await supabase
-            .from('market_intelligence_requests' as any)
-            .update({ 
-              status: 'failed',
-              status_message: 'Analysis timed out after 5 minutes'
-            })
-            .eq('id', requestId);
-        }
-      } catch (error) {
-        console.error('Polling error:', error);
-        clearInterval(interval);
-        setPollingInterval(null);
-      }
-    }, 2500);
-
-    setPollingInterval(interval);
-  };
 
   const handleRetry = () => {
     if (currentRequest) {
@@ -497,10 +519,6 @@ export default function MarketIntelligence() {
             <MarketIntelligenceProgress
               request={activeRequest}
               onCancel={() => {
-                if (pollingInterval) {
-                  clearInterval(pollingInterval);
-                  setPollingInterval(null);
-                }
                 setActiveRequest(null);
               }}
             />
