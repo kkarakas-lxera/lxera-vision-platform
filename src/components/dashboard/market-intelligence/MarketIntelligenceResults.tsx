@@ -308,6 +308,269 @@ export default function MarketIntelligenceResults({
         )
       )}
 
+      {/* Enhanced Skill Context Analysis */}
+      {analysisData.enhanced_skill_analysis && analysisData.enhanced_skill_analysis.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Skill Context Intelligence</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('skill-context', JSON.stringify(analysisData.enhanced_skill_analysis, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'skill-context' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {analysisData.enhanced_skill_analysis.slice(0, 8).map((skillData: any, index: number) => (
+              <div key={skillData.skill || index} className="bg-white border border-gray-100 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900">{skillData.skill}</h3>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    skillData.classification === 'hard' 
+                      ? 'bg-blue-50 text-blue-700' 
+                      : 'bg-purple-50 text-purple-700'
+                  }`}>
+                    {skillData.classification === 'hard' ? 'Technical' : 'Soft Skill'}
+                  </span>
+                </div>
+                
+                {/* Experience Requirements */}
+                {skillData.experience_requirements && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Experience Required</div>
+                    <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                      {skillData.experience_requirements}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Certifications */}
+                {skillData.certifications && skillData.certifications.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Common Certifications</div>
+                    <div className="flex flex-wrap gap-1">
+                      {skillData.certifications.slice(0, 3).map((cert: string, certIndex: number) => (
+                        <span key={certIndex} className="px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-xs">
+                          {cert}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Associated Tools */}
+                {skillData.tools && skillData.tools.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-gray-700 mb-1">Associated Tools</div>
+                    <div className="flex flex-wrap gap-1">
+                      {skillData.tools.slice(0, 4).map((tool: string, toolIndex: number) => (
+                        <span key={toolIndex} className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
+                          {tool}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Technical Depth Summary */}
+      {analysisData.technical_depth_summary && Object.keys(analysisData.technical_depth_summary).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Technical Depth Analysis</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('tech-depth', JSON.stringify(analysisData.technical_depth_summary, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'tech-depth' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Senior Level Requirements */}
+              {analysisData.technical_depth_summary.senior_level_focus && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Senior Level Focus</h3>
+                  <div className="text-xs text-gray-600 bg-red-50 p-3 rounded">
+                    {analysisData.technical_depth_summary.senior_level_focus}
+                  </div>
+                </div>
+              )}
+              
+              {/* Mid Level Requirements */}
+              {analysisData.technical_depth_summary.mid_level_focus && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Mid Level Focus</h3>
+                  <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded">
+                    {analysisData.technical_depth_summary.mid_level_focus}
+                  </div>
+                </div>
+              )}
+              
+              {/* Entry Level Requirements */}
+              {analysisData.technical_depth_summary.entry_level_focus && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Entry Level Focus</h3>
+                  <div className="text-xs text-gray-600 bg-green-50 p-3 rounded">
+                    {analysisData.technical_depth_summary.entry_level_focus}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Certification Landscape */}
+      {analysisData.certification_landscape && Object.keys(analysisData.certification_landscape).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Certification Landscape</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('certifications', JSON.stringify(analysisData.certification_landscape, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'certifications' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="space-y-4">
+              {/* Most Requested Certifications */}
+              {analysisData.certification_landscape.most_requested && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Most Requested Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analysisData.certification_landscape.most_requested.map((cert: string, index: number) => (
+                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* High Value Certifications */}
+              {analysisData.certification_landscape.high_value && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">High-Value Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analysisData.certification_landscape.high_value.map((cert: string, index: number) => (
+                      <span key={index} className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Emerging Certifications */}
+              {analysisData.certification_landscape.emerging && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Emerging Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analysisData.certification_landscape.emerging.map((cert: string, index: number) => (
+                      <span key={index} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tool Requirements Analysis */}
+      {analysisData.tool_requirements && Object.keys(analysisData.tool_requirements).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Tool & Technology Requirements</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopySection('tools', JSON.stringify(analysisData.tool_requirements, null, 2))}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              {copiedSection === 'tools' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Essential Tools */}
+              {analysisData.tool_requirements.essential && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Essential Tools (>70% mentions)</h3>
+                  <div className="space-y-2">
+                    {analysisData.tool_requirements.essential.map((tool: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                        <span className="text-sm font-medium text-gray-900">{tool.name}</span>
+                        <span className="text-xs text-red-700 font-medium">{tool.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Important Tools */}
+              {analysisData.tool_requirements.important && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Important Tools (30-70% mentions)</h3>
+                  <div className="space-y-2">
+                    {analysisData.tool_requirements.important.map((tool: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-yellow-50 rounded">
+                        <span className="text-sm font-medium text-gray-900">{tool.name}</span>
+                        <span className="text-xs text-yellow-700 font-medium">{tool.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Nice to Have Tools */}
+              {analysisData.tool_requirements.nice_to_have && (
+                <div className="md:col-span-2">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Nice to Have Tools (<30% mentions)</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analysisData.tool_requirements.nice_to_have.map((tool: any, index: number) => (
+                      <span key={index} className="px-2 py-1 bg-gray-50 text-gray-700 rounded text-xs">
+                        {tool.name} ({tool.percentage}%)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Experience Level Donut Chart */}
       {skillTrends.experience_distribution && Object.keys(skillTrends.experience_distribution).length > 0 && (
         <div className="space-y-4">
