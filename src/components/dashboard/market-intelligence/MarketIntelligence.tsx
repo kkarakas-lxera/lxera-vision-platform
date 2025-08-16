@@ -101,8 +101,6 @@ export default function MarketIntelligence() {
     positionId: '',
     positionTitle: '',
     positionDescription: '',
-    customPosition: false,
-    industry: '',
     requiredSkills: [] as any[],
     niceToHaveSkills: [] as any[],
     regions: [] as string[],
@@ -324,7 +322,7 @@ export default function MarketIntelligence() {
     const errors: Record<string, string> = {};
     
     if (!config.positionId || !config.positionTitle) {
-      errors.position = config.customPosition ? 'Enter a position title' : 'Select a role';
+      errors.position = 'Select a role';
     }
     
     if (config.regions.length === 0 && config.countries.length === 0) {
@@ -348,10 +346,9 @@ export default function MarketIntelligence() {
         .from('market_intelligence_requests' as any)
         .insert({
           company_id: userProfile.company_id,
-          position_id: config.customPosition ? null : config.positionId,
+          position_id: config.positionId,
           position_title: config.positionTitle || null,
-          industry: config.industry || null,
-          custom_position: config.customPosition,
+          custom_position: false,
           regions: config.regions,
           countries: config.countries,
           date_window: config.dateWindow,
@@ -372,9 +369,9 @@ export default function MarketIntelligence() {
       setActiveRequest(request);
       setCurrentRequest(request);
 
-      // Fetch position requirements if using existing position
+      // Fetch position requirements
       let positionRequirements = null;
-      if (!config.customPosition && config.positionId) {
+      if (config.positionId) {
         const { data: positionData } = await supabase
           .from('st_company_positions')
           .select('required_skills, nice_to_have_skills, description')
@@ -391,8 +388,7 @@ export default function MarketIntelligence() {
           countries: config.countries,
           focus_area: config.focusArea,
           position_title: config.positionTitle,
-          industry: config.industry || null,
-          custom_position: config.customPosition,
+          custom_position: false,
           position_requirements: positionRequirements,
           date_window: config.dateWindow,
           since_date: config.sinceDate || null
@@ -434,8 +430,6 @@ export default function MarketIntelligence() {
         positionId: currentRequest.position_id || '',
         positionTitle: currentRequest.position_title || '',
         positionDescription: '',
-        customPosition: currentRequest.custom_position || false,
-        industry: currentRequest.industry || '',
         requiredSkills: [] as any[],
         niceToHaveSkills: [] as any[],
         regions: currentRequest.regions || [],
@@ -451,13 +445,22 @@ export default function MarketIntelligence() {
 
   const handleDelete = async (requestId: string) => {
     try {
-      const { error } = await supabase
-        .from('market_intelligence_requests' as any)
+      console.log('[Market Intelligence] Attempting to delete request:', requestId);
+      
+      const { data, error } = await supabase
+        .from('market_intelligence_requests')
         .delete()
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .select();
 
-      if (error) throw error;
+      console.log('[Market Intelligence] Delete result:', { data, error });
 
+      if (error) {
+        console.error('[Market Intelligence] Delete error details:', error);
+        throw error;
+      }
+
+      // Update local state
       setMarketRequests(prev => prev.filter(req => req.id !== requestId));
       if (currentRequest?.id === requestId) {
         setCurrentRequest(marketRequests.find(req => req.id !== requestId) || null);
@@ -467,11 +470,11 @@ export default function MarketIntelligence() {
         title: 'Deleted',
         description: 'Analysis has been removed',
       });
-    } catch (error) {
-      console.error('Error deleting:', error);
+    } catch (error: any) {
+      console.error('[Market Intelligence] Error deleting request:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete analysis',
+        description: error?.message || 'Failed to delete analysis',
         variant: 'destructive'
       });
     }
@@ -558,6 +561,8 @@ export default function MarketIntelligence() {
               request={activeRequest}
               onCancel={() => {
                 setActiveRequest(null);
+                setCurrentRequest(null);
+                setUiState('first-time');
               }}
             />
           )}

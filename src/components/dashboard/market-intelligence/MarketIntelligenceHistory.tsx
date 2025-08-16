@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,10 @@ import {
   Loader2,
   ChevronRight,
   Plus,
-  Brain
+  Brain,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 
@@ -29,6 +32,53 @@ export default function MarketIntelligenceHistory({
   onDelete,
   onStartNew
 }: MarketIntelligenceHistoryProps) {
+  const [sortField, setSortField] = useState<'role' | 'date' | 'status' | 'jobs'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  const handleSort = (field: 'role' | 'date' | 'status' | 'jobs') => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: 'role' | 'date' | 'status' | 'jobs') => {
+    if (field !== sortField) return <ArrowUpDown className="h-3 w-3" />;
+    return sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
+
+  const sortedRequests = [...requests].sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (sortField) {
+      case 'role':
+        aVal = a.position_title || '';
+        bVal = b.position_title || '';
+        break;
+      case 'date':
+        aVal = new Date(a.created_at).getTime();
+        bVal = new Date(b.created_at).getTime();
+        break;
+      case 'status':
+        aVal = a.status;
+        bVal = b.status;
+        break;
+      case 'jobs':
+        aVal = a.scraped_data?.jobs_count || 0;
+        bVal = b.scraped_data?.jobs_count || 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+    } else {
+      return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+    }
+  });
   
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -140,88 +190,110 @@ export default function MarketIntelligenceHistory({
         <p className="text-xs text-gray-500 mt-1">Last 10 reports</p>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y">
-          {requests.slice(0, 10).map((request) => {
-            const isSelected = request.id === currentRequestId;
-            const isActive = ['queued', 'scraping', 'analyzing'].includes(request.status);
-            
-            return (
-              <div
-                key={request.id}
-                className={`
-                  p-4 cursor-pointer transition-all duration-200
-                  ${isSelected ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm' : 'hover:bg-gray-50 border-l-4 border-transparent'}
-                  ${isActive ? 'animate-pulse bg-yellow-50 border-l-4 border-yellow-400' : ''}
-                `}
-                onClick={() => onSelect(request)}
-              >
-                <div className="space-y-2">
-                  {/* Header Row */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2 flex-1">
-                      {getStatusIcon(request.status)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider">
+                  <button 
+                    className="flex items-center gap-1 hover:text-gray-800"
+                    onClick={() => handleSort('role')}
+                  >
+                    Role {getSortIcon('role')}
+                  </button>
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider">Regions</th>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider">
+                  <button 
+                    className="flex items-center gap-1 hover:text-gray-800"
+                    onClick={() => handleSort('date')}
+                  >
+                    Date {getSortIcon('date')}
+                  </button>
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider">
+                  <button 
+                    className="flex items-center gap-1 hover:text-gray-800"
+                    onClick={() => handleSort('jobs')}
+                  >
+                    Jobs {getSortIcon('jobs')}
+                  </button>
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider">
+                  <button 
+                    className="flex items-center gap-1 hover:text-gray-800"
+                    onClick={() => handleSort('status')}
+                  >
+                    Status {getSortIcon('status')}
+                  </button>
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-xs text-gray-600 uppercase tracking-wider w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {sortedRequests.slice(0, 10).map((request) => {
+                const isSelected = request.id === currentRequestId;
+                const isActive = ['queued', 'scraping', 'analyzing'].includes(request.status);
+                
+                return (
+                  <tr
+                    key={request.id}
+                    className={`
+                      cursor-pointer transition-all duration-200
+                      ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                      ${isActive ? 'bg-yellow-50' : ''}
+                    `}
+                    onClick={() => onSelect(request)}
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(request.status)}
+                        <span className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
                           {request.position_title || 'Unknown Position'}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {request.regions?.join(', ') || request.countries?.slice(0, 2).join(', ')}
-                          {request.countries && request.countries.length > 2 && ` +${request.countries.length - 2}`}
-                        </p>
+                        </span>
                       </div>
-                    </div>
-                    {getStatusBadge(request.status)}
-                  </div>
-
-                  {/* Date and Actions Row */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
-                      {formatDate(request.created_at)}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(request.id);
-                      }}
-                      title="Delete"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-
-                  {/* Status Message */}
-                  {request.status_message && isActive && (
-                    <p className="text-xs text-gray-600 italic truncate">
-                      {request.status_message}
-                    </p>
-                  )}
-
-                  {/* Quick Stats for Completed */}
-                  {request.status === 'completed' && request.scraped_data && (
-                    <div className="flex items-center gap-3 text-xs text-gray-600">
-                      <span>{request.scraped_data.jobs_count || 0} jobs</span>
-                      {request.analysis_data?.skill_trends?.top_skills && (
-                        <>
-                          <span>•</span>
-                          <span>{request.analysis_data.skill_trends.top_skills.length} skills</span>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Selection Indicator */}
-                {isSelected && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 mr-2">
-                    <ChevronRight className="h-4 w-4 text-blue-600" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-sm text-gray-600 truncate max-w-[150px] block">
+                        {request.regions?.join(', ') || request.countries?.slice(0, 2).join(', ')}
+                        {request.countries && request.countries.length > 2 && ` +${request.countries.length - 2}`}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-sm text-gray-600">
+                        {formatDate(request.created_at)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-sm text-gray-600">
+                        {request.status === 'completed' && request.scraped_data 
+                          ? `${request.scraped_data.jobs_count || 0}`
+                          : '-'
+                        }
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {getStatusBadge(request.status)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(request.id);
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </CardContent>
     </Card>

@@ -56,28 +56,28 @@ export default function MarketIntelligenceProgress({
 
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="space-y-6">
+      <CardContent className="pt-4">
+        <div className="space-y-3">
           {/* Progress Bar */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-gray-900">Market Analysis in Progress</h3>
-              <span className="text-sm text-gray-500">{getProgressPercentage()}%</span>
+              <h3 className="text-sm font-medium text-gray-900">Market Analysis in Progress</h3>
+              <span className="text-xs text-gray-500">{getProgressPercentage()}%</span>
             </div>
-            <Progress value={getProgressPercentage()} className="h-2" />
+            <Progress value={getProgressPercentage()} className="h-1.5" />
           </div>
 
           {/* Status Message */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin mt-0.5" />
+          <div className="bg-blue-50 border border-blue-200 rounded p-2">
+            <div className="flex items-start gap-2">
+              <Loader2 className="h-4 w-4 text-blue-600 animate-spin mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium text-blue-900">{getStatusMessage()}</p>
+                <p className="text-sm font-medium text-blue-900">{getStatusMessage()}</p>
                 {request.status_message && (
-                  <p className="text-sm text-blue-700 mt-1">{request.status_message}</p>
+                  <p className="text-xs text-blue-700 mt-0.5">{request.status_message}</p>
                 )}
                 {request.scraped_data?.jobs_count && (
-                  <p className="text-xs text-blue-600 mt-2">
+                  <p className="text-xs text-blue-600 mt-1">
                     Found {request.scraped_data.jobs_count} job postings
                   </p>
                 )}
@@ -86,13 +86,13 @@ export default function MarketIntelligenceProgress({
           </div>
 
           {/* Step Indicators */}
-          <div className="relative">
+          <div className="relative py-2">
             <div className="flex items-center justify-between">
               {/* Progress Line Background */}
-              <div className="absolute left-0 right-0 top-5 h-0.5 bg-gray-200" />
+              <div className="absolute left-0 right-0 top-4 h-0.5 bg-gray-200" />
               {/* Progress Line Fill */}
               <div 
-                className="absolute left-0 top-5 h-0.5 bg-blue-600 transition-all duration-500"
+                className="absolute left-0 top-4 h-0.5 bg-blue-600 transition-all duration-500"
                 style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
               />
               
@@ -104,18 +104,18 @@ export default function MarketIntelligenceProgress({
                 return (
                   <div key={step.id} className="relative flex flex-col items-center">
                     <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center transition-colors
+                      w-7 h-7 rounded-full flex items-center justify-center transition-colors
                       ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}
-                      ${isCurrent ? 'ring-4 ring-blue-100' : ''}
+                      ${isCurrent ? 'ring-2 ring-blue-100' : ''}
                     `}>
                       {isCurrent && index < steps.length - 1 ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <Icon className="h-5 w-5" />
+                        <Icon className="h-3 w-3" />
                       )}
                     </div>
                     <span className={`
-                      text-xs mt-2 font-medium
+                      text-xs mt-1 font-medium
                       ${isActive ? 'text-blue-600' : 'text-gray-400'}
                     `}>
                       {step.label}
@@ -127,14 +127,15 @@ export default function MarketIntelligenceProgress({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-end pt-2 border-t">
             {onCancel && (
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={onCancel}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="h-3 w-3 mr-1" />
                 Cancel
               </Button>
             )}

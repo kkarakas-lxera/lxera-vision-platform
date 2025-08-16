@@ -20,8 +20,6 @@ interface MarketIntelligenceConfigProps {
     positionId: string;
     positionTitle: string;
     positionDescription: string;
-    customPosition: boolean;
-    industry: string;
     regions: string[];
     countries: string[];
     dateWindow: '24h' | '7d' | '30d' | '90d' | 'custom';
@@ -79,7 +77,6 @@ export default function MarketIntelligenceConfig({
   }>>([]);
   const [showCustomCountries, setShowCustomCountries] = useState(false);
   const [companyIndustry, setCompanyIndustry] = useState<string>('');
-  const [showCustomPosition, setShowCustomPosition] = useState(false);
   const [showCountriesPreview, setShowCountriesPreview] = useState(false);
   const [selectedSkillTypes, setSelectedSkillTypes] = useState<string[]>([]);
 
@@ -286,162 +283,44 @@ export default function MarketIntelligenceConfig({
         <div className="space-y-3">
           <SectionHeader 
             title="Position"
-            description="Select an existing role from your organization or create a custom analysis for any job title"
+            description="Select an existing role from your organization"
             icon={Users}
           />
           
-          {/* Card-based Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* From Existing Positions Card */}
-            <Card 
-              className={`cursor-pointer transition-all border-2 ${
-                !showCustomPosition 
-                  ? 'border-blue-500 bg-blue-50 shadow-md' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => {
-                setShowCustomPosition(false);
-                setConfig((prev: any) => ({ ...prev, customPosition: false, positionId: '', positionTitle: '' }));
+          {/* Position Selection */}
+          <div className="space-y-2">
+            <Select
+              value={config.positionId}
+              onValueChange={(value) => {
+                const position = positions.find(p => p.id === value);
+                setConfig((prev: any) => ({
+                  ...prev,
+                  positionId: value,
+                  positionTitle: position?.position_title || '',
+                  positionDescription: position?.description || ''
+                }));
               }}
             >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded ${
-                    !showCustomPosition ? 'bg-blue-100' : 'bg-gray-100'
-                  }`}>
-                    <Users className={`h-4 w-4 ${
-                      !showCustomPosition ? 'text-blue-600' : 'text-gray-500'
-                    }`} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">From Your Positions</h4>
-                    <p className="text-xs text-gray-600">{positions.length} existing roles</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Custom Position Card */}
-            <Card 
-              className={`cursor-pointer transition-all border-2 ${
-                showCustomPosition 
-                  ? 'border-blue-500 bg-blue-50 shadow-md' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => {
-                setShowCustomPosition(true);
-                setConfig((prev: any) => ({ ...prev, customPosition: true, positionId: 'custom', positionTitle: '' }));
-              }}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded ${
-                    showCustomPosition ? 'bg-blue-100' : 'bg-gray-100'
-                  }`}>
-                    <Plus className={`h-4 w-4 ${
-                      showCustomPosition ? 'text-blue-600' : 'text-gray-500'
-                    }`} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Custom Position</h4>
-                    <p className="text-xs text-gray-600">Analyze any job title</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Position Input */}
-          <div className="mt-2">
-            {showCustomPosition ? (
-              <div className="space-y-2">
-                <Input
-                  placeholder="e.g. Senior DevOps Engineer, AI Product Manager, Blockchain Developer"
-                  value={config.positionTitle}
-                  onChange={(e) => setConfig((prev: any) => ({ 
-                    ...prev, 
-                    positionTitle: e.target.value,
-                    positionId: 'custom'
-                  }))}
-                  className={validationErrors.position ? 'border-red-500' : ''}
-                />
-                {validationErrors.position && (
-                  <p className="text-sm text-red-500">{validationErrors.position}</p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Select
-                  value={config.positionId}
-                  onValueChange={(value) => {
-                    const position = positions.find(p => p.id === value);
-                    setConfig((prev: any) => ({
-                      ...prev,
-                      positionId: value,
-                      positionTitle: position?.position_title || '',
-                      positionDescription: position?.description || ''
-                    }));
-                  }}
-                >
-                  <SelectTrigger className={validationErrors.position ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select a role from your positions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions.map(position => (
-                      <SelectItem key={position.id} value={position.id}>
-                        {position.position_title}
-                        {userProfile?.role === 'super_admin' && position.company_name && (
-                          <span className="text-gray-500 ml-2">({position.company_name})</span>
-                        )}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {validationErrors.position && (
-                  <p className="text-sm text-red-500">{validationErrors.position}</p>
-                )}
-              </div>
+              <SelectTrigger className={validationErrors.position ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select a role from your positions" />
+              </SelectTrigger>
+              <SelectContent>
+                {positions.map(position => (
+                  <SelectItem key={position.id} value={position.id}>
+                    {position.position_title}
+                    {userProfile?.role === 'super_admin' && position.company_name && (
+                      <span className="text-gray-500 ml-2">({position.company_name})</span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {validationErrors.position && (
+              <p className="text-sm text-red-500">{validationErrors.position}</p>
             )}
           </div>
         </div>
 
-        {/* Industry Context */}
-        {showCustomPosition && (
-          <div className="border border-orange-200 bg-orange-50 rounded p-3">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Globe className="h-3 w-3 text-orange-600" />
-                <Label className="text-sm font-medium">Industry Context</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">Industry context helps find more relevant job postings</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Select
-                value={config.industry}
-                onValueChange={(value) => setConfig((prev: any) => ({ ...prev, industry: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDUSTRIES.map(industry => (
-                    <SelectItem key={industry} value={industry}>
-                      {industry}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="custom">Other...</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
 
         {/* Region Selection */}
         <div className="space-y-4">
