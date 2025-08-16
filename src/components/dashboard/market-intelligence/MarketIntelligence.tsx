@@ -505,11 +505,11 @@ export default function MarketIntelligence() {
       </div>
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left/Main Panel */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-1 space-y-6">
           {/* Configuration or Results */}
-          {(uiState === 'first-time' || uiState === 'config-incomplete' || uiState === 'history-present') && (
+          {(uiState === 'first-time' || uiState === 'config-incomplete' || (uiState === 'history-present' && !currentRequest)) && (
             <div className="space-y-6">
               {/* Onboarding Header for First Time */}
               {uiState === 'first-time' && marketRequests.length === 0 && (
@@ -568,7 +568,7 @@ export default function MarketIntelligence() {
           )}
 
           {/* Results */}
-          {(uiState === 'success' || uiState === 'history-present') && currentRequest?.status === 'completed' && (
+          {currentRequest?.status === 'completed' && (
             <div className="space-y-4">
               {/* New Analysis Button */}
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
