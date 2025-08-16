@@ -38,7 +38,7 @@ export interface MarketIntelligenceRequest {
   date_window: '24h' | '7d' | '30d' | '90d' | 'custom';
   since_date?: string;
   focus_area: 'technical' | 'all_skills';
-  status: 'queued' | 'scraping' | 'analyzing' | 'completed' | 'failed';
+  status: 'queued' | 'scraping' | 'analyzing' | 'completed' | 'failed' | 'archived';
   status_message?: string;
   scraped_data?: any;
   ai_insights?: string;

@@ -127,10 +127,7 @@ export default function MarketIntelligenceProgress({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Button variant="outline" className="flex-1">
-              Run in background
-            </Button>
+          <div className="flex justify-end pt-4 border-t">
             {onCancel && (
               <Button 
                 variant="outline" 

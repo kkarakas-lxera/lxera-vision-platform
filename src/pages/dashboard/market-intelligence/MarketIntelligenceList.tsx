@@ -7,13 +7,22 @@ import {
   Loader2, 
   Brain,
   Plus,
-  ArrowRight,
-  Calendar,
-  MapPin,
-  Target,
-  BarChart3,
-  FileText
+  MoreHorizontal,
+  Search,
+  Filter,
+  SortAsc,
+  ArrowLeftRight,
+  Trash2,
+  Archive,
+  RotateCw,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -49,6 +58,13 @@ export default function MarketIntelligenceList() {
   });
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [q, setQ] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'queued' | 'scraping' | 'analyzing' | 'completed' | 'failed' | 'archived'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'jobs' | 'role'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -312,25 +328,41 @@ export default function MarketIntelligenceList() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Market Intelligence</h1>
-          <p className="text-gray-600 mt-1">Analyze job market demand for specific roles and regions</p>
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="grid grid-cols-12 gap-3 items-center py-3">
+          <div className="col-span-12 xl:col-span-3">
+            <h1 className="text-2xl font-semibold">Market Intelligence</h1>
+          </div>
+          <div className="col-span-12 xl:col-span-7 flex flex-wrap gap-2">
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search reports by role or region"
+                className="pl-8"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="gap-2"><Filter className="h-4 w-4" />Filters</Button>
+            <Button variant="outline" size="sm" className="gap-2"><ArrowLeftRight className="h-4 w-4" />Sort</Button>
+          </div>
+          <div className="col-span-12 xl:col-span-2 flex justify-end">
+            <Button 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              disabled={!!activeRequest}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {showCreateForm ? 'Cancel' : 'New Analysis'}
+            </Button>
+          </div>
         </div>
-        <Button 
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          disabled={!!activeRequest}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          {showCreateForm ? 'Cancel' : 'New Analysis'}
-        </Button>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Panel - Configuration or Welcome */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-6">
           {/* Active Analysis Progress */}
           {activeRequest && (
             <MarketIntelligenceProgress
@@ -362,7 +394,7 @@ export default function MarketIntelligenceList() {
               <CardContent className="pt-6">
                 <div className="text-center py-8">
                   <div className="p-3 bg-indigo-100 rounded-lg w-fit mx-auto mb-4">
-                    <BarChart3 className="h-8 w-8 text-indigo-600" />
+                    <CheckCircle2 className="h-8 w-8 text-indigo-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Get Started with Market Intelligence</h3>
                   <p className="text-gray-700 mb-6 max-w-md mx-auto">
@@ -380,95 +412,119 @@ export default function MarketIntelligenceList() {
               </CardContent>
             </Card>
           )}
-
-          {/* Show recent reports when no form is open and reports exist */}
-          {!showCreateForm && !activeRequest && marketRequests.length > 0 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <div className="p-3 bg-blue-100 rounded-lg w-fit mx-auto mb-4">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Market Intelligence Reports</h3>
-                  <p className="text-gray-700 mb-6 max-w-md mx-auto">
-                    View your previous analysis reports or start a new market intelligence analysis.
-                  </p>
-                  <Button 
-                    onClick={() => setShowCreateForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Brain className="h-4 w-4 mr-2" />
-                    Start New Analysis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
-        {/* Right Panel - Compact History */}
-        <div className="lg:col-span-1">
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
-            
-            {marketRequests.length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <FileText className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">No reports yet</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {marketRequests.slice(0, 10).map((request) => (
-                  <Card key={request.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-900 text-sm truncate">
-                            {request.position_title}
-                          </h4>
-                          {getStatusBadge(request.status)}
-                        </div>
-                        
-                        <div className="text-xs text-gray-600">
-                          <div className="flex items-center gap-1 mb-1">
-                            <MapPin className="h-3 w-3" />
-                            <span className="truncate">
-                              {request.regions.length > 0 ? request.regions.join(', ') : request.countries.slice(0, 2).join(', ')}
-                              {request.countries.length > 2 && ` +${request.countries.length - 2} more`}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{getRelativeTime(request.created_at)}</span>
-                            {request.scraped_data?.total_jobs && (
-                              <>
-                                <span className="mx-1">•</span>
-                                <span>{request.scraped_data.total_jobs} jobs</span>
-                              </>
+        {/* Right Panel - Dense History Table */}
+        <div className="xl:col-span-1">
+          <Card className="rounded-2xl border overflow-hidden">
+            <CardContent className="p-0">
+              {/* Bulk bar */}
+              {selectedIds.length > 0 && (
+                <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b text-sm">
+                  <span>{selectedIds.length} selected</span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="gap-1"><Archive className="h-4 w-4" />Archive</Button>
+                    <Button variant="outline" size="sm" className="gap-1"><RotateCw className="h-4 w-4" />Retry</Button>
+                    <Button variant="destructive" size="sm" className="gap-1"><Trash2 className="h-4 w-4" />Delete</Button>
+                  </div>
+                </div>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow className="h-12">
+                    <TableHead className="w-8">
+                      <Checkbox
+                        checked={selectedIds.length > 0 && selectedIds.length === marketRequests.length}
+                        onCheckedChange={(checked) => {
+                          setSelectedIds(checked ? marketRequests.map(r => r.id) : []);
+                        }}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Role</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Regions</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Date</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Jobs</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {marketRequests
+                    .filter(r => (statusFilter === 'all' ? true : r.status === statusFilter))
+                    .filter(r => q.trim().length === 0 ||
+                      r.position_title?.toLowerCase().includes(q.toLowerCase()) ||
+                      r.regions?.join(',').toLowerCase().includes(q.toLowerCase()) ||
+                      r.countries?.join(',').toLowerCase().includes(q.toLowerCase())
+                    )
+                    .map((r) => {
+                      const isSelected = selectedIds.includes(r.id);
+                      const jobs = r.scraped_data?.total_jobs ?? r.scraped_data?.jobs_count ?? 0;
+                      return (
+                        <TableRow key={r.id} className="h-14">
+                          <TableCell className="w-8">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                setSelectedIds(prev => checked ? [...prev, r.id] : prev.filter(id => id !== r.id));
+                              }}
+                              aria-label={`Select ${r.position_title}`}
+                            />
+                          </TableCell>
+                          <TableCell className="max-w-[140px] truncate">
+                            <div className="text-sm font-medium truncate">{r.position_title || '—'}</div>
+                          </TableCell>
+                          <TableCell className="max-w-[160px] truncate text-muted-foreground text-xs">
+                            {(r.regions?.length ? r.regions : r.countries)?.slice(0, 2).join(', ')}
+                            {((r.regions?.length || r.countries?.length || 0) > 2) && ' +' + (((r.regions?.length || 0) + (r.countries?.length || 0)) - 2)}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{getRelativeTime(r.created_at)}</TableCell>
+                          <TableCell className="text-xs">{jobs}</TableCell>
+                          <TableCell>
+                            {r.status === 'failed' ? (
+                              <div className="flex items-center gap-2">
+                                <Badge variant="destructive">Failed</Badge>
+                                <span className="text-xs text-muted-foreground truncate max-w-[140px]">
+                                  {r.status_message || 'Error'}
+                                </span>
+                              </div>
+                            ) : r.status === 'completed' ? (
+                              <Badge className="bg-green-600 hover:bg-green-600">Completed</Badge>
+                            ) : r.status === 'archived' ? (
+                              <Badge variant="outline">Archived</Badge>
+                            ) : (
+                              <Badge variant="outline">{r.status}</Badge>
                             )}
-                          </div>
-                        </div>
-                        
-                        {request.status === 'completed' && (
-                          <Button
-                            onClick={() => navigate(`/dashboard/market-intelligence/${request.id}`)}
-                            variant="ghost"
-                            size="sm"
-                            className="w-full mt-2 text-xs h-7"
-                          >
-                            View Report
-                            <ArrowRight className="h-3 w-3 ml-1" />
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/dashboard/market-intelligence/${r.id}`)}>
+                                  View Report
+                                </DropdownMenuItem>
+                                {r.status === 'failed' && (
+                                  <DropdownMenuItem onClick={() => setShowCreateForm(true)}>
+                                    Retry
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem>Archive</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+                <TableCaption className="text-xs">Showing {Math.min(page * pageSize, marketRequests.length)} of {marketRequests.length} reports</TableCaption>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
