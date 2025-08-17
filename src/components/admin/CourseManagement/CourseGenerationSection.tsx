@@ -343,9 +343,9 @@ export const CourseGenerationSection = () => {
           progress_percentage: 0,
           successful_courses: 0,
           failed_courses: 0,
+          generation_mode: generationMode,  // Store in dedicated column
           metadata: {
             priority: determinePriority(selectedEmployeeIds.length),
-            generation_mode: generationMode,
             estimated_duration_seconds: previewMode ? selectedEmployeeIds.length * 60 : selectedEmployeeIds.length * 300, // Preview is faster
             queued_at: new Date().toISOString(),
             is_preview: previewMode,

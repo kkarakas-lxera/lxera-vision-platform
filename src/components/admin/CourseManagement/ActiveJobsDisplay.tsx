@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { 
   ChevronDown, 
@@ -57,10 +58,13 @@ interface EmployeeProgress {
 
 export const ActiveJobsDisplay = () => {
   const { userProfile } = useAuth();
+  const { toast } = useToast();
   const companyId = userProfile?.company_id;
   const [activeJobs, setActiveJobs] = useState<Job[]>([]);
+  const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifiedJobs, setNotifiedJobs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!companyId) return;
@@ -101,6 +105,23 @@ export const ActiveJobsDisplay = () => {
         .in('status', ['queued', 'pending', 'processing', 'paused'])
         .order('created_at', { ascending: false });
 
+      // Also fetch recent completed/failed jobs for better UX
+      const { data: recentData, error: recentError } = await supabase
+        .from('course_generation_jobs')
+        .select(`
+          *,
+          users:initiated_by (
+            full_name
+          )
+        `)
+        .eq('company_id', companyId)
+        .in('status', ['completed', 'failed'])
+        .gte('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString()) // Last 10 minutes
+        .order('updated_at', { ascending: false })
+        .limit(3);
+
+      if (recentError) throw recentError;
+
       if (error) throw error;
 
       // Process employee progress from employee_ids array
@@ -125,6 +146,22 @@ export const ActiveJobsDisplay = () => {
       }) || [];
 
       setActiveJobs(processedJobs);
+      
+      // Process recent jobs similarly
+      const processedRecentJobs = recentData?.map(job => {
+        let employeeProgress: EmployeeProgress[] = [];
+        if (job.employee_ids && Array.isArray(job.employee_ids)) {
+          employeeProgress = job.employee_ids.map((id: string, index: number) => ({
+            id,
+            name: `Employee ${index + 1}`,
+            status: index < job.successful_courses ? 'completed' : 
+                   index < job.successful_courses + job.failed_courses ? 'failed' : 'pending'
+          }));
+        }
+        return { ...job, employee_progress: employeeProgress };
+      }) || [];
+      
+      setRecentJobs(processedRecentJobs);
     } catch (error) {
       console.error('Error fetching active jobs:', error);
     } finally {
@@ -136,9 +173,34 @@ export const ActiveJobsDisplay = () => {
     if (payload.eventType === 'INSERT') {
       fetchActiveJobs();
     } else if (payload.eventType === 'UPDATE') {
+      const updatedJob = payload.new;
+      
+      // Show completion notification
+      if ((updatedJob.status === 'completed' || updatedJob.status === 'failed') && 
+          !notifiedJobs.has(updatedJob.id)) {
+        
+        setNotifiedJobs(prev => new Set([...prev, updatedJob.id]));
+        
+        if (updatedJob.status === 'completed') {
+          toast({
+            title: 'Course Generation Complete! 🎉',
+            description: `Successfully generated courses for ${updatedJob.successful_courses} employee${updatedJob.successful_courses !== 1 ? 's' : ''}`,
+          });
+        } else if (updatedJob.status === 'failed') {
+          toast({
+            title: 'Course Generation Failed',
+            description: `Generation failed: ${updatedJob.error_message || 'Unknown error'}`,
+            variant: 'destructive',
+          });
+        }
+        
+        // Refresh to move job to recent jobs
+        setTimeout(() => fetchActiveJobs(), 1000);
+      }
+      
       setActiveJobs(prev => prev.map(job => 
-        job.id === payload.new.id 
-          ? { ...job, ...payload.new }
+        job.id === updatedJob.id 
+          ? { ...job, ...updatedJob }
           : job
       ));
     } else if (payload.eventType === 'DELETE') {
@@ -189,19 +251,30 @@ export const ActiveJobsDisplay = () => {
     );
   }
 
-  if (activeJobs.length === 0) return null;
+  // Show component if there are active jobs OR recent jobs to display
+  if (activeJobs.length === 0 && recentJobs.length === 0) return null;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-muted-foreground">
-          Active Generation Jobs
+          Course Generation Jobs
         </h3>
-        <Badge variant="secondary">
-          {activeJobs.length} running
-        </Badge>
+        <div className="flex items-center gap-2">
+          {activeJobs.length > 0 && (
+            <Badge variant="default">
+              {activeJobs.length} active
+            </Badge>
+          )}
+          {recentJobs.length > 0 && (
+            <Badge variant="outline">
+              {recentJobs.length} recent
+            </Badge>
+          )}
+        </div>
       </div>
       
+      {/* Active Jobs */}
       {activeJobs.map(job => (
         <Card key={job.id} className="overflow-hidden">
           <div 
@@ -415,6 +488,77 @@ export const ActiveJobsDisplay = () => {
           )}
         </Card>
       ))}
+      
+      {/* Recent Completed/Failed Jobs */}
+      {recentJobs.length > 0 && (
+        <>
+          {activeJobs.length > 0 && (
+            <div className="border-t pt-3 mt-3">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                Recently Completed
+              </h4>
+            </div>
+          )}
+          {recentJobs.map(job => (
+            <Card key={job.id} className="overflow-hidden opacity-75">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* Status Icon */}
+                    <div className="relative">
+                      {job.status === 'completed' ? (
+                        <CheckCircle className="h-10 w-10 text-green-500" />
+                      ) : (
+                        <AlertCircle className="h-10 w-10 text-red-500" />
+                      )}
+                    </div>
+                    
+                    <div>
+                      <p className="font-medium">
+                        Generated for {job.total_employees} employee{job.total_employees !== 1 ? 's' : ''}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {job.status === 'completed' ? 'Completed successfully' : 'Generation failed'}
+                        {job.current_employee_name && (
+                          <span> • Last: {job.current_employee_name}</span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3 text-green-500" />
+                          {job.successful_courses} completed
+                        </span>
+                        {job.failed_courses > 0 && (
+                          <span className="flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3 text-red-500" />
+                            {job.failed_courses} failed
+                          </span>
+                        )}
+                        <span>
+                          {new Date(job.updated_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Badge variant={
+                    job.status === 'completed' ? 'success' : 'destructive'
+                  }>
+                    {job.status}
+                  </Badge>
+                </div>
+                
+                {/* Error Message for Failed Jobs */}
+                {job.status === 'failed' && job.error_message && (
+                  <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/30 rounded text-sm text-red-600 dark:text-red-400">
+                    {job.error_message}
+                  </div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </>
+      )}
     </div>
   );
 };
