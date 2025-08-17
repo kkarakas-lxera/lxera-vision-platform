@@ -541,20 +541,21 @@ export default function MarketIntelligence() {
           {(uiState === 'success' || uiState === 'history-present') && currentRequest?.status === 'completed' && (
             <div className="space-y-4">
               {/* New Analysis Button */}
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-md">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Viewing Report</h3>
-                  <p className="text-sm text-gray-600">{currentRequest.position_title} • {getRelativeTime(currentRequest.updated_at)}</p>
+                  <h4 className="text-sm font-medium text-gray-900">Viewing Report</h4>
+                  <p className="text-xs text-gray-600">{currentRequest.position_title} • {getRelativeTime(currentRequest.updated_at)}</p>
                 </div>
                 <Button 
                   onClick={() => {
                     setCurrentRequest(null);
                     setUiState('first-time');
                   }}
+                  size="sm"
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <Brain className="h-4 w-4 mr-2" />
-                  Start New Analysis
+                  <Brain className="h-3 w-3 mr-1" />
+                  New Analysis
                 </Button>
               </div>
               
