@@ -469,6 +469,15 @@ export default function MarketIntelligence() {
         }
 
         // Temporarily adjust styles for better PDF rendering
+        const originalStyles = {
+          width: element.style.width,
+          maxWidth: element.style.maxWidth,
+          padding: element.style.padding,
+          backgroundColor: element.style.backgroundColor,
+          boxShadow: element.style.boxShadow,
+          border: element.style.border,
+        };
+
         element.style.width = '210mm'; // A4 width
         element.style.maxWidth = '210mm';
         element.style.padding = '20mm';
@@ -487,33 +496,63 @@ export default function MarketIntelligence() {
         });
 
         // Reset styles
-        element.style.width = '';
-        element.style.maxWidth = '';
-        element.style.padding = '';
-        element.style.backgroundColor = '';
-        element.style.boxShadow = '';
-        element.style.border = '';
+        Object.assign(element.style, originalStyles);
 
-        // Create PDF
-        const imgData = canvas.toDataURL('image/png');
+        // Create PDF with proper multi-page support
         const pdf = new jsPDF('p', 'mm', 'a4');
-        
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 20; // 20mm margins
+        const contentWidth = pdfWidth - (margin * 2);
+        const contentHeight = pdfHeight - (margin * 2);
+
+        const imgData = canvas.toDataURL('image/png');
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        
-        // Calculate dimensions to fit page
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const width = imgWidth * ratio;
-        const height = imgHeight * ratio;
-        
-        // Center the image
-        const x = (pdfWidth - width) / 2;
-        const y = (pdfHeight - height) / 2;
 
-        // Add image to PDF
-        pdf.addImage(imgData, 'PNG', x, y, width, height);
+        // Calculate how many pages we need
+        const ratio = contentWidth / (imgWidth / 2); // Divide by 2 because of scale
+        const scaledHeight = (imgHeight / 2) * ratio; // Divide by 2 because of scale
+        const totalPages = Math.ceil(scaledHeight / contentHeight);
+
+        // Add pages
+        for (let page = 0; page < totalPages; page++) {
+          if (page > 0) {
+            pdf.addPage();
+          }
+
+          const yOffset = -(page * contentHeight);
+          const sourceY = (page * contentHeight) / ratio;
+          const sourceHeight = Math.min(contentHeight / ratio, (imgHeight / 2) - sourceY);
+
+          if (sourceHeight > 0) {
+            // Create a temporary canvas for this page section
+            const pageCanvas = document.createElement('canvas');
+            const pageCtx = pageCanvas.getContext('2d')!;
+            
+            pageCanvas.width = imgWidth;
+            pageCanvas.height = sourceHeight * 2; // Scale back up
+            
+            // Draw the section of the main canvas
+            pageCtx.drawImage(
+              canvas,
+              0, sourceY * 2, // Source position
+              imgWidth, sourceHeight * 2, // Source dimensions
+              0, 0, // Destination position
+              imgWidth, sourceHeight * 2 // Destination dimensions
+            );
+
+            const pageImgData = pageCanvas.toDataURL('image/png');
+            pdf.addImage(
+              pageImgData,
+              'PNG',
+              margin,
+              margin,
+              contentWidth,
+              Math.min(contentHeight, sourceHeight * ratio)
+            );
+          }
+        }
         
         // Generate filename
         const filename = `market-intelligence-${currentRequest.position_title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
@@ -523,7 +562,7 @@ export default function MarketIntelligence() {
 
         toast({
           title: 'PDF Downloaded',
-          description: 'Your market intelligence report has been saved.',
+          description: `Your market intelligence report has been saved (${totalPages} pages).`,
         });
 
       } catch (error) {
