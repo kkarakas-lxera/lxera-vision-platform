@@ -330,12 +330,12 @@ serve(async (req) => {
                        context.experience_level === 'mid-level' ? 0.5 : 0.3
     }
 
-    // Generate course outline using OpenAI with enhanced prompting
-    const openAIKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openAIKey) {
+    // Generate course outline using Groq with enhanced prompting
+    const groqApiKey = Deno.env.get('GROQ_API_KEY')
+    if (!groqApiKey) {
       const context: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
       return createErrorResponse(
-        new Error('OpenAI API key not configured'),
+        new Error('Groq API key not configured'),
         context,
         503
       )
@@ -432,16 +432,16 @@ EXAMPLE MODULE NAMING:
 
 CRITICAL: This course outline is their REWARD for completing the profile. Every module must feel personally crafted for ${context.employee_name}, directly addressing their specific situation, challenges, and aspirations. Show them a clear path from where they are to where they want to be.`
 
-    console.log(`[${requestId}] Calling OpenAI GPT-4 for personalized course generation...`)
+    console.log(`[${requestId}] Calling Groq Llama 3.3 70B for personalized course generation...`)
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIKey}`,
+        'Authorization': `Bearer ${groqApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4', // Using full GPT-4 for better personalization
+        model: 'llama-3.3-70b-versatile', // Using Llama 3.3 70B for better personalization
         messages: [
           {
             role: 'system',
@@ -462,7 +462,7 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
       const errorContext: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
       const errorText = await response.text()
       return createErrorResponse(
-        new Error(`OpenAI API error: ${response.status} - ${errorText}`),
+        new Error(`Groq API error: ${response.status} - ${errorText}`),
         errorContext,
         502
       )
@@ -473,7 +473,7 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
     if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message || !aiResponse.choices[0].message.content) {
       const errorContext: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
       return createErrorResponse(
-        new Error('Invalid OpenAI response structure'),
+        new Error('Invalid Groq response structure'),
         errorContext,
         502
       )
@@ -484,7 +484,7 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
       courseOutline = JSON.parse(aiResponse.choices[0].message.content)
     } catch (parseError) {
       const errorContext: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
-      console.error(`[${requestId}] Failed to parse OpenAI JSON response:`, aiResponse.choices[0].message.content)
+      console.error(`[${requestId}] Failed to parse Groq JSON response:`, aiResponse.choices[0].message.content)
       return createErrorResponse(
         new Error('Failed to parse course outline from AI response'),
         errorContext,

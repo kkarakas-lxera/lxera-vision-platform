@@ -21,7 +21,6 @@ openai-agents>=0.1.0
 psycopg2-binary>=2.9.0
 
 # Research tools
-tavily-python>=0.3.0
 firecrawl-py>=0.0.16
 
 # Agent framework (replace agents module)
@@ -39,3 +38,9 @@ asyncio-throttle>=0.1.1
 
 # Monitoring and observability
 sentry-sdk[flask,openai]>=2.0.0
+
+# AI Visual Pipeline dependencies
+plotly>=5.0.0
+cairosvg>=2.5.0
+Pillow>=9.0.0
+matplotlib>=3.5.0

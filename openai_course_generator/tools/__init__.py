@@ -5,14 +5,14 @@
 # Research tools (confirmed working)
 try:
     from .research_tools import (
-        tavily_search,
-        firecrawl_extract,
+        firecrawl_search,
+        scrape_do_extract,
         research_synthesizer
     )
 except ImportError:
     print("Warning: Could not import research_tools")
-    tavily_search = None
-    firecrawl_extract = None
+    firecrawl_search = None
+    scrape_do_extract = None
     research_synthesizer = None
 
 # Skip problematic imports for now - focus on agentic tools
@@ -22,7 +22,7 @@ except ImportError:
 
 __all__ = [
     # Research tools (working)
-    "tavily_search",
-    "firecrawl_extract",
+    "firecrawl_search",
+    "scrape_do_extract",
     "research_synthesizer"
 ]

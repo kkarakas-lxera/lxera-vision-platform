@@ -10,7 +10,7 @@ import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from lxera_agents import function_tool
-from openai import OpenAI
+from groq import Groq
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
@@ -24,9 +24,49 @@ class EnhancedResearchOrchestrator:
     """Production research orchestrator with multi-agent coordination"""
     
     def __init__(self):
-        self.tavily_api_key = os.getenv('TAVILY_API_KEY', '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')
         self.firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY')
-        self.openai_client = OpenAI()
+        self.scrape_do_api_key = os.getenv('SCRAPE_DO_API_KEY')
+        self.groq_api_key = os.getenv('GROQ_API_KEY')
+        self.groq_client = Groq(api_key=self.groq_api_key)
+    
+    async def _extract_with_scrape_do(self, url: str) -> str:
+        """Extract content from URL using Scrape.do API"""
+        try:
+            import requests
+            
+            scrape_params = {
+                "url": url,
+                "format": "markdown",
+                "extractionRules": {
+                    "removeUnwantedElements": True,
+                    "onlyMainContent": True,
+                    "maxLength": 5000
+                }
+            }
+            
+            headers = {
+                "Authorization": f"Bearer {self.scrape_do_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(
+                "https://api.scrape.do/v1/scrape",
+                headers=headers,
+                json=scrape_params,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                content = result.get('data', {}).get('content', '')
+                return content[:5000]  # Limit content length
+            else:
+                logger.error(f"Scrape.do failed for {url}: {response.status_code}")
+                return ""
+                
+        except Exception as e:
+            logger.error(f"Scrape.do extraction error for {url}: {e}")
+            return ""
         
     async def execute_multi_source_research(
         self, 
@@ -85,25 +125,56 @@ class EnhancedResearchOrchestrator:
             raise
     
     async def _execute_academic_research(self, query: str, session_id: str) -> Dict[str, Any]:
-        """Execute academic-focused research"""
+        """Execute academic-focused research using Firecrawl + Scrape.do"""
         try:
-            from tavily import TavilyClient
-            tavily_client = TavilyClient(api_key=self.tavily_api_key)
+            import requests
             
-            # Academic domain filtering
+            # Firecrawl search for academic sources
             search_params = {
                 "query": f"academic research {query}",
-                "search_depth": "advanced",
-                "max_results": 5,
-                "include_domains": [
+                "limit": 5,
+                "includeDomains": [
                     "edu", "org", "academia.edu", "researchgate.net", 
                     "ieee.org", "acm.org", "springer.com", "jstor.org"
-                ],
-                "include_answer": True,
-                "include_raw_content": True
+                ]
             }
             
-            results = tavily_client.search(**search_params)
+            headers = {
+                "Authorization": f"Bearer {self.firecrawl_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(
+                "https://api.firecrawl.dev/v1/search",
+                headers=headers,
+                json=search_params,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                search_results = response.json()
+                
+                # Use Scrape.do to extract content from top URLs
+                extracted_content = []
+                urls = search_results.get('data', [])[:3]  # Top 3 URLs
+                
+                for url_data in urls:
+                    url = url_data.get('url')
+                    content = await self._extract_with_scrape_do(url)
+                    if content:
+                        extracted_content.append({
+                            'url': url,
+                            'title': url_data.get('title', ''),
+                            'content': content
+                        })
+                
+                results = {
+                    'search_results': search_results,
+                    'extracted_content': extracted_content,
+                    'source_count': len(extracted_content)
+                }
+            else:
+                results = {'error': f'Firecrawl search failed: {response.status_code}'}
             
             # Store section results
             section_id = await self._store_research_section(
@@ -128,25 +199,56 @@ class EnhancedResearchOrchestrator:
             }
     
     async def _execute_industry_research(self, query: str, session_id: str) -> Dict[str, Any]:
-        """Execute industry-focused research"""
+        """Execute industry-focused research using Firecrawl + Scrape.do"""
         try:
-            from tavily import TavilyClient
-            tavily_client = TavilyClient(api_key=self.tavily_api_key)
+            import requests
             
-            # Industry domain filtering
+            # Firecrawl search for industry sources
             search_params = {
                 "query": f"industry best practices {query}",
-                "search_depth": "advanced", 
-                "max_results": 5,
-                "include_domains": [
+                "limit": 5,
+                "includeDomains": [
                     "mckinsey.com", "deloitte.com", "pwc.com", "bcg.com",
                     "hbr.org", "forbes.com", "bloomberg.com", "reuters.com"
-                ],
-                "include_answer": True,
-                "include_raw_content": True
+                ]
             }
             
-            results = tavily_client.search(**search_params)
+            headers = {
+                "Authorization": f"Bearer {self.firecrawl_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(
+                "https://api.firecrawl.dev/v1/search",
+                headers=headers,
+                json=search_params,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                search_results = response.json()
+                
+                # Use Scrape.do to extract content from top URLs
+                extracted_content = []
+                urls = search_results.get('data', [])[:3]  # Top 3 URLs
+                
+                for url_data in urls:
+                    url = url_data.get('url')
+                    content = await self._extract_with_scrape_do(url)
+                    if content:
+                        extracted_content.append({
+                            'url': url,
+                            'title': url_data.get('title', ''),
+                            'content': content
+                        })
+                
+                results = {
+                    'search_results': search_results,
+                    'extracted_content': extracted_content,
+                    'source_count': len(extracted_content)
+                }
+            else:
+                results = {'error': f'Firecrawl search failed: {response.status_code}'}
             
             # Store section results
             section_id = await self._store_research_section(
@@ -171,25 +273,56 @@ class EnhancedResearchOrchestrator:
             }
     
     async def _execute_technical_research(self, query: str, session_id: str) -> Dict[str, Any]:
-        """Execute technical documentation research"""
+        """Execute technical documentation research using Firecrawl + Scrape.do"""
         try:
-            from tavily import TavilyClient
-            tavily_client = TavilyClient(api_key=self.tavily_api_key)
+            import requests
             
-            # Technical domain filtering
+            # Firecrawl search for technical sources
             search_params = {
                 "query": f"technical documentation {query}",
-                "search_depth": "advanced",
-                "max_results": 5,
-                "include_domains": [
+                "limit": 5,
+                "includeDomains": [
                     "github.com", "stackoverflow.com", "docs.microsoft.com",
                     "developer.mozilla.org", "w3.org", "google.com/developers"
-                ],
-                "include_answer": True,
-                "include_raw_content": True
+                ]
             }
             
-            results = tavily_client.search(**search_params)
+            headers = {
+                "Authorization": f"Bearer {self.firecrawl_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(
+                "https://api.firecrawl.dev/v1/search",
+                headers=headers,
+                json=search_params,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                search_results = response.json()
+                
+                # Use Scrape.do to extract content from top URLs
+                extracted_content = []
+                urls = search_results.get('data', [])[:3]  # Top 3 URLs
+                
+                for url_data in urls:
+                    url = url_data.get('url')
+                    content = await self._extract_with_scrape_do(url)
+                    if content:
+                        extracted_content.append({
+                            'url': url,
+                            'title': url_data.get('title', ''),
+                            'content': content
+                        })
+                
+                results = {
+                    'search_results': search_results,
+                    'extracted_content': extracted_content,
+                    'source_count': len(extracted_content)
+                }
+            else:
+                results = {'error': f'Firecrawl search failed: {response.status_code}'}
             
             # Store section results
             section_id = await self._store_research_section(
@@ -221,7 +354,7 @@ class EnhancedResearchOrchestrator:
             if isinstance(result, Exception) or 'error' in result:
                 continue
                 
-            sources = result.get('results', {}).get('results', [])
+            sources = result.get('results', {}).get('extracted_content', [])
             for source in sources:
                 credibility_score = await self._calculate_credibility_score(source)
                 
@@ -312,13 +445,14 @@ class EnhancedResearchOrchestrator:
         """
         
         try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4",
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are a research synthesis specialist. Create comprehensive, accurate syntheses of research findings."},
                     {"role": "user", "content": synthesis_prompt}
                 ],
-                temperature=0.3
+                temperature=0.3,
+                response_format={"type": "json_object"}
             )
             
             synthesis_content = response.choices[0].message.content

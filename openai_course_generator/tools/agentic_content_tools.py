@@ -244,8 +244,8 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         
         # Generate content with OpenAI
         start_time = time.time()
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert educational content creator specializing in personalized professional development materials. Create comprehensive, practical, and engaging content that meets specified word count requirements."},
                 {"role": "user", "content": content_prompt}
@@ -264,8 +264,8 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
             # Make a second attempt with explicit length requirement
             retry_prompt = f"{content_prompt}\n\nIMPORTANT: The previous generation was too short ({word_count} words). You MUST generate at least {min_words} words of content (target: {word_count_target} words). Do not stop until you reach this target."
             
-            retry_response = openai_client.chat.completions.create(
-                model="gpt-4",
+            retry_response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are an expert educational content creator. Generate comprehensive content that meets exact word count requirements."},
                     {"role": "user", "content": retry_prompt}
@@ -285,7 +285,7 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
             "word_count": word_count,
             "generation_metadata": {
                 "tool_name": "generate_module_introduction",
-                "openai_model": "gpt-4-turbo",
+                "groq_model": "llama-3.3-70b-versatile",
                 "generation_time_seconds": round(generation_time, 2),
                 "token_usage": {
                     "prompt_tokens": response.usage.prompt_tokens,
@@ -423,8 +423,8 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
         
         # Generate content
         start_time = time.time()
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert educational content creator specializing in detailed, practical professional training materials. Always generate comprehensive content that meets the specified word count requirements."},
                 {"role": "user", "content": content_prompt}
@@ -443,8 +443,8 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
             # Make a second attempt with explicit length requirement
             retry_prompt = f"{content_prompt}\n\nCRITICAL: The previous generation was too short ({word_count} words). You MUST generate at least {min_words} words of detailed, comprehensive content (target: {word_count_target} words). Continue expanding each section until you reach this target."
             
-            retry_response = openai_client.chat.completions.create(
-                model="gpt-4-turbo",  # Use turbo for better length adherence
+            retry_response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",  # Use turbo for better length adherence
                 messages=[
                     {"role": "system", "content": "You are an expert educational content creator. Generate comprehensive, detailed content that meets exact word count requirements. Be thorough and extensive."},
                     {"role": "user", "content": retry_prompt}
@@ -463,7 +463,7 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
             "word_count": word_count,
             "generation_metadata": {
                 "tool_name": "generate_core_content",
-                "openai_model": "gpt-4-turbo",
+                "groq_model": "llama-3.3-70b-versatile",
                 "generation_time_seconds": round(generation_time, 2),
                 "token_usage": {
                     "prompt_tokens": response.usage.prompt_tokens,
@@ -567,8 +567,8 @@ def generate_practical_applications(module_spec: str, research_context: str = No
         
         # Generate content
         start_time = time.time()
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert in creating practical, hands-on training materials focused on immediate workplace application. Generate comprehensive content that meets the specified word count requirements."},
                 {"role": "user", "content": content_prompt}
@@ -588,7 +588,7 @@ def generate_practical_applications(module_spec: str, research_context: str = No
             "word_count": word_count,
             "generation_metadata": {
                 "tool_name": "generate_practical_applications",
-                "openai_model": "gpt-4-turbo",
+                "groq_model": "llama-3.3-70b-versatile",
                 "generation_time_seconds": round(generation_time, 2),
                 "token_usage": {
                     "prompt_tokens": response.usage.prompt_tokens,
@@ -689,8 +689,8 @@ def generate_case_studies(module_spec: str, research_context: str = None) -> str
         
         # Generate content
         start_time = time.time()
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert in creating realistic, educational business case studies for professional development. Always generate comprehensive content that meets the specified word count requirements."},
                 {"role": "user", "content": content_prompt}
@@ -710,7 +710,7 @@ def generate_case_studies(module_spec: str, research_context: str = None) -> str
             "word_count": word_count,
             "generation_metadata": {
                 "tool_name": "generate_case_studies",
-                "openai_model": "gpt-4-turbo",
+                "groq_model": "llama-3.3-70b-versatile",
                 "generation_time_seconds": round(generation_time, 2),
                 "token_usage": {
                     "prompt_tokens": response.usage.prompt_tokens,
@@ -812,8 +812,8 @@ def generate_assessment_materials(module_spec: str) -> str:
         
         # Generate content
         start_time = time.time()
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert in creating effective educational assessments that measure both knowledge and practical application. Generate comprehensive assessment materials."},
                 {"role": "user", "content": content_prompt}
@@ -833,7 +833,7 @@ def generate_assessment_materials(module_spec: str) -> str:
             "word_count": word_count,
             "generation_metadata": {
                 "tool_name": "generate_assessment_materials",
-                "openai_model": "gpt-4-turbo",
+                "groq_model": "llama-3.3-70b-versatile",
                 "generation_time_seconds": round(generation_time, 2),
                 "token_usage": {
                     "prompt_tokens": response.usage.prompt_tokens,
@@ -1090,8 +1090,8 @@ def revise_section_with_research(
         Return the complete module with only the specified section revised and enhanced.
         """
         
-        response = openai_client.chat.completions.create(
-            model="gpt-4",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert content editor who makes targeted revisions to specific sections while preserving the rest of the content. Always integrate current web research findings."},
                 {"role": "user", "content": revision_prompt}
@@ -1139,11 +1139,11 @@ def enhance_with_current_data(content_section: str, enhancement_type: str, searc
         logger.info(f"🔍 Enhancing content with current data: {enhancement_type}")
         
         # Import enhanced research tools
-        from tools.research_tools import tavily_search
+        from tools.research_tools import firecrawl_search, scrape_do_extract
         
-        # Check if enhanced research v2 is available and enabled
+        # Check if enhanced research is available and enabled
         try:
-            from tools.enhanced_research_tools_v2 import enhanced_comprehensive_research
+            from tools.enhanced_research_tools import enhanced_multi_source_research
             enhanced_research_enabled = True
         except ImportError:
             enhanced_research_enabled = False
@@ -1177,12 +1177,40 @@ def enhance_with_current_data(content_section: str, enhancement_type: str, searc
                 }
             else:
                 # Fallback to standard search
-                search_result = tavily_search(search_query, "financial")
+                # First search for URLs with Firecrawl
+                search_result = firecrawl_search(search_query, "financial")
+                
+                # Extract content from top URLs using Scrape.do
+                search_data = json.loads(search_result) if isinstance(search_result, str) else search_result
+                if search_data.get('success') and search_data.get('urls'):
+                    top_url = search_data['urls'][0]['url']
+                    content_result = scrape_do_extract(top_url, "summary")
+                    content_data = json.loads(content_result) if isinstance(content_result, str) else content_result
+                    if content_data.get('success'):
+                        research_content = content_data.get('content', '')
+                    else:
+                        research_content = "Content extraction failed"
+                else:
+                    research_content = "Search failed"
                 search_data = json.loads(search_result)
         else:
             logger.info("📚 Using standard research for content enhancement")
             # Execute standard web search for current information
-            search_result = tavily_search(search_query, "financial")
+            # First search for URLs with Firecrawl
+            search_result = firecrawl_search(search_query, "financial")
+            
+            # Extract content from top URLs using Scrape.do
+            search_data = json.loads(search_result) if isinstance(search_result, str) else search_result
+            if search_data.get('success') and search_data.get('urls'):
+                top_url = search_data['urls'][0]['url']
+                content_result = scrape_do_extract(top_url, "summary")
+                content_data = json.loads(content_result) if isinstance(content_result, str) else content_result
+                if content_data.get('success'):
+                    research_content = content_data.get('content', '')
+                else:
+                    research_content = "Content extraction failed"
+            else:
+                research_content = "Search failed"
             search_data = json.loads(search_result)
         
         if not search_data.get("success", False):
@@ -1256,8 +1284,8 @@ def enhance_with_current_data(content_section: str, enhancement_type: str, searc
             Return the enhanced content section.
             """
         
-        response = openai_client.chat.completions.create(
-            model="gpt-4",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert content enhancer who integrates current web research into existing content to make it more relevant and up-to-date."},
                 {"role": "user", "content": enhancement_prompt}
@@ -1401,8 +1429,8 @@ def regenerate_section_with_research(
         Return ONLY the section content text, no JSON wrapper.
         """
         
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": f"You are an expert content creator specializing in regenerating educational content sections with research enhancement for {section_name} sections."},
                 {"role": "user", "content": regeneration_prompt}
@@ -1877,8 +1905,8 @@ def generate_section_with_outline(section_name: str, module_outline: str, module
         for attempt in range(max_attempts):
             try:
                 # Call OpenAI for generation
-                response = openai_client.chat.completions.create(
-                    model="gpt-4-turbo",
+                response = groq_client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
                     messages=[
                         {"role": "system", "content": f"You are an expert content creator. Generate exactly {word_target} words for the {section_name} section. CRITICAL: Word count must be precise."},
                         {"role": "user", "content": section_prompt}
@@ -2036,8 +2064,8 @@ def expand_section_content(section_name: str, current_content: str, target_words
         Return the complete expanded content (original + additions).
         """
         
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": f"You are an expert content expander. Add exactly {words_needed} words to reach the target of {target_words} words total."},
                 {"role": "user", "content": expansion_prompt}

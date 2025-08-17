@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Initialize Supabase client for fetching course plans
 from supabase import create_client
 SUPABASE_URL = 'https://xwfweumeryrgbguwrocr.supabase.co'
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc2MzQ0MCwiZXhwIjoyMDY2MzM5NDQwfQ.qxXpBxUKhKA4AQT4UQnIEJGbGNrRDMbBroZU8YaypSY')
+SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
@@ -62,142 +62,161 @@ def fetch_course_plan(plan_id: str) -> str:
 
 
 @function_tool
-def tavily_search(query: str, context: str = "general") -> str:
+def firecrawl_search(query: str, context: str = "general") -> str:
     """
-    Comprehensive web search using Tavily API.
+    Web search using Firecrawl API - SEARCH ONLY, returns URLs.
     
-    Wraps existing Tavily integration from refactored_nodes system.
+    Use this to find relevant URLs, then use scrape_do_extract to get content.
     """
     try:
-        # Get API key from environment or use hardcoded for testing
-        tavily_api_key = os.getenv('TAVILY_API_KEY', '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')
-        if not tavily_api_key:
-            try:
-                from config.settings import get_settings
-                settings = get_settings()
-                tavily_api_key = settings.tavily_api_key
-            except ImportError:
-                logger.warning("Could not import settings, using hardcoded API key for testing")
+        import requests
         
-        # Import and use existing Tavily client setup
-        from tavily import TavilyClient
+        # Get API key from environment  
+        firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY')
+        if not firecrawl_api_key:
+            logger.error("❌ FIRECRAWL_API_KEY not found in environment")
+            return json.dumps({"error": "Firecrawl API key not configured"})
         
-        tavily_client = TavilyClient(api_key=tavily_api_key)
-        
-        # Configure search parameters based on context (reduced for context management)
+        # Configure search parameters - SEARCH ONLY, no scraping
         search_params = {
             "query": query,
-            "search_depth": "basic",
-            "max_results": 3,
-            "include_images": False,
-            "include_answer": True,
-            "include_raw_content": False  # Reduce content size
+            "limit": 8,  # Get more URLs for scraping
         }
         
-        # Add domain filtering for educational content
-        if context == "educational":
-            search_params["include_domains"] = [
-                "edu", "coursera.org", "edx.org", "khanacademy.org",
-                "mit.edu", "stanford.edu", "harvard.edu"
-            ]
-        elif context == "financial":
-            search_params["include_domains"] = [
-                "investopedia.com", "morningstar.com", "bloomberg.com",
-                "sec.gov", "federalreserve.gov", "cfa.org"
-            ]
+        # Add context-specific domain filtering
+        if context == "academic":
+            search_params["includeDomains"] = ["edu", "org", "scholar.google.com", "researchgate.net"]
+        elif context == "technical":
+            search_params["includeDomains"] = ["github.com", "stackoverflow.com", "docs.", "developer."]
+        elif context == "business":
+            search_params["includeDomains"] = ["hbr.org", "mckinsey.com", "deloitte.com", "forbes.com"]
         
-        # Execute search
-        results = tavily_client.search(**search_params)
+        logger.info(f"🔍 Firecrawl search: {query} (context: {context})")
         
-        result_data = {
-            "search_results": results.get("results", []),
-            "answer": results.get("answer", ""),
-            "query": query,
-            "result_count": len(results.get("results", [])),
-            "search_timestamp": datetime.now().isoformat(),
-            "domain_focus": context,
-            "success": True
+        # Execute Firecrawl search - SEARCH ONLY
+        headers = {
+            "Authorization": f"Bearer {firecrawl_api_key}",
+            "Content-Type": "application/json"
         }
-        return json.dumps(result_data)
+        
+        response = requests.post(
+            "https://api.firecrawl.dev/v1/search",
+            headers=headers,
+            json=search_params,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            results = response.json()
+            
+            # Extract URLs for scraping
+            urls = []
+            if 'data' in results:
+                for item in results['data']:
+                    if 'url' in item:
+                        urls.append({
+                            'url': item['url'],
+                            'title': item.get('title', ''),
+                            'description': item.get('description', '')
+                        })
+            
+            result_data = {
+                "urls": urls,
+                "query": query,
+                "url_count": len(urls),
+                "search_timestamp": datetime.now().isoformat(),
+                "context": context,
+                "success": True
+            }
+            
+            logger.info(f"✅ Found {len(urls)} URLs for scraping")
+            return json.dumps(result_data)
+        else:
+            logger.error(f"❌ Firecrawl search failed: {response.status_code}")
+            return json.dumps({"error": f"Search failed: {response.status_code}", "success": False})
         
     except Exception as e:
-        logger.error(f"Tavily search failed: {e}")
-        error_data = {
-            "error": str(e),
-            "search_results": [],
-            "query": query,
-            "result_count": 0,
-            "success": False
-        }
-        return json.dumps(error_data)
+        logger.error(f"❌ Firecrawl search error: {e}")
+        return json.dumps({"error": str(e), "success": False})
 
 
 @function_tool  
-def firecrawl_extract(url: str, extraction_type: str = "full") -> str:
+def scrape_do_extract(url: str, extraction_type: str = "full") -> str:
     """
-    Extract detailed content from specific URLs using Firecrawl.
+    Extract content from URLs using Scrape.do API.
     
-    Wraps existing Firecrawl integration for deep content extraction.
+    Use this after firecrawl_search to get actual content from the URLs.
     """
     try:
-        # Import and use existing Firecrawl setup
-        from firecrawl import FirecrawlApp
+        import requests
         
-        # Get API key from environment or use the provided key
-        firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY', 'fc-7262516226444c878aa16b03d570f3c7')
-        logger.info(f"Using Firecrawl API key: {firecrawl_api_key[:10]}...")
+        # Get Scrape.do API key from environment
+        scrape_do_api_key = os.getenv('SCRAPE_DO_API_KEY')
+        if not scrape_do_api_key:
+            logger.error("❌ SCRAPE_DO_API_KEY not found in environment")
+            return json.dumps({"error": "Scrape.do API key not configured"})
         
-        firecrawl_client = FirecrawlApp(api_key=firecrawl_api_key)
+        logger.info(f"🔧 Scraping URL with Scrape.do: {url}")
         
-        # Configure extraction parameters with content limit
-        if extraction_type == "full":
-            result = firecrawl_client.scrape_url(
-                url,
-                formats=["markdown"],
-                only_main_content=True,
-                include_tags=["h1", "h2", "h3", "p", "li"],
-                exclude_tags=["nav", "footer", "aside", "advertisement", "script", "style"],
-                wait_for=2000
-            )
-        else:
-            result = firecrawl_client.extract(
-                url,
-                schema={
-                    "type": "object",
-                    "properties": {
-                        "title": {"type": "string"},
-                        "main_content": {"type": "string"},
-                        "key_points": {"type": "array", "items": {"type": "string"}}
-                    }
-                }
-            )
+        # Configure Scrape.do parameters
+        scrape_params = {
+            "url": url,
+            "format": "markdown",
+            "extractionRules": {
+                "removeUnwantedElements": True,
+                "onlyMainContent": True
+            }
+        }
         
-        # Extract content from response with content limit
-        if hasattr(result, 'success') and result.success:
-            content = result.markdown or getattr(result, 'content', '') or ''
-            title = result.title or (result.metadata.get('title') if result.metadata else '') or ''
+        # Add extraction type specific parameters
+        if extraction_type == "summary":
+            scrape_params["extractionRules"]["maxLength"] = 5000
+        elif extraction_type == "key_points":
+            scrape_params["extractionRules"]["extractStructuredData"] = True
+        
+        # Execute Scrape.do request
+        headers = {
+            "Authorization": f"Bearer {scrape_do_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(
+            "https://api.scrape.do/v1/scrape",
+            headers=headers,
+            json=scrape_params,
+            timeout=60  # Scraping can take longer
+        )
+        if response.status_code == 200:
+            result = response.json()
+            
+            # Extract content from Scrape.do response
+            content = result.get('data', {}).get('content', '')
+            title = result.get('data', {}).get('title', '')
             
             # Limit content to prevent context overflow (max 5000 words)
-            words = content.split()
-            if len(words) > 5000:
-                content = ' '.join(words[:5000]) + "\n\n[Content truncated at 5000 words for context management]"
+            if content:
+                words = content.split()
+                if len(words) > 5000:
+                    content = ' '.join(words[:5000]) + "\n\n[Content truncated at 5000 words for context management]"
+            
+            result_data = {
+                "content": content,
+                "title": title,
+                "url": url,
+                "word_count": len(content.split()) if content else 0,
+                "extraction_type": extraction_type,
+                "extraction_timestamp": datetime.now().isoformat(),
+                "success": bool(content)
+            }
+            
+            logger.info(f"✅ Scraped {len(content.split())} words from {url}")
+            return json.dumps(result_data)
         else:
-            content = ""
-            title = ""
-        
-        result_data = {
-            "content": content,
-            "title": title,
-            "url": url,
-            "word_count": len(content.split()) if content else 0,
-            "extraction_type": extraction_type,
-            "extraction_timestamp": datetime.now().isoformat(),
-            "success": bool(content)
-        }
-        return json.dumps(result_data)
+            logger.error(f"❌ Scrape.do failed: {response.status_code}")
+            return json.dumps({"error": f"Scraping failed: {response.status_code}", "success": False})
         
     except Exception as e:
-        logger.error(f"Firecrawl extraction failed for {url}: {e}")
+        logger.error(f"❌ Scrape.do error for {url}: {e}")
         error_data = {
             "error": str(e),
             "content": "",
@@ -212,19 +231,20 @@ def firecrawl_extract(url: str, extraction_type: str = "full") -> str:
 @function_tool
 def jina_processor(text_content: str, processing_type: str = "comprehensive") -> str:
     """
-    Process and analyze text content using Jina API.
+    Process and analyze text content using Groq LLM for structured analysis.
     
-    Wraps existing Jina integration for document processing and embeddings.
+    Analyzes content and provides structured insights for course development.
     """
     try:
-        from config.settings import get_settings
-        settings = get_settings()
+        from groq import Groq
         
-        # Import and use existing Jina setup (simplified for now)
-        # Note: This would integrate with actual Jina API in production
+        # Get Groq API key from environment
+        groq_api_key = os.getenv('GROQ_API_KEY')
+        if not groq_api_key:
+            logger.error("❌ GROQ_API_KEY not found in environment")
+            return json.dumps({"error": "Groq API key not configured"})
         
-        # For now, provide a structured analysis using OpenAI
-        openai_client = OpenAI(api_key=settings.openai_api_key)
+        groq_client = Groq(api_key=groq_api_key)
         
         analysis_prompt = f"""
         Analyze the following text content and provide:
@@ -240,8 +260,8 @@ def jina_processor(text_content: str, processing_type: str = "comprehensive") ->
         Provide a structured JSON response.
         """
         
-        response = openai_client.chat.completions.create(
-            model=settings.default_model,
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": analysis_prompt}],
             temperature=0.3,
             response_format={"type": "json_object"}
@@ -275,12 +295,18 @@ def research_synthesizer(research_results: str, synthesis_focus: str = "comprehe
     """
     Synthesize multiple research sources into structured knowledge base.
     
-    Uses OpenAI to create comprehensive synthesis of research findings.
+    Uses Groq LLM to create comprehensive synthesis of research findings.
     """
     try:
-        from config.settings import get_settings
-        settings = get_settings()
-        openai_client = OpenAI(api_key=settings.openai_api_key)
+        from groq import Groq
+        
+        # Get Groq API key from environment
+        groq_api_key = os.getenv('GROQ_API_KEY')
+        if not groq_api_key:
+            logger.error("❌ GROQ_API_KEY not found in environment")
+            return json.dumps({"error": "Groq API key not configured"})
+        
+        groq_client = Groq(api_key=groq_api_key)
         
         # Parse research data from JSON string
         try:
@@ -292,20 +318,17 @@ def research_synthesizer(research_results: str, synthesis_focus: str = "comprehe
         
         # Prepare research data for synthesis
         synthesis_data = {
-            "tavily_results": [],
-            "firecrawl_content": [],
-            "exa_semantic": [],
+            "firecrawl_search_results": [],
+            "scrape_do_content": [],
             "other_sources": []
         }
         
         for result in parsed_results:
             if isinstance(result, dict):
-                if "search_results" in result:  # Tavily data
-                    synthesis_data["tavily_results"].extend(result["search_results"])
-                elif "content" in result and "url" in result:  # Firecrawl data
-                    synthesis_data["firecrawl_content"].append(result)
-                elif "semantic_results" in result:  # EXA data
-                    synthesis_data["exa_semantic"].extend(result["semantic_results"])
+                if "urls" in result:  # Firecrawl search data
+                    synthesis_data["firecrawl_search_results"].append(result)
+                elif "content" in result and "url" in result:  # Scrape.do data
+                    synthesis_data["scrape_do_content"].append(result)
                 else:
                     synthesis_data["other_sources"].append(result)
         
@@ -331,8 +354,8 @@ def research_synthesizer(research_results: str, synthesis_focus: str = "comprehe
         Format as structured JSON.
         """
         
-        response = openai_client.chat.completions.create(
-            model=settings.default_model,
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": synthesis_prompt}],
             temperature=0.3,
             max_tokens=4000,

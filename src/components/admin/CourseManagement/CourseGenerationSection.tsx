@@ -10,11 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Sparkles, Users, AlertCircle } from 'lucide-react';
+import { Sparkles, Users, AlertCircle, Info } from 'lucide-react';
 import { ActiveJobsDisplay } from './ActiveJobsDisplay';
 import { EmployeeSelectionGrid } from './EmployeeSelectionGrid';
 
@@ -485,6 +491,24 @@ export const CourseGenerationSection = () => {
                 >
                   Generate videos
                 </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>
+                        <strong>AI-Powered Educational Videos:</strong> Creates personalized video lessons with AI avatars, 
+                        visual presentations, and synchronized narration. Videos are automatically generated based on course 
+                        content and tailored to each employee's learning style and skill level. This feature significantly 
+                        increases engagement and retention compared to text-only courses.
+                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Note: Video generation adds 10-15 minutes per course module to processing time.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <Badge variant="outline">
                 {selectedEmployeeIds.length} selected

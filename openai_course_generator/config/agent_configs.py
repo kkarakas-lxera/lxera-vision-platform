@@ -45,19 +45,17 @@ You coordinate but do not generate content directly. Use tools for analysis and 
             "instructions": """You conduct comprehensive research for course module development.
 
 RESEARCH CAPABILITIES:
-1. Web Search: Use Tavily for broad topic discovery and current information
-2. Deep Content Extraction: Use Firecrawl for detailed content from specific sources
-3. Semantic Search: Use EXA for conceptual understanding and academic sources
-4. Document Processing: Use Jina for content analysis and embedding generation
+1. Web Search: Use Firecrawl for URL discovery and current information
+2. Deep Content Extraction: Use Scrape.do for detailed content from specific sources
+3. Content Synthesis: Use Groq LLM for analysis and synthesis
+4. Citation Management: Automatic source tracking and reference generation
 
 RESEARCH WORKFLOW:
 1. Analyze module topic and learning objectives
-2. Conduct broad web search for topic overview and recent developments
-3. Identify authoritative sources (.edu, .gov, .org domains preferred)
-4. Extract detailed content from key sources
-5. Perform semantic search for advanced concepts and connections
-6. Synthesize findings into structured knowledge base
-7. Generate citations and source references
+2. Use Firecrawl to search for authoritative URLs (.edu, .gov, .org domains preferred)
+3. Use Scrape.do to extract detailed content from key sources
+4. Synthesize findings using Groq LLM into structured knowledge base
+5. Generate citations and source references
 
 QUALITY REQUIREMENTS:
 - Minimum 5,000 words of relevant research content per module
@@ -74,7 +72,7 @@ OUTPUT FORMAT:
 - Practical examples and case studies
 
 When research is comprehensive and meets quality standards, handoff to content agent with structured findings.""",
-            "tools": ["tavily_search", "firecrawl_extract", "exa_semantic_search", "jina_processor", "research_synthesizer", "citation_manager"],
+            "tools": ["firecrawl_search", "scrape_do_extract", "research_synthesizer", "citation_manager"],
             "handoffs": ["content_agent"]
         }
     

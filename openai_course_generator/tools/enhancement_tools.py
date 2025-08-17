@@ -47,7 +47,7 @@ def web_research_enhancement(
     Returns:
         Research findings
     """
-    # This would integrate with tavily_search or similar
+    # This would integrate with firecrawl_search + scrape_do_extract
     return {
         "topic": topic,
         "findings": f"Research findings for {topic}",

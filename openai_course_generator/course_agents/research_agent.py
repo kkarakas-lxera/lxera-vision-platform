@@ -8,8 +8,8 @@ from lxera_agents import Agent, handoff
 # Import research tools (existing + enhanced)
 from tools.research_tools import (
     fetch_course_plan,
-    tavily_search,
-    firecrawl_extract,
+    firecrawl_search,
+    scrape_do_extract,
     research_synthesizer
 )
 
@@ -20,11 +20,11 @@ from tools.enhanced_research_tools import (
     store_enhanced_research_results
 )
 
-# Import enhanced research tools v2 (significantly improved)
-from tools.enhanced_research_tools_v2 import (
-    enhanced_comprehensive_research,
-    validate_research_comprehensively,
-    store_enhanced_research_v2
+# Import enhanced research tools (significantly improved)
+from tools.enhanced_research_tools import (
+    enhanced_multi_source_research,
+    enhanced_research_quality_validator,
+    store_enhanced_research_results
 )
 
 # Import storage tools v2 with manual FunctionTool creation
@@ -49,8 +49,8 @@ def create_research_agent() -> Agent:
 
     Your responsibilities:
     1. First, fetch the course plan details using the provided plan_id
-    2. Execute comprehensive web searches using tavily_search for topic discovery
-    3. Extract detailed content from authoritative sources using firecrawl_extract
+    2. Execute comprehensive web searches using firecrawl_search for topic discovery
+    3. Extract detailed content from authoritative sources using scrape_do_extract
     4. Synthesize research findings using research_synthesizer
     5. Validate information credibility and source authority
     6. Create structured knowledge bases for course content development
@@ -58,8 +58,8 @@ def create_research_agent() -> Agent:
 
     Process Flow for Research Tasks:
     1. Load the course plan to understand research requirements
-    2. Use tavily_search to find authoritative sources for ONLY the first 2-3 modules
-    3. Use firecrawl_extract on MAXIMUM 3-4 key sources (prioritize official docs)
+    2. Use firecrawl_search to find authoritative sources for ONLY the first 2-3 modules
+    3. Use scrape_do_extract on MAXIMUM 3-4 key sources (prioritize official docs)
     4. Use research_synthesizer IMMEDIATELY after gathering content for each module
     5. Store research results using store_research_results with synthesized insights
     
@@ -89,11 +89,9 @@ def create_research_agent() -> Agent:
         instructions=research_instructions,
         tools=[
             fetch_course_plan,
-            tavily_search,
-            firecrawl_extract,
-            research_synthesizer,
-            store_research_results
-            # store_research_session  # Temporarily disabled due to schema issues
+            firecrawl_search,
+            scrape_do_extract,
+            research_synthesizer
         ]
     )
 
@@ -116,13 +114,13 @@ def create_enhanced_research_agent() -> Agent:
 
     Your responsibilities:
     1. First, fetch the course plan details using the provided plan_id
-    2. Execute enhanced comprehensive research using enhanced_comprehensive_research
-    3. Validate research quality using validate_research_comprehensively
-    4. Store enhanced research results using store_enhanced_research_v2
+    2. Execute enhanced comprehensive research using enhanced_multi_source_research
+    3. Validate research quality using enhanced_research_quality_validator
+    4. Store enhanced research results using store_enhanced_research_results
 
     ENHANCED WORKFLOW:
     1. Load course plan to understand research requirements
-    2. Use enhanced_comprehensive_research with domain-specific configurations:
+    2. Use enhanced_multi_source_research with domain-specific configurations:
        - Academic sources: .edu, research institutions, peer-reviewed content
        - Industry sources: McKinsey, Deloitte, HBR, Bloomberg, industry leaders
        - Technical sources: GitHub, Stack Overflow, official documentation
@@ -140,7 +138,7 @@ def create_enhanced_research_agent() -> Agent:
     - Comprehensive source breakdown and statistics
     - Evidence-based synthesis with proper citations
 
-    COMPLETION: When store_enhanced_research_v2 returns successfully with quality score >= 0.75,
+    COMPLETION: When store_enhanced_research_results returns successfully with quality score >= 0.75,
     your enhanced research work is DONE.
 
     Use the enhanced research tools for superior research quality and comprehensive validation.
@@ -151,9 +149,9 @@ def create_enhanced_research_agent() -> Agent:
         instructions=enhanced_instructions,
         tools=[
             fetch_course_plan,
-            enhanced_comprehensive_research,
-            validate_research_comprehensively,
-            store_enhanced_research_v2
+            enhanced_multi_source_research,
+            enhanced_research_quality_validator,
+            store_enhanced_research_results
         ]
     )
 
@@ -190,10 +188,11 @@ class ResearchAgentOrchestrator:
             RESEARCH CONTEXT: {research_context}
             
             RESEARCH WORKFLOW (Process efficiently to avoid context limits):
-            1. For each query, use tavily_search to find 3-5 authoritative sources
-            2. Use research_synthesizer immediately after every 2-3 searches to consolidate
-            3. Focus on authoritative sources (.edu, .gov, industry leaders)
-            4. Keep research focused and concise
+            1. For each query, use firecrawl_search to find 3-5 authoritative sources
+            2. Use scrape_do_extract to get content from the best URLs
+            3. Use research_synthesizer immediately after every 2-3 extractions to consolidate
+            4. Focus on authoritative sources (.edu, .gov, industry leaders)
+            5. Keep research focused and concise
             
             QUALITY REQUIREMENTS:
             - 3-5 sources per query topic

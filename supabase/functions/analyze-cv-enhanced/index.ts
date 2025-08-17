@@ -671,12 +671,12 @@ serve(async (req) => {
     // For PDFs, use the new responses API; for images, use chat completions
     let extractedText = ''
     let apiResponse: any = null
-    let modelUsed = 'gpt-4o-mini'
+    let modelUsed = 'llama-3.1-8b-instant'
     
     if (isPdf) {
       try {
         // Use the new responses API for PDF processing
-        modelUsed = 'gpt-4o'
+        modelUsed = 'llama-3.3-70b-versatile'
         apiResponse = await openai.responses.create({
           model: modelUsed,
           input: [
@@ -810,7 +810,7 @@ Return the information in a structured JSON format.
 Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
     const analysisResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.1-8b-instant",
       messages: [
         {
           role: "system",
@@ -883,7 +883,7 @@ Return as JSON with a "skills" array.
 Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
     const skillsResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.1-8b-instant",
       messages: [
         {
           role: "system",

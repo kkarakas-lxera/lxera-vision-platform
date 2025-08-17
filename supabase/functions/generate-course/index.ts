@@ -11,9 +11,11 @@ interface CourseGenerationRequest {
   company_id: string
   assigned_by_id: string
   job_id?: string
-  generation_mode?: 'full' | 'first_module' | 'remaining_modules' | 'outline_only'
+  generation_mode?: 'full' | 'first_module' | 'remaining_modules' | 'outline_only' | 'regenerate_with_feedback'
   plan_id?: string // Optional plan_id for tracking outline to full course conversion
   enable_multimedia?: boolean // Optional flag to enable multimedia generation
+  course_id?: string // For regeneration with feedback
+  feedback_context?: string // Admin feedback for regeneration
 }
 
 serve(async (req) => {
@@ -23,7 +25,7 @@ serve(async (req) => {
   }
 
   try {
-    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full', plan_id, enable_multimedia = false } = await req.json() as CourseGenerationRequest
+    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full', plan_id, enable_multimedia = false, course_id, feedback_context } = await req.json() as CourseGenerationRequest
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -289,9 +291,43 @@ serve(async (req) => {
       skills_gaps: priorityGaps
     }
 
-    // Phase 4: Call the Agent Pipeline
+    // Phase 4: Handle Feedback Context (if regenerating)
+    let feedbackEnrichedMetadata = courseMetadata;
+    let previousCourseContent = null;
+    
+    if (generation_mode === 'regenerate_with_feedback' && feedback_context && course_id) {
+      await updateJobProgress({
+        current_phase: 'Processing feedback for regeneration',
+        progress_percentage: 30
+      })
+      
+      // Fetch previous course content for context
+      const { data: existingContent, error: contentError } = await supabase
+        .from('cm_module_content')
+        .select('*')
+        .eq('content_id', course_id)
+        .single()
+      
+      if (!contentError && existingContent) {
+        previousCourseContent = existingContent;
+      }
+      
+      // Enrich metadata with feedback context
+      feedbackEnrichedMetadata = {
+        ...courseMetadata,
+        regeneration_context: {
+          feedback_text: feedback_context,
+          previous_course_id: course_id,
+          previous_content: previousCourseContent,
+          iteration_type: 'feedback_revision',
+          improvement_focus: feedback_context // AI will parse this for specific improvements
+        }
+      }
+    }
+
+    // Phase 5: Call the Agent Pipeline
     await updateJobProgress({
-      current_phase: 'Initializing AI agents',
+      current_phase: generation_mode === 'regenerate_with_feedback' ? 'Regenerating course with feedback' : 'Initializing AI agents',
       progress_percentage: 35
     })
 
@@ -304,8 +340,10 @@ serve(async (req) => {
       generation_mode,
       plan_id,  // Pass plan_id for tracking and remaining_modules mode
       enable_multimedia,  // Pass multimedia flag
-      course_metadata: courseMetadata,
-      skills_gaps: priorityGaps
+      course_metadata: feedbackEnrichedMetadata,
+      skills_gaps: priorityGaps,
+      feedback_context: feedback_context || null,
+      previous_course_content: previousCourseContent
     }
 
     // Call the agent pipeline API
@@ -413,6 +451,7 @@ serve(async (req) => {
         generation_mode,
         is_partial_generation: generation_mode === 'first_module',
         is_completion: generation_mode === 'remaining_modules',
+        is_regeneration: generation_mode === 'regenerate_with_feedback',
         token_savings: pipelineResult.token_savings,
         processing_time: pipelineResult.total_processing_time,
         ...multimedia_info

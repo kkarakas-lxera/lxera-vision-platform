@@ -316,8 +316,8 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         """
         
         # Call OpenAI to generate course structure
-        response = openai_client.chat.completions.create(
-            model="gpt-4",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert learning designer who creates highly personalized course structures. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": planning_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
@@ -531,8 +531,8 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
         """
         
         # Call OpenAI to generate research queries
-        response = openai_client.chat.completions.create(
-            model="gpt-4",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert research strategist who creates targeted search queries for personalized learning. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": query_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
@@ -847,8 +847,8 @@ def generate_module_outline_with_allocations(module_spec: str, employee_profile:
         """
         
         # Call OpenAI to generate detailed outline
-        response = openai_client.chat.completions.create(
-            model="gpt-4",
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert instructional designer who creates detailed content outlines. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": outline_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}

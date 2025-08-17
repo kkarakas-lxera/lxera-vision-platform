@@ -6,7 +6,7 @@ from tools.quality_tools import (
     personalization_checker, enhancement_suggester,
     generate_enhancement_requirements
 )
-from tools.research_tools import tavily_search
+from tools.research_tools import firecrawl_search, scrape_do_extract
 # Database content tools for content_id workflow
 from tools.database_content_tools import (
     retrieve_content_sections, get_module_metadata_db,
@@ -88,7 +88,7 @@ def create_quality_agent() -> Agent:
 - Insufficient depth or accuracy in core topics
 
 ### WEB SEARCH FOR CONTENT ENHANCEMENT
-- Use tavily_search to find current examples when content lacks real-world relevance
+- Use firecrawl_search + scrape_do_extract to find current examples when content lacks real-world relevance
 - Search for latest statistics or trends when information appears outdated
 - Find industry-specific case studies when examples are too generic
 - Search for current tool features when technology references seem outdated
@@ -171,7 +171,8 @@ You maintain the highest standards and only approve content that meets all requi
             personalization_checker,
             enhancement_suggester,
             generate_enhancement_requirements,  # NEW: Generate specific requirements
-            tavily_search
+            firecrawl_search,
+            scrape_do_extract
         ],
         handoffs=["content_agent", "research_agent", "enhancement_agent"]  # Quality agent can hand off for improvements
     )

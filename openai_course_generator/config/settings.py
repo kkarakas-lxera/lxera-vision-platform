@@ -13,9 +13,10 @@ load_dotenv()
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
-    # Core OpenAI Configuration
-    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
-    default_model: str = Field("gpt-4o-mini", env="DEFAULT_MODEL")
+    # Core LLM Configuration
+    groq_api_key: str = Field(..., env="GROQ_API_KEY")
+    default_model: str = Field("llama-3.3-70b-versatile", env="DEFAULT_MODEL")
+    fast_model: str = Field("llama-3.1-8b-instant", env="FAST_MODEL")
     default_temperature: float = Field(0.7, env="DEFAULT_TEMPERATURE")
     max_tokens_per_tool: int = Field(4096, env="MAX_TOKENS_PER_TOOL")
     max_agent_turns: int = Field(25, env="MAX_AGENT_TURNS")
@@ -26,15 +27,16 @@ class Settings(BaseSettings):
     content_generation_timeout_minutes: int = Field(12, env="CONTENT_GENERATION_TIMEOUT_MINUTES")
     total_pipeline_timeout_minutes: int = Field(30, env="TOTAL_PIPELINE_TIMEOUT_MINUTES")
     
-    # Research API Configuration (Optional for basic functionality)
-    tavily_api_key: Optional[str] = Field(None, env="TAVILY_API_KEY")
-    firecrawl_api_key: Optional[str] = Field(None, env="FIRECRAWL_API_KEY")
+    # Research API Configuration (Required for research functionality)
+    firecrawl_api_key: str = Field(..., env="FIRECRAWL_API_KEY")
+    scrape_do_api_key: str = Field(..., env="SCRAPE_DO_API_KEY")
+    
+    # Optional Research APIs
     jina_api_key: Optional[str] = Field(None, env="JINA_API_KEY")
     exa_api_key: Optional[str] = Field(None, env="EXA_API_KEY")  # Legacy support, not actively used
     
-    # Optional LLM Providers
+    # Optional LLM Providers  
     anthropic_api_key: Optional[str] = Field(None, env="ANTHROPIC_API_KEY")
-    groq_api_key: Optional[str] = Field(None, env="GROQ_API_KEY")
     
     # Database Configuration
     supabase_url: Optional[str] = Field(None, env="SUPABASE_URL")
@@ -70,10 +72,10 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = False
         
-    def get_openai_config(self) -> dict:
-        """Get OpenAI client configuration."""
+    def get_groq_config(self) -> dict:
+        """Get Groq client configuration."""
         return {
-            "api_key": self.openai_api_key,
+            "api_key": self.groq_api_key,
             "model": self.default_model,
             "temperature": self.default_temperature,
             "max_tokens": self.max_tokens_per_tool
@@ -82,10 +84,10 @@ class Settings(BaseSettings):
     def get_research_apis_config(self) -> dict:
         """Get research APIs configuration (only if keys are available)."""
         config = {}
-        if self.tavily_api_key:
-            config["tavily"] = {"api_key": self.tavily_api_key}
         if self.firecrawl_api_key:
             config["firecrawl"] = {"api_key": self.firecrawl_api_key}
+        if self.scrape_do_api_key:
+            config["scrape_do"] = {"api_key": self.scrape_do_api_key}
         if self.jina_api_key:
             config["jina"] = {"api_key": self.jina_api_key}
         return config

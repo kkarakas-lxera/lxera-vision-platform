@@ -155,15 +155,15 @@ serve(async (req) => {
         }
 
         // Call OpenAI to extract skills
-        const openAIKey = Deno.env.get('OPENAI_API_KEY')!
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const groqApiKey = Deno.env.get('GROQ_API_KEY')!
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIKey}`,
+            'Authorization': `Bearer ${groqApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4-turbo-preview',
+            model: 'llama-3.1-8b-instant',
             messages: [
               {
                 role: 'system',
@@ -209,15 +209,15 @@ serve(async (req) => {
         // Suggest skills for a position (returns 0-3 scale)
         const { positionTitle, industry, department } = params
         
-        const openAIKey = Deno.env.get('OPENAI_API_KEY')!
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const groqApiKey = Deno.env.get('GROQ_API_KEY')!
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIKey}`,
+            'Authorization': `Bearer ${groqApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4-turbo-preview',
+            model: 'llama-3.1-8b-instant',
             messages: [
               {
                 role: 'system',

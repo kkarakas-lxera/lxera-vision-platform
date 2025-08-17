@@ -125,7 +125,7 @@ class DeerFlowImportHandler:
         search_module = self.safe_import_module("tools/search.py", "search")
         if search_module:
             return {
-                'tavily_search_tool': getattr(search_module, 'tavily_search_tool', None),
+                'firecrawl_search_tool': getattr(search_module, 'firecrawl_search_tool', None),
                 'LoggedTavilySearch': getattr(search_module, 'LoggedTavilySearch', None),
                 'duckduckgo_search_tool': getattr(search_module, 'duckduckgo_search_tool', None),
                 'brave_search_tool': getattr(search_module, 'brave_search_tool', None),
@@ -198,7 +198,7 @@ class DeerFlowImportHandler:
         course_tools = self.get_course_generation_tools()
         
         return {
-            'web_search_available': bool(search_tools.get('tavily_search_tool')),
+            'web_search_available': bool(search_tools.get('firecrawl_search_tool')),
             'crawl_available': bool(crawl_tools.get('crawl_tool')),
             'python_repl_available': bool(repl_tools.get('python_repl_tool')),
             'llm_available': bool(llm_tools.get('get_llm_by_type')),
@@ -216,7 +216,7 @@ class DeerFlowImportHandler:
         
         # Test all capability groups
         search_tools = self.get_search_tools()
-        results['search_tools'] = bool(search_tools.get('tavily_search_tool'))
+        results['search_tools'] = bool(search_tools.get('firecrawl_search_tool'))
         
         crawl_tools = self.get_crawl_tools()
         results['crawl_tools'] = bool(crawl_tools.get('crawl_tool'))

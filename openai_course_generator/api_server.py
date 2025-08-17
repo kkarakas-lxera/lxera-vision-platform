@@ -44,7 +44,11 @@ def generate_course():
                 company_id=data['company_id'],
                 assigned_by_id=data['assigned_by_id'],
                 job_id=data.get('job_id'),
-                generation_mode=data.get('generation_mode', 'full')
+                generation_mode=data.get('generation_mode', 'full'),
+                plan_id=data.get('plan_id'),
+                enable_multimedia=data.get('enable_multimedia', False),
+                feedback_context=data.get('feedback_context'),
+                previous_course_content=data.get('previous_course_content')
             )
         )
         

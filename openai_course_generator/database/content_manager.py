@@ -719,7 +719,7 @@ class ContentManager:
         research_id: str,
         research_results: Dict[str, Any],
         research_package: Dict[str, Any],
-        tavily_queries_made: int = 0,
+        firecrawl_queries_made: int = 0,
         research_quality: float = 0.0
     ) -> bool:
         """Store research results from Enhancement Agent."""
@@ -735,7 +735,7 @@ class ContentManager:
                 'key_insights': key_insights,
                 'current_examples': current_examples,
                 'industry_trends': industry_trends,
-                'tavily_queries_made': tavily_queries_made,
+                'firecrawl_queries_made': firecrawl_queries_made,
                 'research_quality': research_quality,
                 'status': 'completed',
                 'completed_at': datetime.now(timezone.utc).isoformat(),

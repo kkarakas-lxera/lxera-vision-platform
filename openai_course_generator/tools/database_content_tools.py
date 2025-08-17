@@ -750,7 +750,7 @@ def store_research_results_db(
     research_id: str,
     research_results: str,
     research_package: str,
-    tavily_queries_made: int = 0,
+    firecrawl_queries_made: int = 0,
     research_quality: float = 0.0
 ) -> str:
     """
@@ -760,7 +760,7 @@ def store_research_results_db(
         research_id: Research session identifier
         research_results: JSON string with raw research findings
         research_package: JSON string with formatted package for Content Agent
-        tavily_queries_made: Number of Tavily queries executed
+        firecrawl_queries_made: Number of Firecrawl queries executed
         research_quality: Quality score of research findings (0.0-10.0)
         
     Returns:
@@ -780,7 +780,7 @@ def store_research_results_db(
             research_id=research_id,
             research_results=results,
             research_package=package,
-            tavily_queries_made=tavily_queries_made,
+            firecrawl_queries_made=firecrawl_queries_made,
             research_quality=research_quality
         )
         
@@ -788,7 +788,7 @@ def store_research_results_db(
             result = {
                 "research_session_id": research_id,
                 "research_quality": research_quality,
-                "tavily_queries_made": tavily_queries_made,
+                "firecrawl_queries_made": firecrawl_queries_made,
                 "package_created": True,
                 "success": True
             }

@@ -12,7 +12,7 @@ from tools.enhancement_tools import (
     create_additional_exercises,
     research_summarizer
 )
-from tools.research_tools import tavily_search
+from tools.research_tools import firecrawl_search, scrape_do_extract
 # Database content tools for content_id workflow
 from tools.database_content_tools import (
     retrieve_content_sections, get_module_metadata_db,
@@ -52,7 +52,7 @@ def create_enhancement_agent() -> Agent:
 - Create research strategy to fill identified knowledge gaps
 
 ### 2. Targeted Web Research (PRIMARY FOCUS)
-- Use tavily_search to find current examples for lacking sections
+- Use firecrawl_search + scrape_do_extract to find current examples for lacking sections
 - Research latest industry trends and statistics
 - Find specific case studies relevant to the learner's role
 - Gather current best practices and methodologies
@@ -134,7 +134,8 @@ Your goal is to provide high-quality research and analysis that enables Content 
             create_additional_exercises,
             research_summarizer,
             # Research tool for current information
-            tavily_search
+            firecrawl_search,
+            scrape_do_extract
         ],
         handoffs=["content_agent"]  # Hand off content_id + research_id to Content Agent for regeneration
     )
