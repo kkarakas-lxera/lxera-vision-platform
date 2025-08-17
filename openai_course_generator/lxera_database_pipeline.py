@@ -374,16 +374,33 @@ class LXERADatabasePipeline:
             modules = course_plan.get('course_structure', {}).get('modules', [])
             total_modules = len(modules)
             
-            # Determine how many modules to generate based on mode
+            # Determine how many modules to generate based on mode  
+            logger.info(f"🎯 Generation mode: '{generation_mode}' - Total modules planned: {total_modules}")
+            logger.info("🤖 LLM Model: llama-3.3-70b-versatile (Groq)")
+            logger.info("📊 Model Provider: Groq API")
+            
             if generation_mode == 'first_module':
                 modules_to_generate = modules[:1]  # Only first module
-                logger.info(f"📚 Partial generation mode: generating first module only (1/{total_modules})")
+                logger.info(f"📚 FIRST MODULE mode: generating module 1 only (1/{total_modules})")
             elif generation_mode == 'resume_from_module_2':
                 modules_to_generate = modules[1:]  # Skip first module, generate rest
-                logger.info(f"📚 Resume mode: generating modules 2-{total_modules}")
-            else:
+                logger.info(f"📚 RESUME mode: generating modules 2-{total_modules}")
+            elif generation_mode == 'outline_only':
+                # This should not happen here since outline_only is handled earlier
+                logger.error(f"❌ OUTLINE_ONLY mode should not reach content generation!")
+                return {
+                    'pipeline_success': False,
+                    'error': 'outline_only mode should not generate content',
+                    'generation_mode': generation_mode
+                }
+            elif generation_mode in ['full', 'regenerate_with_feedback']:
                 modules_to_generate = modules  # All modules
-                logger.info(f"📚 Full generation mode: generating all {total_modules} modules")
+                logger.info(f"📚 FULL mode: generating all {total_modules} modules")
+            else:
+                # Unknown generation mode - log warning and default to full
+                logger.warning(f"⚠️ Unknown generation_mode '{generation_mode}' - defaulting to full generation")
+                modules_to_generate = modules  # All modules
+                logger.info(f"📚 DEFAULT (full) mode: generating all {total_modules} modules")
             
             from course_agents.content_agent import create_content_agent
             content_agent = create_content_agent()
@@ -581,6 +598,9 @@ class LXERADatabasePipeline:
         """
         try:
             logger.info("🎯 Starting Planning-Only Pipeline (Outline Generation)")
+            logger.info("🤖 LLM Model: llama-3.3-70b-versatile (Groq)")
+            logger.info("📊 Model Provider: Groq API")
+            logger.info("🔧 Model Type: Planning & Content Generation")
             
             # Update job progress
             if job_id:

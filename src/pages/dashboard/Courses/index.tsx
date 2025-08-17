@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { EmployeeCourseAssignments } from '@/components/admin/CourseManagement/EmployeeCourseAssignments';
 import { CourseGenerationSection } from '@/components/admin/CourseManagement/CourseGenerationSection';
 import { GenerationHistoryTable } from '@/components/admin/CourseManagement/GenerationHistoryTable';
+import { CourseOutlineApproval } from '@/components/admin/CourseManagement/CourseOutlineApproval';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,9 +47,10 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children, count,
 
 const CoursesPage = () => {
   const { userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'assignments' | 'generate' | 'history'>('assignments');
+  const [activeTab, setActiveTab] = useState<'assignments' | 'generate' | 'approvals' | 'history'>('assignments');
   const [activeAssignmentsCount, setActiveAssignmentsCount] = useState(0);
   const [activeJobsCount, setActiveJobsCount] = useState(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const companyId = userProfile?.company_id;
 
   useEffect(() => {
@@ -73,6 +75,26 @@ const CoursesPage = () => {
         .in('status', ['pending', 'processing']);
       
       setActiveJobsCount(jobsCount || 0);
+
+      // Get pending approvals count
+      const { data: companyEmployees } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', companyId);
+      
+      const employeeIds = companyEmployees?.map(e => e.id) || [];
+      
+      if (employeeIds.length > 0) {
+        const { count: approvalsCount } = await supabase
+          .from('cm_course_plans')
+          .select('*', { count: 'exact', head: true })
+          .in('employee_id', employeeIds)
+          .eq('status', 'completed')
+          .eq('is_preview_mode', true)
+          .eq('approval_status', 'pending_review');
+        
+        setPendingApprovalsCount(approvalsCount || 0);
+      }
     };
 
     fetchCounts();
@@ -91,6 +113,11 @@ const CoursesPage = () => {
         schema: 'public',
         table: 'course_generation_jobs',
         filter: `company_id=eq.${companyId}`
+      }, () => fetchCounts())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'cm_course_plans'
       }, () => fetchCounts())
       .subscribe();
 
@@ -127,6 +154,14 @@ const CoursesPage = () => {
           >
             Generate Courses
           </TabButton>
+
+          <TabButton
+            active={activeTab === 'approvals'}
+            onClick={() => setActiveTab('approvals')}
+            count={pendingApprovalsCount}
+          >
+            Course Approvals
+          </TabButton>
           
           <TabButton
             active={activeTab === 'history'}
@@ -141,6 +176,7 @@ const CoursesPage = () => {
       <div className="mt-6">
         {activeTab === 'assignments' && <EmployeeCourseAssignments />}
         {activeTab === 'generate' && <CourseGenerationSection />}
+        {activeTab === 'approvals' && <CourseOutlineApproval />}
         {activeTab === 'history' && <GenerationHistoryTable />}
       </div>
     </div>

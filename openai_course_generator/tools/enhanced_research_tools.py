@@ -7,6 +7,8 @@ import os
 import json
 import logging
 import asyncio
+import uuid
+import threading
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from lxera_agents import function_tool
@@ -14,6 +16,35 @@ from groq import Groq
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
+
+def _run_coro_blocking(coro):
+    """Safely run async coroutine in sync context, handling existing event loops"""
+    try:
+        # Check if we're already in an event loop
+        asyncio.get_running_loop()
+        # If we are, run in a separate thread with new event loop
+        result_holder = {}
+        
+        def _runner():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result_holder["result"] = loop.run_until_complete(coro)
+            finally:
+                loop.close()
+        
+        t = threading.Thread(target=_runner, daemon=True)
+        t.start()
+        t.join()
+        return result_holder["result"]
+    except RuntimeError:
+        # No event loop running, create a new one
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
 # Use existing LXERA Supabase configuration
 SUPABASE_URL = 'https://xwfweumeryrgbguwrocr.supabase.co'
@@ -557,7 +588,6 @@ class EnhancedResearchOrchestrator:
     async def _create_research_session(self, plan_id: str, research_type: str) -> str:
         """Create enhanced research session using existing cm_research_sessions table"""
         try:
-            import uuid
             research_id = str(uuid.uuid4())
             
             # Use existing table structure with enhancements
@@ -615,8 +645,6 @@ class EnhancedResearchOrchestrator:
     ):
         """Store comprehensive research results using existing tables"""
         try:
-            import uuid
-            
             # Store in existing cm_research_results table
             research_data = {
                 'research_id': str(uuid.uuid4()),
@@ -683,7 +711,7 @@ class EnhancedResearchOrchestrator:
             if error:
                 update_data['error_message'] = error
                 
-            supabase.table('cm_research_sessions').update(update_data).eq('session_id', session_id).execute()
+            supabase.table('cm_research_sessions').update(update_data).eq('research_id', session_id).execute()
             
         except Exception as e:
             logger.error(f"Failed to update session status: {e}")
@@ -728,7 +756,7 @@ def enhanced_multi_source_research(
         
         # Run async research in sync context (following existing pattern)
         import asyncio
-        result = asyncio.run(orchestrator.execute_multi_source_research(
+        result = _run_coro_blocking(orchestrator.execute_multi_source_research(
             queries, domain_context, plan_id
         ))
         
@@ -766,7 +794,7 @@ def enhanced_research_quality_validator(research_results: str) -> str:
         else:
             # Generate new quality assessment
             orchestrator = get_enhanced_research_orchestrator()
-            quality_assessment = asyncio.run(orchestrator._assess_research_quality(data))
+            quality_assessment = _run_coro_blocking(orchestrator._assess_research_quality(data))
             
             logger.info(f"✅ Research quality assessed: {quality_assessment['overall_score']:.2f}")
             return json.dumps(quality_assessment)

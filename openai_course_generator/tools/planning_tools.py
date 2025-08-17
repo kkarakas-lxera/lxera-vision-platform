@@ -321,15 +321,17 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         Make this highly personalized for their role in business performance reporting.
         """
         
-        # Call OpenAI to generate course structure
+        # Call Groq to generate course structure
+        model_name = "llama-3.3-70b-versatile"
+        logger.info(f"🤖 Generating course structure using model: {model_name}")
         response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are an expert learning designer who creates highly personalized course structures. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": planning_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
             temperature=0.3,
-            max_tokens=4096  # Increased for complete response
+            max_tokens=8192  # Increased to prevent JSON truncation
         )
         
         # Extract JSON from response using robust utilities
@@ -341,6 +343,17 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
             logger.error(f"Response length: {len(response_content)} chars")
             logger.error(f"Response preview: {response_content[:500]}...")
             raise Exception("Failed to parse course structure JSON")
+        
+        # Ensure course_structure is a dictionary, not a list
+        if isinstance(course_structure, list):
+            # If it's a list, try to find the first dictionary element
+            dict_item = next((item for item in course_structure if isinstance(item, dict)), None)
+            if dict_item:
+                course_structure = dict_item
+                logger.info("🔧 Converted list response to dictionary structure")
+            else:
+                logger.error(f"❌ course_structure is a list without dictionary elements: {course_structure}")
+                raise Exception("Course structure response is a list, not a dictionary")
         
         # SMART WORD PLANNING INTEGRATION
         # Apply intelligent word distribution to each module
@@ -536,9 +549,11 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
         Make queries specific to their role as Junior Financial Analyst in Business Performance Reporting.
         """
         
-        # Call OpenAI to generate research queries
+        # Call Groq to generate research queries
+        model_name = "llama-3.3-70b-versatile"
+        logger.info(f"🤖 Generating research queries using model: {model_name}")
         response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are an expert research strategist who creates targeted search queries for personalized learning. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": query_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
@@ -852,9 +867,11 @@ def generate_module_outline_with_allocations(module_spec: str, employee_profile:
         Make the outline highly specific to their role in business performance reporting.
         """
         
-        # Call OpenAI to generate detailed outline
+        # Call Groq to generate detailed outline
+        model_name = "llama-3.3-70b-versatile"
+        logger.info(f"🤖 Generating learning path using model: {model_name}")
         response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are an expert instructional designer who creates detailed content outlines. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": outline_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}

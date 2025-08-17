@@ -47,6 +47,33 @@ except Exception as e:
         openai_client = None
         logger.error("No OpenAI API key available")
 
+# Initialize Groq client with same fallback pattern
+try:
+    from groq import Groq
+    try:
+        # Try to get from settings first
+        GROQ_API_KEY = settings.groq_api_key if 'settings' in locals() else None
+    except (NameError, AttributeError):
+        GROQ_API_KEY = None
+    
+    # Fallback to environment variable
+    if not GROQ_API_KEY:
+        import os
+        GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+    
+    if GROQ_API_KEY:
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        logger.info("✅ Groq client initialized successfully")
+    else:
+        groq_client = None
+        logger.warning("⚠️ No Groq API key available")
+except ImportError as e:
+    groq_client = None
+    logger.warning(f"⚠️ Groq import failed: {e}")
+except Exception as e:
+    groq_client = None
+    logger.warning(f"⚠️ Groq initialization failed: {e}")
+
 def get_smart_section_plan(spec: Dict[str, Any], section_name: str, fallback_target: int = 1000) -> Dict[str, Any]:
     """Get smart word planning for a specific section from module specification"""
     
@@ -151,11 +178,11 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         complexity_level = section_plan["complexity_level"]
         
         # Get content requirements from outline
-        content_outline = intro_outline.get("content_outline", [])
-        learning_objectives = intro_outline.get("learning_objectives", [])
-        key_concepts = intro_outline.get("key_concepts", [])
-        examples_needed = intro_outline.get("examples_needed", [])
-        engagement_elements = intro_outline.get("engagement_elements", [])
+        content_outline = outline.get("content_outline", [])
+        learning_objectives = outline.get("learning_objectives", [])
+        key_concepts = outline.get("key_concepts", [])
+        examples_needed = outline.get("examples_needed", [])
+        engagement_elements = outline.get("engagement_elements", [])
         
         # Calculate max_tokens dynamically (1.5 tokens per word + buffer)
         max_tokens = int(word_count_target * 1.5 + 500)
@@ -242,7 +269,16 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         Make this content directly applicable to their role as {current_role} working toward {career_goal}.
         """
         
-        # Generate content with OpenAI
+        # Generate content with Groq
+        if groq_client is None:
+            error_msg = "❌ Groq client not initialized - missing GROQ_API_KEY"
+            logger.error(error_msg)
+            return json.dumps({
+                "error": error_msg,
+                "section_type": "introduction",
+                "status": "failed"
+            })
+        
         start_time = time.time()
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",

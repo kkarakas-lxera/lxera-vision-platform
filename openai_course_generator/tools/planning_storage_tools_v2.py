@@ -235,7 +235,9 @@ async def store_course_plan_impl(tool_context, args) -> str:
             'course_duration_weeks': course_duration_weeks,
             'planning_agent_version': 'v2',
             'status': 'completed',
-            'employee_profile': {}  # Add empty profile for now - will be updated by store_planning_metadata
+            'employee_profile': {},  # Add empty profile for now - will be updated by store_planning_metadata
+            'is_preview_mode': True,  # Mark as preview mode plan requiring approval
+            'approval_status': 'pending_review'  # Set initial approval status
         }
         
         # Insert into database

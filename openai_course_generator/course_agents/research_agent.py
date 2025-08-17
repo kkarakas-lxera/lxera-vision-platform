@@ -2,8 +2,34 @@
 
 import json
 import logging
+import asyncio
+import threading
 from typing import Dict, Any, List
 from lxera_agents import Agent, handoff
+
+def _run_coro_blocking(coro):
+    """Safely run async coroutine in sync context, handling existing event loops"""
+    try:
+        # Check if we're already in an event loop
+        asyncio.get_running_loop()
+        # If we are, run in a separate thread with new event loop
+        result_holder = {}
+        
+        def _runner():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result_holder["result"] = loop.run_until_complete(coro)
+            finally:
+                loop.close()
+        
+        t = threading.Thread(target=_runner, daemon=True)
+        t.start()
+        t.join()
+        return result_holder["result"]
+    except RuntimeError:
+        # No event loop running, safe to use asyncio.run
+        return asyncio.run(coro)
 
 # Import research tools (existing + enhanced)
 from tools.research_tools import (
@@ -226,5 +252,4 @@ class ResearchAgentOrchestrator:
         research_context: str = "financial"
     ) -> Dict[str, Any]:
         """Synchronous wrapper for research workflow."""
-        import asyncio
-        return asyncio.run(self.execute_comprehensive_research(research_queries, research_context))
+        return _run_coro_blocking(self.execute_comprehensive_research(research_queries, research_context))
