@@ -26,7 +26,7 @@ import SkillsDemandAnalysis from './SkillsDemandAnalysis';
 
 interface MarketIntelligenceResultsProps {
   request: MarketIntelligenceRequest;
-  onExport: (format: 'pdf' | 'csv') => void;
+  onExport: (format: 'pdf') => void;
   onDelete: () => void;
   showHeader?: boolean;
 }
@@ -97,7 +97,7 @@ export default function MarketIntelligenceResults({
   const jobsCount = request.scraped_data?.total_jobs || request.scraped_data?.jobs_count || 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8" data-pdf-export>
       {/* Minimalistic Header */}
       {showHeader && (
         <div className="border-b border-gray-100 pb-6">
@@ -133,9 +133,6 @@ export default function MarketIntelligenceResults({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onExport('pdf')}>
                   Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onExport('csv')}>
-                  Export as CSV
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -287,6 +284,7 @@ export default function MarketIntelligenceResults({
                   ul: ({children}) => <ul className="space-y-1 mb-3" role="list">{children}</ul>,
                   ol: ({children}) => <ol className="space-y-1 mb-3 list-decimal list-inside" role="list">{children}</ol>,
                   li: ({children, ...props}) => {
+                    // Note: These li elements are properly wrapped by ReactMarkdown's ul/ol renderers above
                     // Use the same text extraction function as paragraphs
                     const getTextContent = (element: any): string => {
                       if (typeof element === 'string') return element;
@@ -507,7 +505,6 @@ export default function MarketIntelligenceResults({
                       {skill.skill}
                     </div>
                     <div className="flex-1 bg-gray-100 rounded-full h-6 relative min-w-0">
-                      {/* Inline style necessary for dynamic progress bar width based on skill.percentage data */}
                       <div 
                         className="bg-blue-500 h-6 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${Math.max(2, skill.percentage)}%` }}

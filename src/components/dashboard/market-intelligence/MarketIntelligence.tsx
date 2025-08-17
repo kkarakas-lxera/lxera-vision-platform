@@ -24,6 +24,8 @@ import MarketIntelligenceConfig from './MarketIntelligenceConfig';
 import MarketIntelligenceProgress from './MarketIntelligenceProgress';
 import MarketIntelligenceResults from './MarketIntelligenceResults';
 import MarketIntelligenceHistory from './MarketIntelligenceHistory';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Types
 export interface MarketIntelligenceRequest {
@@ -452,12 +454,87 @@ export default function MarketIntelligence() {
     }
   };
 
-  const handleExport = (format: 'pdf' | 'csv') => {
-    // TODO: Implement export functionality
-    toast({
-      title: 'Export',
-      description: `Exporting as ${format.toUpperCase()}...`,
-    });
+  const handleExport = async (format: 'pdf') => {
+    if (format === 'pdf' && currentRequest) {
+      try {
+        toast({
+          title: 'Generating PDF',
+          description: 'Creating your market intelligence report...',
+        });
+
+        // Find the results container
+        const element = document.querySelector('[data-pdf-export]') as HTMLElement;
+        if (!element) {
+          throw new Error('Report content not found');
+        }
+
+        // Temporarily adjust styles for better PDF rendering
+        element.style.width = '210mm'; // A4 width
+        element.style.maxWidth = '210mm';
+        element.style.padding = '20mm';
+        element.style.backgroundColor = 'white';
+        element.style.boxShadow = 'none';
+        element.style.border = 'none';
+
+        // Generate canvas from HTML
+        const canvas = await html2canvas(element, {
+          scale: 2, // Higher resolution
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: element.offsetWidth,
+          height: element.offsetHeight
+        });
+
+        // Reset styles
+        element.style.width = '';
+        element.style.maxWidth = '';
+        element.style.padding = '';
+        element.style.backgroundColor = '';
+        element.style.boxShadow = '';
+        element.style.border = '';
+
+        // Create PDF
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Calculate dimensions to fit page
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        const width = imgWidth * ratio;
+        const height = imgHeight * ratio;
+        
+        // Center the image
+        const x = (pdfWidth - width) / 2;
+        const y = (pdfHeight - height) / 2;
+
+        // Add image to PDF
+        pdf.addImage(imgData, 'PNG', x, y, width, height);
+        
+        // Generate filename
+        const filename = `market-intelligence-${currentRequest.position_title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        // Download PDF
+        pdf.save(filename);
+
+        toast({
+          title: 'PDF Downloaded',
+          description: 'Your market intelligence report has been saved.',
+        });
+
+      } catch (error) {
+        console.error('PDF export error:', error);
+        toast({
+          title: 'Export Failed',
+          description: 'Unable to generate PDF. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    }
   };
 
   if (loading) {
