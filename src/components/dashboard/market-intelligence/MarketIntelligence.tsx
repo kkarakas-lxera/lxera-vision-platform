@@ -15,7 +15,9 @@ import {
   FileText,
   ArrowRight,
   BarChart3,
-  Target
+  Target,
+  Plus,
+  Check
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -126,6 +128,43 @@ export default function MarketIntelligence() {
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Check className="h-3 w-3 text-green-600" />;
+      case 'failed':
+        return <AlertCircle className="h-3 w-3 text-red-600" />;
+      case 'queued':
+      case 'scraping':
+      case 'analyzing':
+        return <Loader2 className="h-3 w-3 text-blue-600 animate-spin" />;
+      default:
+        return <Clock className="h-3 w-3 text-gray-400" />;
+    }
+  };
+
+  const getProgressPercentage = (status: string) => {
+    switch (status) {
+      case 'queued': return 10;
+      case 'scraping': return 40;
+      case 'analyzing': return 70;
+      case 'completed': return 100;
+      default: return 0;
+    }
+  };
+
+  const onSelect = (request: MarketIntelligenceRequest) => {
+    setCurrentRequest(request);
+    if (request.status === 'completed') {
+      setUiState('success');
+    } else if (request.status === 'failed') {
+      setUiState('failure');
+    } else if (['queued', 'scraping', 'analyzing'].includes(request.status)) {
+      setActiveRequest(request);
+      setUiState('active-run');
+    }
   };
 
   useEffect(() => {
@@ -448,7 +487,7 @@ export default function MarketIntelligence() {
       console.log('[Market Intelligence] Attempting to delete request:', requestId);
       
       const { data, error } = await supabase
-        .from('market_intelligence_requests')
+        .from('market_intelligence_requests' as any)
         .delete()
         .eq('id', requestId)
         .select();
@@ -504,47 +543,145 @@ export default function MarketIntelligence() {
         <p className="text-gray-600 mt-1">Analyze current job market demand for specific roles and date ranges</p>
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left/Main Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Configuration or Results */}
-          {(uiState === 'first-time' || uiState === 'config-incomplete' || (uiState === 'history-present' && !currentRequest)) && (
-            <div className="space-y-6">
-              {/* Onboarding Header for First Time */}
-              {uiState === 'first-time' && marketRequests.length === 0 && (
-                <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-indigo-100 rounded-lg">
-                        <BarChart3 className="h-8 w-8 text-indigo-600" />
+      {/* Compact History Header - Only show when we have history */}
+      {marketRequests.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-gray-900">Recent Analyses</h2>
+            <Button 
+              onClick={() => {
+                setCurrentRequest(null);
+                setActiveRequest(null);
+                setUiState('first-time');
+              }}
+              size="sm"
+              variant="outline"
+              className="h-7"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              New
+            </Button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {marketRequests.slice(0, 8).map((request) => {
+              const isSelected = request.id === currentRequest?.id;
+              const isActive = ['queued', 'scraping', 'analyzing'].includes(request.status);
+              const jobsCount = request.scraped_data?.jobs_count || 0;
+              
+              return (
+                <div
+                  key={request.id}
+                  onClick={() => onSelect(request)}
+                  className={`
+                    flex-shrink-0 w-32 p-3 rounded-lg border cursor-pointer transition-all duration-200
+                    ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'}
+                    ${isActive ? 'ring-2 ring-yellow-200' : ''}
+                  `}
+                >
+                  <div className="flex items-center gap-1 mb-1">
+                    {getStatusIcon(request.status)}
+                    {isSelected && <Check className="h-3 w-3 text-blue-600" />}
+                  </div>
+                  <div className="text-xs font-medium text-gray-900 truncate mb-1">
+                    {request.position_title || 'Unknown'}
+                  </div>
+                  <div className="text-xs text-gray-600 truncate mb-1">
+                    {request.regions?.join(', ') || request.countries?.slice(0, 2).join(', ')}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {getRelativeTime(request.created_at)}
+                  </div>
+                  {request.status === 'completed' && (
+                    <div className="text-xs text-gray-500">
+                      {jobsCount} jobs
+                    </div>
+                  )}
+                  {isActive && (
+                    <div className="text-xs text-yellow-600 font-medium">
+                      {Math.round(getProgressPercentage(request.status))}%
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area - Full Width */}
+      <div className="space-y-6">
+        {/* First Time Experience (No History) */}
+        {marketRequests.length === 0 && (
+          <div className="space-y-6">
+            {/* Onboarding Card */}
+            <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-indigo-100 rounded-lg">
+                    <BarChart3 className="h-8 w-8 text-indigo-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Market Intelligence Analysis</h2>
+                    <p className="text-gray-700 mb-4">
+                      Discover what skills are most in-demand for your positions across different regions. 
+                      Get AI-powered insights to guide your training programs.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-4 w-4 text-indigo-600" />
+                        <span className="text-gray-700">Real-time job market data</span>
                       </div>
-                      <div className="flex-1">
-                        <h2 className="text-xl font-bold text-gray-900 mb-2">Market Intelligence Analysis</h2>
-                        <p className="text-gray-700 mb-4">
-                          Discover what skills are most in-demand for your positions across different regions. 
-                          Get AI-powered insights to guide your training programs.
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Target className="h-4 w-4 text-indigo-600" />
-                            <span className="text-gray-700">Real-time job market data</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Brain className="h-4 w-4 text-purple-600" />
-                            <span className="text-gray-700">AI-powered skill analysis</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-blue-600" />
-                            <span className="text-gray-700">Training recommendations</span>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-600" />
+                        <span className="text-gray-700">AI-powered skill analysis</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-blue-600" />
+                        <span className="text-gray-700">Training recommendations</span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-              
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <MarketIntelligenceConfig
+              config={config}
+              setConfig={setConfig}
+              validationErrors={validationErrors}
+              onSubmit={submitMarketIntelligenceRequest}
+              isLoading={!!activeRequest}
+            />
+          </div>
+        )}
+
+        {/* Has History - Show Config or Results */}
+        {marketRequests.length > 0 && (
+          <>
+            {/* Configuration Form - when no current request selected */}
+            {!currentRequest && !activeRequest && (
+              <div className="space-y-6">
+                <div className="text-center py-8">
+                  <Brain className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="font-medium text-gray-900 mb-2">Select an analysis to view</h3>
+                  <p className="text-sm text-gray-600 mb-4">Choose from your recent analyses above or start a new one</p>
+                  <Button 
+                    onClick={() => {
+                      setCurrentRequest(null);
+                      setActiveRequest(null);
+                      setUiState('first-time');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Start New Analysis
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Configuration Form - when creating new analysis */}
+            {(uiState === 'first-time' || uiState === 'config-incomplete') && (
               <MarketIntelligenceConfig
                 config={config}
                 setConfig={setConfig}
@@ -552,141 +689,82 @@ export default function MarketIntelligence() {
                 onSubmit={submitMarketIntelligenceRequest}
                 isLoading={!!activeRequest}
               />
-            </div>
-          )}
+            )}
 
-          {/* Active Run Progress */}
-          {uiState === 'active-run' && activeRequest && (
-            <MarketIntelligenceProgress
-              request={activeRequest}
-              onCancel={() => {
-                setActiveRequest(null);
-                setCurrentRequest(null);
-                setUiState('first-time');
-              }}
-            />
-          )}
+            {/* Active Analysis Progress */}
+            {uiState === 'active-run' && activeRequest && (
+              <MarketIntelligenceProgress
+                request={activeRequest}
+                onCancel={() => {
+                  setActiveRequest(null);
+                  setCurrentRequest(null);
+                  setUiState('history-present');
+                }}
+              />
+            )}
 
-          {/* Results */}
-          {currentRequest?.status === 'completed' && (
-            <div className="space-y-4">
-              {/* New Analysis Button */}
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Viewing Report</h3>
-                  <p className="text-sm text-gray-600">{currentRequest.position_title} • {getRelativeTime(currentRequest.updated_at)}</p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setCurrentRequest(null);
-                    setUiState('first-time');
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Brain className="h-4 w-4 mr-2" />
-                  Start New Analysis
-                </Button>
-              </div>
-              
+            {/* Results Display */}
+            {currentRequest?.status === 'completed' && (
               <MarketIntelligenceResults
                 request={currentRequest}
                 onExport={handleExport}
                 onDelete={() => handleDelete(currentRequest.id)}
+                showHeader={false}
               />
-            </div>
-          )}
+            )}
 
-          {/* Failure State */}
-          {uiState === 'failure' && currentRequest && (
-            <Card>
-              <CardContent className="pt-6">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="ml-2">
-                    <div className="font-medium">Analysis failed</div>
-                    <div className="text-sm mt-1">
-                      {currentRequest.status_message || 'An error occurred during analysis'}
-                    </div>
-                  </AlertDescription>
-                </Alert>
-                <div className="flex gap-3 mt-4">
-                  <Button 
-                    onClick={() => {
-                      setCurrentRequest(null);
-                      setUiState('first-time');
-                    }}
-                    variant="default"
-                  >
-                    Start New Analysis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {/* Error States */}
+            {uiState === 'failure' && currentRequest && (
+              <Card>
+                <CardContent className="pt-6">
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      <div className="font-medium">Analysis failed</div>
+                      <div className="text-sm mt-1">
+                        {currentRequest.status_message || 'An error occurred during analysis'}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                  <div className="flex gap-3 mt-4">
+                    <Button 
+                      onClick={() => {
+                        setCurrentRequest(null);
+                        setUiState('first-time');
+                      }}
+                      variant="default"
+                    >
+                      Start New Analysis
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* No Results State */}
-          {uiState === 'no-results' && currentRequest && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="font-medium text-gray-900">No recent postings matched your filters</h3>
-                  <p className="text-sm text-gray-600 mt-2">Try adjusting your search criteria or date range</p>
-                  <Button 
-                    onClick={() => {
-                      setCurrentRequest(null);
-                      setUiState('first-time');
-                    }}
-                    variant="outline"
-                    className="mt-4"
-                  >
-                    Start New Analysis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Timeout State */}
-          {uiState === 'timeout' && (
-            <Card>
-              <CardContent className="pt-6">
-                <Alert>
-                  <Clock className="h-4 w-4" />
-                  <AlertDescription className="ml-2">
-                    <div className="font-medium">The analysis is taking longer than expected</div>
-                    <div className="text-sm mt-1">You can retry or we'll notify you when complete</div>
-                  </AlertDescription>
-                </Alert>
-                <div className="flex gap-3 mt-4">
-                  <Button 
-                    onClick={() => {
-                      setCurrentRequest(null);
-                      setUiState('first-time');
-                    }}
-                  >
-                    Start New Analysis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Right Panel - History */}
-        <div className="lg:col-span-1">
-          <MarketIntelligenceHistory
-            requests={marketRequests}
-            currentRequestId={currentRequest?.id}
-            onSelect={setCurrentRequest}
-            onDelete={handleDelete}
-            onStartNew={() => {
-              setCurrentRequest(null);
-              setActiveRequest(null);
-              setUiState('first-time');
-            }}
-          />
-        </div>
+            {/* No Results State */}
+            {uiState === 'no-results' && currentRequest && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="font-medium text-gray-900">No recent postings matched your filters</h3>
+                    <p className="text-sm text-gray-600 mt-2">Try adjusting your search criteria or date range</p>
+                    <Button 
+                      onClick={() => {
+                        setCurrentRequest(null);
+                        setUiState('first-time');
+                      }}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Start New Analysis
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
