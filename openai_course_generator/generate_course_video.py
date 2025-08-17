@@ -21,7 +21,7 @@ logging.basicConfig(
 
 # Import multimedia components
 from multimedia.educational_script_generator import EducationalScriptGenerator
-from multimedia.educational_slide_generator import EducationalSlideGenerator
+# from multimedia.educational_slide_generator import EducationalSlideGenerator  # Removed - missing component
 from multimedia.timeline_generator import TimelineGenerator
 from multimedia.video_assembly_service import VideoAssemblyService
 
@@ -42,7 +42,8 @@ class CourseVideoGenerator:
         # Initialize multimedia components
         api_key = os.getenv('OPENAI_API_KEY')
         self.script_generator = EducationalScriptGenerator(api_key)
-        self.slide_generator = EducationalSlideGenerator(api_key)
+        # self.slide_generator = EducationalSlideGenerator(api_key)  # Removed - missing component
+        self.slide_generator = None
         self.timeline_generator = TimelineGenerator(api_key)
         self.video_service = VideoAssemblyService()
         
@@ -282,14 +283,12 @@ class CourseVideoGenerator:
                 for slide in script.slides:
                     slide_path = slides_dir / f"slide_{slide.slide_number:03d}.png"
                     
-                    metadata = self.slide_generator.create_slide_from_script(
-                        slide_number=slide.slide_number,
-                        title=slide.title,
-                        bullet_points=slide.bullet_points,
-                        output_path=str(slide_path),
-                        theme='educational',
-                        speaker_notes=slide.speaker_notes
-                    )
+                    # Slide generation disabled - component missing
+                    metadata = {
+                        'slide_number': slide.slide_number,
+                        'title': slide.title,
+                        'status': 'skipped - slide generator missing'
+                    }
                     
                     # Save slide asset to database
                     asset_data = {
@@ -612,14 +611,12 @@ class CourseVideoGenerator:
                 for slide in script.slides:
                     slide_path = slides_dir / f"slide_{slide.slide_number:03d}.png"
                     
-                    metadata = self.slide_generator.create_slide_from_script(
-                        slide_number=slide.slide_number,
-                        title=slide.title,
-                        bullet_points=slide.bullet_points,
-                        output_path=str(slide_path),
-                        theme='educational',
-                        speaker_notes=slide.speaker_notes
-                    )
+                    # Slide generation disabled - component missing
+                    metadata = {
+                        'slide_number': slide.slide_number,
+                        'title': slide.title,
+                        'status': 'skipped - slide generator missing'
+                    }
                     
                     # Save slide asset to database
                     asset_data = {

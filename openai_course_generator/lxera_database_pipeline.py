@@ -1269,15 +1269,45 @@ class LXERADatabasePipeline:
     async def _retrieve_skills_gaps(self, employee_id: str, position: str) -> List[Dict[str, Any]]:
         """Retrieve skills gap analysis from database by comparing position requirements with employee skills."""
         try:
-            # Get employee skills profile
-            profile_response = self.supabase.table('st_employee_skills_profile').select(
-                'extracted_skills, technical_skills, soft_skills, current_position_id'
-            ).eq('employee_id', employee_id).single().execute()
+            # Get employee data and skills from actual database structure
+            employee_response = self.supabase.table('employees').select(
+                'current_position_id, cv_analysis_data'
+            ).eq('id', employee_id).single().execute()
             
-            if not profile_response.data:
-                raise Exception("Employee skills profile not found")
+            if not employee_response.data:
+                raise Exception("Employee not found")
             
-            profile = profile_response.data
+            employee_data = employee_response.data
+            
+            # Get employee skills from employee_skills table
+            skills_response = self.supabase.table('employee_skills').select(
+                'skill_name, proficiency, source'
+            ).eq('employee_id', employee_id).execute()
+            
+            # Combine skills from both sources into the expected format
+            profile = {
+                'current_position_id': employee_data.get('current_position_id'),
+                'extracted_skills': [],
+                'technical_skills': [],
+                'soft_skills': []
+            }
+            
+            # Add skills from CV analysis if available
+            if employee_data.get('cv_analysis_data') and employee_data['cv_analysis_data'].get('skills'):
+                profile['extracted_skills'] = employee_data['cv_analysis_data']['skills']
+            
+            # Add skills from employee_skills table
+            if skills_response.data:
+                for skill in skills_response.data:
+                    skill_data = {
+                        'skill_name': skill['skill_name'],
+                        'proficiency_level': skill['proficiency'],
+                        'source': skill['source']
+                    }
+                    # Add to extracted_skills if not already there
+                    existing_skill_names = [s.get('skill_name', '') for s in profile['extracted_skills']]
+                    if skill['skill_name'] not in existing_skill_names:
+                        profile['extracted_skills'].append(skill_data)
             
             # Get position requirements
             position_response = self.supabase.table('st_company_positions').select(
