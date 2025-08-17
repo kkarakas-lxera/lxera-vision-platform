@@ -477,6 +477,19 @@ export const CourseGenerationSection = () => {
                 >
                   Preview mode
                 </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>
+                        <strong>Preview Mode:</strong> Generates only the first module for admin review and approval. 
+                        Full course generation continues after approval. Faster and cost-effective for testing content quality.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox 
@@ -496,15 +509,13 @@ export const CourseGenerationSection = () => {
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
+                    <TooltipContent className="max-w-xs">
                       <p>
-                        <strong>AI-Powered Educational Videos:</strong> Creates personalized video lessons with AI avatars, 
-                        visual presentations, and synchronized narration. Videos are automatically generated based on course 
-                        content and tailored to each employee's learning style and skill level. This feature significantly 
-                        increases engagement and retention compared to text-only courses.
+                        <strong>AI Video Generation:</strong> Creates personalized video lessons with AI avatars 
+                        and visual presentations. Increases engagement compared to text-only courses.
                       </p>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Note: Video generation adds 10-15 minutes per course module to processing time.
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Adds 10-15 min per module to processing time.
                       </p>
                     </TooltipContent>
                   </Tooltip>
