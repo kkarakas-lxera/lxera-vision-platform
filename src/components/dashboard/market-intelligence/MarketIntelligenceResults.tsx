@@ -46,6 +46,7 @@ export default function MarketIntelligenceResults({
     emerging: true
   });
   const [showAllCerts, setShowAllCerts] = useState<Record<string, boolean>>({});
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const getRelativeTime = (date: string) => {
     const now = new Date();
@@ -137,11 +138,23 @@ export default function MarketIntelligenceResults({
                   <PDFDownloadLink
                     document={<MarketIntelligencePDFReport request={request} />}
                     fileName={`market-intelligence-${request.position_title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
-                    className="flex items-center w-full text-sm cursor-pointer"
+                    className="flex items-center w-full px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
                   >
-                    {({ blob, url, loading, error }) => (
-                      loading ? 'Generating PDF...' : 'Export as PDF'
-                    )}
+                    {({ blob, url, loading, error }) => {
+                      if (loading) {
+                        return (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                            Generating PDF...
+                          </>
+                        );
+                      }
+                      if (error) {
+                        console.error('PDF Export Error:', error);
+                        return 'Export Failed - Retry';
+                      }
+                      return 'Export as PDF';
+                    }}
                   </PDFDownloadLink>
                 </DropdownMenuItem>
               </DropdownMenuContent>

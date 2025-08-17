@@ -1,12 +1,7 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 
-// Register fonts (optional - you can use default Helvetica)
-// Font.register({
-//   family: 'Inter',
-//   src: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700',
-// });
 
 interface MarketIntelligencePDFReportProps {
   request: MarketIntelligenceRequest;
@@ -206,9 +201,23 @@ const styles = StyleSheet.create({
 });
 
 const MarketIntelligencePDFReport: React.FC<MarketIntelligencePDFReportProps> = ({ request }) => {
-  const analysisData = request.analysis_data || {};
-  const skillTrends = analysisData.skill_trends || {};
-  const jobsCount = request.scraped_data?.total_jobs || request.scraped_data?.jobs_count || 0;
+  // Safely extract data with fallbacks
+  const analysisData = request?.analysis_data || {};
+  const skillTrends = analysisData?.skill_trends || {};
+  const jobsCount = request?.scraped_data?.total_jobs || request?.scraped_data?.jobs_count || 0;
+  
+  // Ensure we have basic required data
+  if (!request) {
+    console.error('MarketIntelligencePDFReport: No request data provided');
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.title}>Error: No Data Available</Text>
+          <Text style={styles.paragraph}>Unable to generate report due to missing data.</Text>
+        </Page>
+      </Document>
+    );
+  }
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
