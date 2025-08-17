@@ -224,11 +224,7 @@ class EnhancedResearchOrchestrator:
             # Firecrawl search for academic sources
             search_params = {
                 "query": f"academic research {query}",
-                "limit": 5,
-                "includeDomains": [
-                    "edu", "org", "academia.edu", "researchgate.net", 
-                    "ieee.org", "acm.org", "springer.com", "jstor.org"
-                ]
+                "limit": 5
             }
             
             headers = {
@@ -324,11 +320,7 @@ class EnhancedResearchOrchestrator:
             # Firecrawl search for industry sources
             search_params = {
                 "query": f"industry best practices {query}",
-                "limit": 5,
-                "includeDomains": [
-                    "mckinsey.com", "deloitte.com", "pwc.com", "bcg.com",
-                    "hbr.org", "forbes.com", "bloomberg.com", "reuters.com"
-                ]
+                "limit": 5
             }
             
             headers = {
@@ -424,11 +416,7 @@ class EnhancedResearchOrchestrator:
             # Firecrawl search for technical sources
             search_params = {
                 "query": f"technical documentation {query}",
-                "limit": 5,
-                "includeDomains": [
-                    "github.com", "stackoverflow.com", "docs.microsoft.com",
-                    "developer.mozilla.org", "w3.org", "google.com/developers"
-                ]
+                "limit": 5
             }
             
             headers = {
