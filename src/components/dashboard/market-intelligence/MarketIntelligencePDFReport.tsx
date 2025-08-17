@@ -21,8 +21,9 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 25,
     paddingBottom: 15,
-    borderBottom: 2,
+    borderBottomWidth: 2,
     borderBottomColor: '#e5e7eb',
+    borderBottomStyle: 'solid',
   },
   title: {
     fontSize: 24,
@@ -52,8 +53,9 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 12,
     paddingBottom: 5,
-    borderBottom: 1,
+    borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
+    borderBottomStyle: 'solid',
   },
   sectionSubtitle: {
     fontSize: 14,
@@ -71,8 +73,9 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     backgroundColor: '#f9fafb',
-    border: 1,
+    borderWidth: 1,
     borderColor: '#e5e7eb',
+    borderStyle: 'solid',
     borderRadius: 6,
     padding: 15,
     width: '22%',
@@ -121,8 +124,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     paddingHorizontal: 8,
-    borderBottom: 1,
+    borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
+    borderBottomStyle: 'solid',
   },
   skillRank: {
     width: 30,
@@ -164,8 +168,9 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#9ca3af',
     textAlign: 'center',
-    borderTop: 1,
+    borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
+    borderTopStyle: 'solid',
     paddingTop: 10,
   },
   
@@ -181,8 +186,9 @@ const styles = StyleSheet.create({
   // Callout boxes
   calloutBox: {
     backgroundColor: '#eff6ff',
-    border: 1,
+    borderWidth: 1,
     borderColor: '#bfdbfe',
+    borderStyle: 'solid',
     borderRadius: 6,
     padding: 12,
     marginBottom: 12,
