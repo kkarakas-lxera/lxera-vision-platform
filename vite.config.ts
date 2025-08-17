@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
+import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -10,6 +12,24 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
+    },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['@react-pdf/renderer'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          process: true,
+          buffer: true,
+        }),
+        NodeModulesPolyfillPlugin(),
+      ],
     },
   },
   plugins: [
@@ -21,6 +41,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Node.js polyfills for React-PDF
+      util: 'util',
+      stream: 'stream-browserify',
+      buffer: 'buffer',
+      process: 'process/browser',
     },
   },
   build: {
