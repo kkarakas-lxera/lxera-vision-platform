@@ -37,6 +37,10 @@ STORE_COURSE_PLAN_SCHEMA = {
             "type": "string",
             "description": "Session identifier for this course generation"
         },
+        "company_id": {
+            "type": "string",
+            "description": "Company ID (optional - will be fetched from employee record if not provided)"
+        },
         "course_structure": {
             "type": "object",
             "description": "The planned course structure with modules and timeline",
@@ -186,6 +190,7 @@ async def store_course_plan_impl(tool_context, args) -> str:
     prioritized_gaps = args['prioritized_gaps']
     research_strategy = args.get('research_strategy')
     learning_path = args.get('learning_path')
+    company_id = args.get('company_id')  # Optional - will fetch if not provided
     
     try:
         logger.info(f"📝 Storing course plan for {employee_name}")
@@ -208,11 +213,19 @@ async def store_course_plan_impl(tool_context, args) -> str:
             }
         }
         
+        # Get company_id if not provided
+        if not company_id:
+            employee_data = supabase.table('employees').select('company_id').eq('id', employee_id).single().execute()
+            if not employee_data.data:
+                raise Exception(f"Employee {employee_id} not found")
+            company_id = employee_data.data['company_id']
+        
         # Prepare plan data
         plan_data = {
             'employee_id': employee_id,
             'employee_name': employee_name,
             'session_id': session_id,
+            'company_id': company_id,  # Add the missing company_id
             'course_structure': course_structure,
             'prioritized_gaps': gaps_formatted,
             'research_strategy': research_strategy,

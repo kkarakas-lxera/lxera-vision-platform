@@ -103,6 +103,7 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     3. Extract JSON from markdown code blocks
     4. Find JSON boundaries using regex
     5. Repair truncated JSON
+    6. Handle "Extra data" error by extracting first valid JSON
     
     Args:
         text: Text potentially containing JSON
@@ -116,8 +117,26 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     # Strategy 1: Try direct parsing
     try:
         return json.loads(text.strip())
-    except json.JSONDecodeError:
-        pass
+    except json.JSONDecodeError as e:
+        # Handle "Extra data" error - try to extract just the valid JSON part
+        if "Extra data" in str(e):
+            try:
+                # Extract position where valid JSON ends
+                error_str = str(e)
+                if "column" in error_str:
+                    # Parse error like "Extra data: line 1 column 1696 (char 1695)"
+                    char_pos = None
+                    if "(char " in error_str and ")" in error_str:
+                        char_start = error_str.find("(char ") + 6
+                        char_end = error_str.find(")", char_start)
+                        char_pos = int(error_str[char_start:char_end])
+                    
+                    if char_pos and char_pos < len(text):
+                        # Extract text up to the error position
+                        valid_json_text = text[:char_pos]
+                        return json.loads(valid_json_text.strip())
+            except (ValueError, json.JSONDecodeError):
+                pass
     
     # Strategy 2: Fix common JSON formatting issues
     try:

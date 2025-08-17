@@ -19,12 +19,18 @@ from tools.smart_word_planning import get_smart_word_plan, log_word_plan
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# OpenAI client for planning tools
-# Import settings
+# Import settings for both OpenAI and Groq
 from config.settings import get_settings
 settings = get_settings()
 OPENAI_API_KEY = settings.openai_api_key
+GROQ_API_KEY = settings.groq_api_key
+
+# Initialize clients
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Import Groq client for content generation
+from groq import Groq
+groq_client = Groq(api_key=GROQ_API_KEY)
 
 @function_tool
 def analyze_employee_profile(employee_data: str) -> str:
