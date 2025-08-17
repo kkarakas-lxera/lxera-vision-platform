@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Core LLM Configuration
+    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
     groq_api_key: str = Field(..., env="GROQ_API_KEY")
     default_model: str = Field("llama-3.3-70b-versatile", env="DEFAULT_MODEL")
     fast_model: str = Field("llama-3.1-8b-instant", env="FAST_MODEL")
