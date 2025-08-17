@@ -44,7 +44,9 @@ class LXERADatabasePipeline:
         job_id: Optional[str] = None,
         generation_mode: str = 'full',
         plan_id: Optional[str] = None,
-        enable_multimedia: bool = False
+        enable_multimedia: bool = False,
+        feedback_context: Optional[str] = None,
+        previous_course_content: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Generate a personalized course for an employee using their existing skills gap analysis.
@@ -54,7 +56,11 @@ class LXERADatabasePipeline:
             company_id: Company ID
             assigned_by_id: User ID who initiated the generation
             job_id: Optional job tracking ID
-            generation_mode: 'full', 'first_module', 'remaining_modules', or 'outline_only'
+            generation_mode: 'full', 'first_module', 'remaining_modules', 'outline_only', or 'regenerate_with_feedback'
+            plan_id: Optional existing plan ID to use
+            enable_multimedia: Whether to enable multimedia generation
+            feedback_context: Admin feedback for regeneration improvements
+            previous_course_content: Previous course content for reference during regeneration
             
         Returns:
             Dict containing content_id and pipeline results (or plan_id for outline_only)
@@ -102,19 +108,32 @@ class LXERADatabasePipeline:
                     skills_gaps,
                     job_id,
                     generation_mode,
-                    existing_plan_id=plan_id  # Pass the plan_id if available
+                    existing_plan_id=plan_id,  # Pass the plan_id if available
+                    feedback_context=feedback_context,
+                    previous_course_content=previous_course_content
                 )
             
-            # If successful, create course assignment (not for outline_only)
+            # If successful, create or update course assignment (not for outline_only)
             if generation_mode != 'outline_only' and pipeline_result.get('pipeline_success') and pipeline_result.get('content_id'):
-                assignment_id = await self._create_course_assignment(
-                    employee_id,
-                    pipeline_result['content_id'],
-                    company_id,
-                    assigned_by_id,
-                    pipeline_result.get('plan_id'),
-                    generation_mode
-                )
+                if generation_mode == 'regenerate_with_feedback':
+                    # For regeneration, update the existing assignment
+                    assignment_id = await self._update_course_assignment_for_regeneration(
+                        employee_id,
+                        pipeline_result['content_id'],
+                        company_id,
+                        assigned_by_id,
+                        pipeline_result.get('plan_id')
+                    )
+                else:
+                    # For new courses, create new assignment
+                    assignment_id = await self._create_course_assignment(
+                        employee_id,
+                        pipeline_result['content_id'],
+                        company_id,
+                        assigned_by_id,
+                        pipeline_result.get('plan_id'),
+                        generation_mode
+                    )
                 pipeline_result['assignment_id'] = assignment_id
             
             # Final job update
@@ -150,7 +169,9 @@ class LXERADatabasePipeline:
         skills_gaps: List[Dict[str, Any]],
         job_id: Optional[str] = None,
         generation_mode: str = 'full',
-        existing_plan_id: Optional[str] = None
+        existing_plan_id: Optional[str] = None,
+        feedback_context: Optional[str] = None,
+        previous_course_content: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Run the course generation pipeline using OpenAI SDK with automated agent handoffs.
@@ -174,6 +195,7 @@ class LXERADatabasePipeline:
                 from course_agents.planning_agent import create_planning_agent
                 planning_agent = create_planning_agent()
                 
+                # Build planning message with feedback context if regenerating
                 planning_message = f"""
                 Create a comprehensive personalized course plan for {employee_data['full_name']}.
                 
@@ -182,6 +204,24 @@ class LXERADatabasePipeline:
                 
                 SKILLS GAP ANALYSIS:
                 {json.dumps(skills_gaps, indent=2)}
+                """
+                
+                # Add feedback context for regeneration
+                if generation_mode == 'regenerate_with_feedback' and feedback_context:
+                    planning_message += f"""
+                
+                REGENERATION WITH FEEDBACK:
+                This is a course regeneration based on admin feedback. Please incorporate the following improvements:
+                
+                ADMIN FEEDBACK: {feedback_context}
+                
+                PREVIOUS COURSE CONTENT (for reference):
+                {json.dumps(previous_course_content, indent=2) if previous_course_content else 'No previous content provided'}
+                
+                Focus on addressing the specific feedback provided. Ensure the new course plan directly addresses the concerns and improvement suggestions mentioned in the feedback.
+                """
+                
+                planning_message += """
                 
                 Execute the 6-step planning workflow:
                 1. analyze_employee_profile
@@ -283,8 +323,8 @@ class LXERADatabasePipeline:
                 
                 Follow this exact workflow:
                 1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
-                2. tavily_search - Search for relevant content for each module topic
-                3. firecrawl_extract - Extract detailed content from authoritative sources
+                2. firecrawl_search - Search for relevant URLs for each module topic
+                3. scrape_do_extract - Extract detailed content from authoritative sources
                 4. research_synthesizer - Synthesize findings into structured insights
                 5. store_research_results - Save your research findings
                 
@@ -369,6 +409,7 @@ class LXERADatabasePipeline:
                         'progress_percentage': int(module_progress)
                     })
                 
+                # Build content message with feedback context if regenerating
                 content_message = f"""
                 Generate comprehensive course content for Module {module_number}: {module_title}
                 
@@ -382,6 +423,26 @@ class LXERADatabasePipeline:
                 - Topics: {', '.join(module.get('topics', []))}
                 - Duration: {module.get('duration', '1 week')}
                 - Priority: {module.get('priority', 'high')}
+                """
+                
+                # Add feedback context for regeneration
+                if generation_mode == 'regenerate_with_feedback' and feedback_context:
+                    content_message += f"""
+                
+                REGENERATION WITH FEEDBACK:
+                This is content regeneration based on admin feedback. Please incorporate these specific improvements:
+                
+                ADMIN FEEDBACK: {feedback_context}
+                
+                PREVIOUS COURSE CONTENT (for reference):
+                {json.dumps(previous_course_content, indent=2) if previous_course_content else 'No previous content provided'}
+                
+                Focus on addressing the specific feedback. If feedback mentions "too basic", increase complexity and depth.
+                If feedback mentions "more practical", emphasize hands-on exercises and real-world applications.
+                If feedback mentions missing topics, ensure those topics are thoroughly covered.
+                """
+                
+                content_message += """
                 
                 Follow the content generation workflow:
                 1. fetch_course_plan - Get complete course structure using plan_id: {plan_id}
@@ -1355,6 +1416,58 @@ class LXERADatabasePipeline:
             logger.error(f"Failed to create course assignment: {e}")
             raise
     
+    async def _update_course_assignment_for_regeneration(
+        self,
+        employee_id: str,
+        new_content_id: str,
+        company_id: str,
+        assigned_by_id: str,
+        plan_id: Optional[str] = None
+    ) -> str:
+        """Update existing course assignment for regeneration."""
+        try:
+            # Find the existing assignment that was in revision_requested state
+            existing_assignment = self.supabase.table('course_assignments').select('id').eq(
+                'employee_id', employee_id
+            ).eq('company_id', company_id).eq(
+                'approval_status', 'revision_requested'
+            ).order('assigned_at', {'ascending': False}).limit(1).execute()
+            
+            if existing_assignment.data and len(existing_assignment.data) > 0:
+                assignment_id = existing_assignment.data[0]['id']
+                
+                # Update the assignment with new content and reset approval status
+                self.supabase.table('course_assignments').update({
+                    'course_id': new_content_id,  # Update to new regenerated content
+                    'approval_status': 'pending',  # Reset to pending for new review
+                    'approval_feedback': None,  # Clear previous feedback
+                    'updated_at': datetime.now().isoformat(),
+                    'metadata': {
+                        'generation_mode': 'regenerate_with_feedback',
+                        'regenerated': True,
+                        'regenerated_at': datetime.now().isoformat(),
+                        'regenerated_by': assigned_by_id
+                    }
+                }).eq('id', assignment_id).execute()
+                
+                logger.info(f"✅ Updated course assignment for regeneration: {assignment_id}")
+                return assignment_id
+            else:
+                # No existing assignment found, create new one
+                logger.warning("No existing assignment found for regeneration, creating new one")
+                return await self._create_course_assignment(
+                    employee_id,
+                    new_content_id,
+                    company_id,
+                    assigned_by_id,
+                    plan_id,
+                    'regenerate_with_feedback'
+                )
+                
+        except Exception as e:
+            logger.error(f"Failed to update course assignment for regeneration: {e}")
+            raise
+    
     async def _update_job_progress(self, job_id: str, updates: Dict[str, Any]):
         """Update course generation job progress."""
         try:
@@ -1537,7 +1650,9 @@ async def generate_course_with_agents(
     job_id: Optional[str] = None,
     generation_mode: str = 'full',
     plan_id: Optional[str] = None,
-    enable_multimedia: bool = False
+    enable_multimedia: bool = False,
+    feedback_context: Optional[str] = None,
+    previous_course_content: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Generate a course using the full agent pipeline with database integration.
@@ -1598,7 +1713,9 @@ async def generate_course_with_agents(
         job_id,
         generation_mode,
         plan_id,  # Pass the plan_id if available
-        enable_multimedia  # Pass the multimedia flag
+        enable_multimedia,  # Pass the multimedia flag
+        feedback_context,  # Pass feedback context for regeneration
+        previous_course_content  # Pass previous content for reference
     )
 
 async def resume_course_generation(

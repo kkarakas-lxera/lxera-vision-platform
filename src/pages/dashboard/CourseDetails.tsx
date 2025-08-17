@@ -24,13 +24,23 @@ import {
   BarChart3,
   Printer,
   Eye,
-  Edit
+  Edit,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CourseContentSection } from '@/components/CourseContentSection';
 import { EditableSection } from '@/components/EditableSection';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CourseAssignment {
   id: string;
@@ -89,6 +99,9 @@ export default function CourseDetails() {
   const [coursePlan, setCoursePlan] = useState<CoursePlan | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [contentVersion, setContentVersion] = useState(1);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     if (userProfile?.company_id && courseId) {
@@ -248,7 +261,9 @@ export default function CourseDetails() {
   const metrics = calculateMetrics();
 
   const isPreviewCourse = assignments.some(a => a.is_preview);
-  const isAwaitingApproval = assignments.some(a => a.is_preview && a.approval_status === 'pending');
+  const isAwaitingApproval = assignments.some(a => a.is_preview && (a.approval_status === 'pending' || a.approval_status === 'revision_requested'));
+  const isRevisionRequested = assignments.some(a => a.is_preview && a.approval_status === 'revision_requested');
+  const existingFeedback = assignments.find(a => a.is_preview && a.approval_feedback)?.approval_feedback;
 
   const handleApprove = async () => {
     if (!courseId || !userProfile?.id) return;
@@ -285,6 +300,64 @@ export default function CourseDetails() {
     }
   };
 
+  const handleRequestChanges = () => {
+    setFeedbackText('');
+    setShowFeedbackDialog(true);
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!courseId || !userProfile?.id || !feedbackText.trim()) {
+      toast.error('Please provide feedback before submitting');
+      return;
+    }
+    
+    try {
+      setIsSubmittingFeedback(true);
+      
+      // Update approval status to revision_requested with feedback
+      const { error } = await supabase
+        .from('course_assignments')
+        .update({
+          approval_status: 'revision_requested',
+          approval_feedback: feedbackText,
+          approved_by: userProfile.id,
+          approved_at: new Date().toISOString()
+        })
+        .eq('course_id', courseId)
+        .eq('is_preview', true);
+
+      if (error) throw error;
+
+      // Trigger course regeneration with feedback
+      const { error: regenerateError } = await supabase.functions.invoke('generate-course', {
+        body: { 
+          employee_id: assignments[0]?.employee_id,
+          company_id: userProfile?.company_id,
+          assigned_by_id: userProfile.id,
+          course_id: courseId,
+          plan_id: coursePlan?.plan_id,
+          generation_mode: 'regenerate_with_feedback',
+          feedback_context: feedbackText
+        }
+      });
+
+      if (regenerateError) {
+        console.warn('Regeneration may have failed:', regenerateError);
+        // Don't throw - feedback was saved successfully
+      }
+
+      toast.success('Feedback submitted! Course regeneration has been queued.');
+      setShowFeedbackDialog(false);
+      setFeedbackText('');
+      await fetchCourseData();
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast.error('Failed to submit feedback');
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -301,30 +374,59 @@ export default function CourseDetails() {
       {isPreviewCourse && (
         <div className={cn(
           "border rounded-lg p-4",
-          isAwaitingApproval ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800" : "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+          isRevisionRequested 
+            ? "bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800"
+            : isAwaitingApproval 
+              ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800" 
+              : "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
         )}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <AlertCircle className={cn(
                 "h-5 w-5",
-                isAwaitingApproval ? "text-yellow-600 dark:text-yellow-400" : "text-green-600 dark:text-green-400"
+                isRevisionRequested
+                  ? "text-orange-600 dark:text-orange-400"
+                  : isAwaitingApproval 
+                    ? "text-yellow-600 dark:text-yellow-400" 
+                    : "text-green-600 dark:text-green-400"
               )} />
               <div>
                 <p className="font-medium">
-                  {isAwaitingApproval ? 'Preview Course - Awaiting Approval' : 'Preview Course - Approved'}
+                  {isRevisionRequested 
+                    ? 'Preview Course - Changes Requested' 
+                    : isAwaitingApproval 
+                      ? 'Preview Course - Awaiting Approval' 
+                      : 'Preview Course - Approved'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {isAwaitingApproval 
-                    ? 'Review the course content below. You can edit sections inline before approving.'
-                    : 'This preview has been approved. Full course generation is in progress.'}
+                  {isRevisionRequested
+                    ? 'Course regeneration is in progress based on your feedback.'
+                    : isAwaitingApproval 
+                      ? 'Review the course content below. You can edit sections inline before approving.'
+                      : 'This preview has been approved. Full course generation is in progress.'}
                 </p>
+                {existingFeedback && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    Previous feedback: "{existingFeedback}"
+                  </p>
+                )}
               </div>
             </div>
-            {isAwaitingApproval && (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') && (
-              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approve & Generate Full Course
-              </Button>
+            {isAwaitingApproval && !isRevisionRequested && (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') && (
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleRequestChanges} 
+                  variant="outline"
+                  className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Request Changes
+                </Button>
+                <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve & Generate Full Course
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -694,6 +796,61 @@ export default function CourseDetails() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Feedback Dialog */}
+      <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Request Course Changes</DialogTitle>
+            <DialogDescription>
+              Describe what changes you'd like to see in this course. The AI will regenerate the content based on your feedback.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Your Feedback</label>
+              <Textarea
+                placeholder="e.g., 'Too basic for senior developers - add more advanced concepts and real-world examples', 'Focus more on practical applications', 'Add leadership and team management skills'..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-4">
+              <p className="text-xs text-muted-foreground">
+                The AI will analyze your feedback and regenerate the course content accordingly.
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowFeedbackDialog(false)}
+                  disabled={isSubmittingFeedback}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSubmitFeedback}
+                  disabled={!feedbackText.trim() || isSubmittingFeedback}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {isSubmittingFeedback ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Submit & Regenerate
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
