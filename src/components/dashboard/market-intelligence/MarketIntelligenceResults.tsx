@@ -19,10 +19,12 @@ import {
   Copy,
   Check
 } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import type { MarketIntelligenceRequest } from './MarketIntelligence';
 import ReactMarkdown from 'react-markdown';
 import { toast } from '@/hooks/use-toast';
 import SkillsDemandAnalysis from './SkillsDemandAnalysis';
+import MarketIntelligencePDFReport from './MarketIntelligencePDFReport';
 
 interface MarketIntelligenceResultsProps {
   request: MarketIntelligenceRequest;
@@ -97,7 +99,7 @@ export default function MarketIntelligenceResults({
   const jobsCount = request.scraped_data?.total_jobs || request.scraped_data?.jobs_count || 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8" data-pdf-export>
+    <div className="max-w-4xl mx-auto space-y-8">
       {/* Minimalistic Header */}
       {showHeader && (
         <div className="border-b border-gray-100 pb-6">
@@ -131,8 +133,16 @@ export default function MarketIntelligenceResults({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onExport('pdf')}>
-                  Export as PDF
+                <DropdownMenuItem asChild>
+                  <PDFDownloadLink
+                    document={<MarketIntelligencePDFReport request={request} />}
+                    fileName={`market-intelligence-${request.position_title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
+                    className="flex items-center w-full text-sm cursor-pointer"
+                  >
+                    {({ blob, url, loading, error }) => (
+                      loading ? 'Generating PDF...' : 'Export as PDF'
+                    )}
+                  </PDFDownloadLink>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

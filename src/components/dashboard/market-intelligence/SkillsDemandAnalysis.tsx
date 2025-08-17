@@ -47,7 +47,7 @@ const normalizeSkillName = (skill: string): string => {
     'marketing': 'marketing',
     'communication': 'communication',
     'leadership': 'leadership',
-    'analyse': 'analysis',
+    'analyser': 'analysis',
     'projet': 'project',
     'client': 'customer',
     'service': 'service',

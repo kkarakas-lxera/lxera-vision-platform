@@ -24,8 +24,6 @@ import MarketIntelligenceConfig from './MarketIntelligenceConfig';
 import MarketIntelligenceProgress from './MarketIntelligenceProgress';
 import MarketIntelligenceResults from './MarketIntelligenceResults';
 import MarketIntelligenceHistory from './MarketIntelligenceHistory';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 // Types
 export interface MarketIntelligenceRequest {
@@ -455,125 +453,8 @@ export default function MarketIntelligence() {
   };
 
   const handleExport = async (format: 'pdf') => {
-    if (format === 'pdf' && currentRequest) {
-      try {
-        toast({
-          title: 'Generating PDF',
-          description: 'Creating your market intelligence report...',
-        });
-
-        // Find the results container
-        const element = document.querySelector('[data-pdf-export]') as HTMLElement;
-        if (!element) {
-          throw new Error('Report content not found');
-        }
-
-        // Temporarily adjust styles for better PDF rendering
-        const originalStyles = {
-          width: element.style.width,
-          maxWidth: element.style.maxWidth,
-          padding: element.style.padding,
-          backgroundColor: element.style.backgroundColor,
-          boxShadow: element.style.boxShadow,
-          border: element.style.border,
-        };
-
-        element.style.width = '210mm'; // A4 width
-        element.style.maxWidth = '210mm';
-        element.style.padding = '20mm';
-        element.style.backgroundColor = 'white';
-        element.style.boxShadow = 'none';
-        element.style.border = 'none';
-
-        // Generate canvas from HTML
-        const canvas = await html2canvas(element, {
-          scale: 2, // Higher resolution
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          width: element.offsetWidth,
-          height: element.offsetHeight
-        });
-
-        // Reset styles
-        Object.assign(element.style, originalStyles);
-
-        // Create PDF with proper multi-page support
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 20; // 20mm margins
-        const contentWidth = pdfWidth - (margin * 2);
-        const contentHeight = pdfHeight - (margin * 2);
-
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-
-        // Calculate how many pages we need
-        const ratio = contentWidth / (imgWidth / 2); // Divide by 2 because of scale
-        const scaledHeight = (imgHeight / 2) * ratio; // Divide by 2 because of scale
-        const totalPages = Math.ceil(scaledHeight / contentHeight);
-
-        // Add pages
-        for (let page = 0; page < totalPages; page++) {
-          if (page > 0) {
-            pdf.addPage();
-          }
-
-          const yOffset = -(page * contentHeight);
-          const sourceY = (page * contentHeight) / ratio;
-          const sourceHeight = Math.min(contentHeight / ratio, (imgHeight / 2) - sourceY);
-
-          if (sourceHeight > 0) {
-            // Create a temporary canvas for this page section
-            const pageCanvas = document.createElement('canvas');
-            const pageCtx = pageCanvas.getContext('2d')!;
-            
-            pageCanvas.width = imgWidth;
-            pageCanvas.height = sourceHeight * 2; // Scale back up
-            
-            // Draw the section of the main canvas
-            pageCtx.drawImage(
-              canvas,
-              0, sourceY * 2, // Source position
-              imgWidth, sourceHeight * 2, // Source dimensions
-              0, 0, // Destination position
-              imgWidth, sourceHeight * 2 // Destination dimensions
-            );
-
-            const pageImgData = pageCanvas.toDataURL('image/png');
-            pdf.addImage(
-              pageImgData,
-              'PNG',
-              margin,
-              margin,
-              contentWidth,
-              Math.min(contentHeight, sourceHeight * ratio)
-            );
-          }
-        }
-        
-        // Generate filename
-        const filename = `market-intelligence-${currentRequest.position_title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
-        
-        // Download PDF
-        pdf.save(filename);
-
-        toast({
-          title: 'PDF Downloaded',
-          description: `Your market intelligence report has been saved (${totalPages} pages).`,
-        });
-
-      } catch (error) {
-        console.error('PDF export error:', error);
-        toast({
-          title: 'Export Failed',
-          description: 'Unable to generate PDF. Please try again.',
-          variant: 'destructive'
-        });
-      }
-    }
+    // PDF export will be handled by React-PDF component
+    console.log('PDF export triggered');
   };
 
   if (loading) {
