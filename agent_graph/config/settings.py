@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AgentGraphSettings(BaseSettings):
@@ -16,10 +17,11 @@ class AgentGraphSettings(BaseSettings):
 
 	sentry_dsn: str = Field(default="", description="Sentry DSN for observability")
 
-	class Config:
-		case_sensitive = False
-		env_prefix = "LXERA_"
-		env_file = ".env"
+	model_config = SettingsConfigDict(
+		case_sensitive=False,
+		env_prefix="LXERA_",
+		env_file=".env",
+	)
 
 
 settings = AgentGraphSettings()  # Singleton
