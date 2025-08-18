@@ -67,9 +67,10 @@ class EnhancedResearchOrchestrator:
         logger.info(f"   - Groq: {'✅ SET' if self.groq_api_key else '❌ MISSING'}")
     
     async def _extract_with_scrape_do(self, url: str) -> str:
-        """Extract content from URL using Scrape.do API"""
+        """Extract content using Scrape.do with correct API format."""
         try:
             import requests
+            import urllib.parse
             
             if not self.scrape_do_api_key:
                 logger.warning(f"❌ Scrape.do API key missing - cannot extract {url}")
@@ -77,40 +78,26 @@ class EnhancedResearchOrchestrator:
             
             logger.info(f"🕷️ Scrape.do extracting: {url}")
             
-            scrape_params = {
-                "url": url,
-                "format": "markdown",
-                "extractionRules": {
-                    "removeUnwantedElements": True,
-                    "onlyMainContent": True,
-                    "maxLength": 5000
-                }
-            }
+            # Use correct Scrape.do API format with / after .do and before ?
+            encoded_url = urllib.parse.quote(url)
+            scrape_url = f"https://api.scrape.do/?token={self.scrape_do_api_key}&url={encoded_url}"
             
-            headers = {
-                "Authorization": f"Bearer {self.scrape_do_api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "LXERA-Research-Agent/1.0"
-            }
-            
-            response = requests.post(
-                "https://api.scrape.do/v1/scrape",
-                headers=headers,
-                json=scrape_params,
+            get_response = requests.get(
+                scrape_url,
                 timeout=60
             )
             
-            logger.info(f"📡 Scrape.do response: {response.status_code}")
+            logger.info(f"📡 Scrape.do response: {get_response.status_code}")
             
-            if response.status_code == 200:
-                result = response.json()
-                content = result.get('data', {}).get('content', '')
+            if get_response.status_code == 200:
+                content = get_response.text or ""
                 logger.info(f"✅ Scrape.do extracted {len(content)} characters")
                 return content[:5000]  # Limit content length
             else:
-                logger.error(f"❌ Scrape.do failed for {url}: {response.status_code}")
-                if response.text:
-                    logger.error(f"   Response: {response.text[:200]}...")
+                # Log error details for debugging
+                error_preview = (get_response.text or "")[:200]
+                logger.error(f"❌ Scrape.do failed for {url}: {get_response.status_code}")
+                logger.error(f"   Response: {error_preview}...")
                 return ""
                 
         except Exception as e:
@@ -718,7 +705,7 @@ class EnhancedResearchOrchestrator:
             # Use existing table structure with enhancements
             session_data = {
                 'research_id': research_id,
-                'content_id': plan_id,  # Using plan_id as content_id for compatibility
+                'content_id': None,  # Leave null - only set when we have actual module content
                 'company_id': '67d7bff4-1149-4f37-952e-af1841fb67fa',  # Default company
                 'research_topics': ['enhanced_multi_source'],
                 'research_type': final_research_type,
@@ -968,7 +955,6 @@ def store_enhanced_research_results(
                 'quality_assessment': quality_dict,
                 'enhanced_features': True
             },
-            'research_type': 'enhanced_multi_agent',
             'status': 'completed'
         }
         

@@ -358,8 +358,20 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         # SMART WORD PLANNING INTEGRATION
         # Apply intelligent word distribution to each module
         enhanced_modules = []
-        for module in course_structure.get("modules", []):
+        modules_list = course_structure.get("modules", [])
+        
+        # Add type checking for modules
+        if not isinstance(modules_list, list):
+            logger.warning(f"⚠️ Modules is not a list: {type(modules_list)}, converting to list")
+            modules_list = [modules_list] if modules_list else []
+        
+        for module in modules_list:
             try:
+                # Ensure module is a dictionary
+                if not isinstance(module, dict):
+                    logger.warning(f"⚠️ Module is not a dict: {type(module)}, skipping")
+                    continue
+                    
                 # Get total word count for this module
                 total_words = module.get("word_count", 4000)
                 
@@ -502,7 +514,19 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
         all_modules = []
         try:
             for week in structure.get("weekly_structure", []):
-                for module in week.get("modules", []):
+                if not isinstance(week, dict):
+                    logger.warning(f"⚠️ Week is not a dict: {type(week)}, skipping")
+                    continue
+                    
+                modules_in_week = week.get("modules", [])
+                if not isinstance(modules_in_week, list):
+                    logger.warning(f"⚠️ Week modules is not a list: {type(modules_in_week)}, converting")
+                    modules_in_week = [modules_in_week] if modules_in_week else []
+                    
+                for module in modules_in_week:
+                    if not isinstance(module, dict):
+                        logger.warning(f"⚠️ Module in week is not a dict: {type(module)}, skipping")
+                        continue
                     module["week_number"] = week.get("week_number", 1)
                     all_modules.append(module)
         except Exception as e:
