@@ -35,15 +35,15 @@ def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str
 
 
 @tool
-def store_planning_metadata_tool(plan_id: str, employee_profile: str, tool_calls: str, execution_time: float, agent_turns: int) -> str:
+def store_planning_metadata_tool(plan_id: str, employee_profile: str, tool_calls: str, execution_time: str, agent_turns: str) -> str:
 	"""Store planning metadata for a plan; returns status string."""
 	from openai_course_generator.tools.planning_storage_tools_v2 import store_planning_metadata as _tool
 	args = {
 		"plan_id": plan_id,
 		"employee_profile": employee_profile,
 		"tool_calls": tool_calls,
-		"execution_time": execution_time,
-		"agent_turns": agent_turns,
+		"execution_time": float(execution_time) if execution_time else 0.0,
+		"agent_turns": int(agent_turns) if agent_turns else 0,
 	}
 	return _tool.on_invoke_tool(None, args)  # type: ignore[attr-defined]
 
