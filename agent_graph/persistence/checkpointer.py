@@ -87,6 +87,14 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 			out.append(CheckpointTuple(checkpoint=checkpoint, config=cfg, metadata=metadata, pending_writes=pending))
 		return out
 
+	def get_next_version(self, config: Dict[str, Any]) -> str:
+		"""Return a monotonically unique version identifier for this thread.
+
+		LangGraph expects a version to manage checkpoint progression. We use a UUID.
+		"""
+		_ = _require_thread_id(config)
+		return str(uuid.uuid4())
+
 
 def _require_thread_id(config: Dict[str, Any]) -> str:
 	configurable = (config or {}).get("configurable") or {}
