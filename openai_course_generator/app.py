@@ -97,40 +97,56 @@ def health_check():
 
 @app.route('/api/v1/agent-graph/jobs', methods=['POST'])
 def start_agent_graph_job():
-    from agent_graph.graph.runner import start_job
-    data = request.get_json(force=True) or {}
-    job_id = data.get('job_id') or str(uuid.uuid4())
-    # Pass initial state inputs for full pipeline
-    # Forward key inputs into initial state for full pipeline
-    initial_state = {
-        "employee_id": data.get("employee_id"),
-        "employee_name": data.get("employee_name"),
-        "company_id": data.get("company_id"),
-        "employee_profile": data.get("employee_profile"),
-        "skills_gaps": data.get("skills_gaps"),
-        "module_name": data.get("module_name"),
-        "module_spec": data.get("module_spec"),
-        "research_context": data.get("research_context"),
-        "plan_id": data.get("plan_id"),
-        "research_id": data.get("research_id"),
-        "content_id": data.get("content_id"),
-    }
-    result = start_job(job_id=job_id, thread_id=data.get('thread_id'), extra_state=initial_state)
-    return jsonify(result)
+    try:
+        from agent_graph.graph.runner import start_job
+        data = request.get_json(force=True) or {}
+        job_id = data.get('job_id') or str(uuid.uuid4())
+        # Pass initial state inputs for full pipeline
+        # Forward key inputs into initial state for full pipeline
+        initial_state = {
+            "employee_id": data.get("employee_id"),
+            "employee_name": data.get("employee_name"),
+            "company_id": data.get("company_id"),
+            "employee_profile": data.get("employee_profile"),
+            "skills_gaps": data.get("skills_gaps"),
+            "module_name": data.get("module_name"),
+            "module_spec": data.get("module_spec"),
+            "research_context": data.get("research_context"),
+            "plan_id": data.get("plan_id"),
+            "research_id": data.get("research_id"),
+            "content_id": data.get("content_id"),
+        }
+        result = start_job(job_id=job_id, thread_id=data.get('thread_id'), extra_state=initial_state)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"LangGraph job failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'job_id': data.get('job_id') if 'data' in locals() else None
+        }), 500
 
 @app.route('/api/v1/agent-graph/jobs/<thread_id>/resume', methods=['POST'])
 def resume_agent_graph_job(thread_id: str):
-    from agent_graph.graph.runner import resume_job
-    data = request.get_json(force=True) or {}
-    checkpoint_id = data.get('checkpoint_id')
-    result = resume_job(thread_id=thread_id, checkpoint_id=checkpoint_id)
-    return jsonify(result)
+    try:
+        from agent_graph.graph.runner import resume_job
+        data = request.get_json(force=True) or {}
+        checkpoint_id = data.get('checkpoint_id')
+        result = resume_job(thread_id=thread_id, checkpoint_id=checkpoint_id)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"LangGraph resume failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/v1/agent-graph/jobs/<thread_id>/status', methods=['GET'])
 def status_agent_graph_job(thread_id: str):
-    from agent_graph.graph.runner import get_status
-    result = get_status(thread_id=thread_id)
-    return jsonify(result)
+    try:
+        from agent_graph.graph.runner import get_status
+        result = get_status(thread_id=thread_id)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"LangGraph status failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/generate-course', methods=['POST', 'OPTIONS'])
 def generate_course():
