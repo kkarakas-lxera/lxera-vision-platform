@@ -45,15 +45,15 @@ generate_course_with_agents = None
 resume_course_generation = None
 pipeline_import_error = None
 
+# Temporarily disable old OpenAI pipeline to avoid import conflicts
+# TODO: Re-enable once migration to LangGraph is complete
 try:
-    from lxera_database_pipeline import generate_course_with_agents, resume_course_generation
-    logger.info("Successfully imported LXERA agent pipeline")
-except ImportError as e:
-    pipeline_import_error = f"Import error: {str(e)}"
-    logger.error(f"Failed to import pipeline: {e}")
-    # Set to None if import fails
+    # from lxera_database_pipeline import generate_course_with_agents, resume_course_generation
+    # logger.info("Successfully imported LXERA agent pipeline")
     generate_course_with_agents = None
     resume_course_generation = None
+    pipeline_import_error = "OpenAI pipeline temporarily disabled during LangGraph migration"
+    logger.info("OpenAI pipeline temporarily disabled - using LangGraph endpoints")
 except Exception as e:
     pipeline_import_error = f"Pipeline initialization error: {str(e)}"
     logger.error(f"Pipeline initialization failed: {e}")
