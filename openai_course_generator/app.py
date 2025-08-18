@@ -7,11 +7,17 @@ import asyncio
 import logging
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
-from sentry_sdk.integrations.openai import OpenAIIntegration
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import time
-import openai
+import sys
+from pathlib import Path
+
+# Ensure repository root is importable so we can import `agent_graph`
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+import uuid
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +32,6 @@ sentry_sdk.init(
     integrations=[
         FlaskIntegration(
             transaction_style='endpoint',
-        ),
-        OpenAIIntegration(
-            include_prompts=True,
         ),
     ],
     environment=os.getenv('RENDER_ENV', 'production'),
@@ -61,6 +64,13 @@ except Exception as e:
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+try:
+	# Initialize LangSmith tracing if configured
+	from agent_graph.services.langsmith_service import init_langsmith
+	init_langsmith()
+except Exception:
+	pass
+
 @app.route('/ping', methods=['GET'])
 def ping():
     """Lightweight ping endpoint for quick health checks"""
@@ -74,7 +84,7 @@ def health_check():
         'service': 'lxera-agent-pipeline',
         'pipeline_available': generate_course_with_agents is not None,
         'environment_check': {
-            'openai_key_set': bool(os.environ.get('OPENAI_API_KEY')),
+            'groq_key_set': bool(os.environ.get('GROQ_API_KEY')),
             'supabase_url_set': bool(os.environ.get('SUPABASE_URL')),
             'supabase_key_set': bool(os.environ.get('SUPABASE_SERVICE_ROLE_KEY'))
         }
@@ -84,6 +94,43 @@ def health_check():
         health_data['pipeline_error'] = pipeline_import_error
     
     return jsonify(health_data)
+
+@app.route('/api/v1/agent-graph/jobs', methods=['POST'])
+def start_agent_graph_job():
+    from agent_graph.graph.runner import start_job
+    data = request.get_json(force=True) or {}
+    job_id = data.get('job_id') or str(uuid.uuid4())
+    # Pass initial state inputs for full pipeline
+    # Forward key inputs into initial state for full pipeline
+    initial_state = {
+        "employee_id": data.get("employee_id"),
+        "employee_name": data.get("employee_name"),
+        "company_id": data.get("company_id"),
+        "employee_profile": data.get("employee_profile"),
+        "skills_gaps": data.get("skills_gaps"),
+        "module_name": data.get("module_name"),
+        "module_spec": data.get("module_spec"),
+        "research_context": data.get("research_context"),
+        "plan_id": data.get("plan_id"),
+        "research_id": data.get("research_id"),
+        "content_id": data.get("content_id"),
+    }
+    result = start_job(job_id=job_id, thread_id=data.get('thread_id'), extra_state=initial_state)
+    return jsonify(result)
+
+@app.route('/api/v1/agent-graph/jobs/<thread_id>/resume', methods=['POST'])
+def resume_agent_graph_job(thread_id: str):
+    from agent_graph.graph.runner import resume_job
+    data = request.get_json(force=True) or {}
+    checkpoint_id = data.get('checkpoint_id')
+    result = resume_job(thread_id=thread_id, checkpoint_id=checkpoint_id)
+    return jsonify(result)
+
+@app.route('/api/v1/agent-graph/jobs/<thread_id>/status', methods=['GET'])
+def status_agent_graph_job(thread_id: str):
+    from agent_graph.graph.runner import get_status
+    result = get_status(thread_id=thread_id)
+    return jsonify(result)
 
 @app.route('/api/generate-course', methods=['POST', 'OPTIONS'])
 def generate_course():
@@ -220,21 +267,12 @@ def test_performance():
         with sentry_sdk.start_span(op="process", description="Processing data"):
             time.sleep(0.1)  # Simulate processing
         
-        # Make a simple OpenAI call to test LLM monitoring
-        with sentry_sdk.start_span(op="openai", description="Test OpenAI call"):
+        # Placeholder span for LLM monitoring
+        with sentry_sdk.start_span(op="llm", description="Test LLM call"):
             try:
-                client = openai.OpenAI()
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": "Say 'Sentry monitoring is working!' in 5 words or less."}
-                    ],
-                    max_tokens=20
-                )
-                ai_response = response.choices[0].message.content
+                ai_response = "LLM monitoring placeholder"
             except Exception as e:
-                ai_response = f"OpenAI error: {str(e)}"
+                ai_response = f"LLM error: {str(e)}"
         
         return jsonify({
             'message': 'Performance test completed',
