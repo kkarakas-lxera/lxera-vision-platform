@@ -158,40 +158,26 @@ def scrape_do_extract(url: str, extraction_type: str = "full") -> str:
         
         logger.info(f"🔧 Scraping URL with Scrape.do: {url}")
         
-        # Configure Scrape.do parameters
-        scrape_params = {
-            "url": url,
-            "format": "markdown",
-            "extractionRules": {
-                "removeUnwantedElements": True,
-                "onlyMainContent": True
-            }
-        }
+        # Use working Scrape.do API format (GET with query params, not POST)
+        import urllib.parse
+        encoded_url = urllib.parse.quote(url)
+        scrape_url = f"https://api.scrape.do/?token={scrape_do_api_key}&url={encoded_url}"
         
         # Add extraction type specific parameters
         if extraction_type == "summary":
-            scrape_params["extractionRules"]["maxLength"] = 5000
+            scrape_url += "&render=true&waitUntil=networkidle"
         elif extraction_type == "key_points":
-            scrape_params["extractionRules"]["extractStructuredData"] = True
+            scrape_url += "&render=true&waitUntil=domcontentloaded"
         
-        # Execute Scrape.do request
-        headers = {
-            "Authorization": f"Bearer {scrape_do_api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        response = requests.post(
-            "https://api.scrape.do/v1/scrape",
-            headers=headers,
-            json=scrape_params,
+        # Execute Scrape.do request (GET, not POST)
+        response = requests.get(
+            scrape_url,
             timeout=60  # Scraping can take longer
         )
         if response.status_code == 200:
-            result = response.json()
-            
-            # Extract content from Scrape.do response
-            content = result.get('data', {}).get('content', '')
-            title = result.get('data', {}).get('title', '')
+            # Scrape.do returns HTML directly, not JSON
+            content = response.text or ""
+            title = ""  # Extract title from HTML if needed
             
             # Limit content to prevent context overflow (max 5000 words)
             if content:
