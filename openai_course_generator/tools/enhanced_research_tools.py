@@ -89,7 +89,8 @@ class EnhancedResearchOrchestrator:
             
             headers = {
                 "Authorization": f"Bearer {self.scrape_do_api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "User-Agent": "LXERA-Research-Agent/1.0"
             }
             
             response = requests.post(

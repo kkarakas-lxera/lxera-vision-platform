@@ -178,8 +178,21 @@ export const CourseGenerationSection = () => {
     try {
       setLoading(true);
       
-      // Fetch employees with skills analysis data
-      const { data: employeesData, error } = await supabase
+      // First, get employees with active assignments to exclude them
+      const { data: activeAssignments, error: assignmentsError } = await supabase
+        .from('course_assignments')
+        .select('employee_id')
+        .in('status', ['assigned', 'in_progress']);
+      
+      if (assignmentsError) {
+        console.error('Error fetching active assignments:', assignmentsError);
+        // Continue with the main query even if this fails
+      }
+      
+      const activeEmployeeIds = activeAssignments?.map(a => a.employee_id) || [];
+      
+      // Fetch employees with skills analysis data, excluding those with active assignments
+      let query = supabase
         .from('employees')
         .select(`
           id,
@@ -204,6 +217,13 @@ export const CourseGenerationSection = () => {
         `)
         .eq('company_id', companyId)
         .not('skills_last_analyzed', 'is', null);
+      
+      // Exclude employees with active assignments
+      if (activeEmployeeIds.length > 0) {
+        query = query.not('id', 'in', `(${activeEmployeeIds.map(id => `"${id}"`).join(',')})`);
+      }
+      
+      const { data: employeesData, error } = await query;
 
       if (error) throw error;
 
