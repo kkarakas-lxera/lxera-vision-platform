@@ -38,12 +38,23 @@ def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str
 def store_planning_metadata_tool(plan_id: str, employee_profile: str, tool_calls: str, execution_time: str, agent_turns: str) -> str:
 	"""Store planning metadata for a plan; returns status string."""
 	from openai_course_generator.tools.planning_storage_tools_v2 import store_planning_metadata as _tool
+	# Handle type conversion safely - Groq may pass timestamps or other strings
+	try:
+		exec_time = float(execution_time) if execution_time else 0.0
+	except (ValueError, TypeError):
+		exec_time = 300.0  # Default 5 minutes if conversion fails
+	
+	try:
+		turns = int(agent_turns) if agent_turns else 0
+	except (ValueError, TypeError):
+		turns = 5  # Default turns if conversion fails
+	
 	args = {
 		"plan_id": plan_id,
 		"employee_profile": employee_profile,
 		"tool_calls": tool_calls,
-		"execution_time": float(execution_time) if execution_time else 0.0,
-		"agent_turns": int(agent_turns) if agent_turns else 0,
+		"execution_time": exec_time,
+		"agent_turns": turns,
 	}
 	return _tool.on_invoke_tool(None, args)  # type: ignore[attr-defined]
 
