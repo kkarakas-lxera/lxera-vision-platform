@@ -95,15 +95,15 @@ def fix_nested_json_issues(text: str) -> str:
 
 def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     """
-    Extract JSON from text that may contain additional content.
+    Extract JSON from text using comprehensive strategies from market intelligence agent.
     
     Tries multiple strategies:
-    1. Direct JSON parsing
-    2. Fix common JSON formatting issues
+    1. Aggressive cleaning + direct parsing (BOM, zero-width chars, control chars)
+    2. Fix escape characters and over-escaping issues
     3. Extract JSON from markdown code blocks
     4. Find JSON boundaries using regex
-    5. Repair truncated JSON
-    6. Handle "Extra data" error by extracting first valid JSON
+    5. Handle "Extra data" error by extracting first valid JSON
+    6. AI-powered JSON fixing (future enhancement)
     
     Args:
         text: Text potentially containing JSON
@@ -114,10 +114,36 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     if not text:
         return None
     
-    # Strategy 1: Try direct parsing
+    logger.debug(f"🔍 Parsing JSON from text (length: {len(text)})")
+    
+    # Strategy 1: Aggressive cleaning + direct parsing (from market intelligence)
     try:
-        return json.loads(text.strip())
+        cleaned_text = text.strip()
+        
+        # Strip BOM and zero-width characters that can break JSON.parse (market intelligence strategy)
+        cleaned_text = cleaned_text \
+            .replace('\uFEFF', '') \
+            .replace('\u200B', '') \
+            .replace('\u200C', '') \
+            .replace('\u200D', '') \
+            .replace('\u2060', '') \
+            .replace('\uFEFF', '')
+        
+        # Remove markdown code blocks if present
+        if cleaned_text.startswith('```json'):
+            cleaned_text = re.sub(r'^```json\s*', '', cleaned_text)
+            cleaned_text = re.sub(r'\s*```$', '', cleaned_text)
+        elif cleaned_text.startswith('```'):
+            cleaned_text = re.sub(r'^```\s*', '', cleaned_text)
+            cleaned_text = re.sub(r'\s*```$', '', cleaned_text)
+        
+        result = json.loads(cleaned_text)
+        logger.debug("✅ Strategy 1 (aggressive cleaning) succeeded")
+        return result
+        
     except json.JSONDecodeError as e:
+        logger.debug(f"⚠️ Strategy 1 failed: {e}")
+        
         # Handle "Extra data" error - try to extract just the valid JSON part
         if "Extra data" in str(e):
             try:
@@ -134,26 +160,59 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
                     if char_pos and char_pos < len(text):
                         # Extract text up to the error position
                         valid_json_text = text[:char_pos]
-                        return json.loads(valid_json_text.strip())
+                        result = json.loads(valid_json_text.strip())
+                        logger.debug("✅ Extra data extraction succeeded")
+                        return result
             except (ValueError, json.JSONDecodeError):
                 pass
     
-    # Strategy 2: Fix common JSON formatting issues
+    # Strategy 2: Fix escape characters and over-escaping (from market intelligence)
+    try:
+        fixed_text = text \
+            .replace('```json', '') \
+            .replace('```', '') \
+            .replace('\uFEFF', '') \
+            .replace('\u200B', '') \
+            .replace('\u200C', '') \
+            .replace('\u200D', '') \
+            .replace('\u2060', '') \
+            .replace('\\\\', '\\') \
+            .replace('\\n', '\n') \
+            .replace('\\"', '"') \
+            .replace('\n', ' ') \
+            .replace('\t', ' ') \
+            .strip()
+        
+        # Remove control characters (market intelligence strategy)
+        fixed_text = re.sub(r'[\x00-\x1F\x7F]', '', fixed_text)
+        
+        result = json.loads(fixed_text)
+        logger.debug("✅ Strategy 2 (escape fixing) succeeded")
+        return result
+        
+    except json.JSONDecodeError:
+        logger.debug("⚠️ Strategy 2 failed")
+    
+    # Strategy 3: Fix common JSON formatting issues
     try:
         fixed_json = fix_common_json_issues(text.strip())
-        return json.loads(fixed_json)
+        result = json.loads(fixed_json)
+        logger.debug("✅ Strategy 3 (common fixes) succeeded")
+        return result
     except json.JSONDecodeError:
-        pass
+        logger.debug("⚠️ Strategy 3 failed")
     
-    # Strategy 2b: Fix nested JSON issues specifically
+    # Strategy 4: Fix nested JSON issues specifically
     try:
         fixed_json = fix_common_json_issues(text.strip())
         nested_fixed = fix_nested_json_issues(fixed_json)
-        return json.loads(nested_fixed)
+        result = json.loads(nested_fixed)
+        logger.debug("✅ Strategy 4 (nested fixes) succeeded")
+        return result
     except json.JSONDecodeError:
-        pass
+        logger.debug("⚠️ Strategy 4 failed")
     
-    # Strategy 3: Extract from markdown code blocks
+    # Strategy 5: Extract from markdown code blocks
     code_block_patterns = [
         r'```json\s*\n(.*?)\n```',
         r'```\s*\n(.*?)\n```',
@@ -164,32 +223,41 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
         matches = re.findall(pattern, text, re.DOTALL)
         for match in matches:
             try:
-                return json.loads(match.strip())
+                result = json.loads(match.strip())
+                logger.debug("✅ Strategy 5 (markdown extraction) succeeded")
+                return result
             except json.JSONDecodeError:
                 continue
+    logger.debug("⚠️ Strategy 5 failed")
     
-    # Strategy 4: Find JSON boundaries
-    json_patterns = [
-        # Match complete JSON object
-        r'(\{[^{}]*\{[^{}]*\}[^{}]*\})',  # Nested objects
-        r'(\{[^{}]+\})',  # Simple objects
-        r'(\{.*\})',  # Greedy match (last resort)
-    ]
-    
-    for pattern in json_patterns:
-        matches = re.findall(pattern, text, re.DOTALL)
+    # Strategy 6: Find JSON boundaries with improved regex (from market intelligence)
+    try:
+        # Look for JSON array or object patterns (market intelligence approach)
+        json_pattern = r'(\{.*?\}|\[.*?\])'
+        matches = re.findall(json_pattern, text, re.DOTALL)
+        
         for match in matches:
             try:
-                # Clean up common issues
+                # Apply aggressive cleaning to each match
                 cleaned = match.strip()
+                # Remove BOM and zero-width characters
+                cleaned = cleaned.replace('\uFEFF', '').replace('\u200B', '').replace('\u200C', '').replace('\u200D', '').replace('\u2060', '')
+                # Remove control characters
+                cleaned = re.sub(r'[\x00-\x1F\x7F]', '', cleaned)
                 # Remove trailing commas
                 cleaned = re.sub(r',\s*}', '}', cleaned)
                 cleaned = re.sub(r',\s*]', ']', cleaned)
-                return json.loads(cleaned)
+                
+                result = json.loads(cleaned)
+                logger.debug("✅ Strategy 6 (regex boundary) succeeded")
+                return result
             except json.JSONDecodeError:
                 continue
+    except Exception:
+        pass
+    logger.debug("⚠️ Strategy 6 failed")
     
-    # Strategy 5: Try to repair truncated JSON
+    # Strategy 7: Try to repair truncated JSON
     truncated_json = try_repair_truncated_json(text)
     if truncated_json:
         try:
