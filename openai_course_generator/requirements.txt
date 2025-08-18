@@ -1,6 +1,5 @@
 # Core dependencies
 supabase>=2.0.0
-openai>=1.0.0
 groq>=0.4.2
 python-dotenv>=1.0.0
 
@@ -9,13 +8,10 @@ flask>=2.3.0
 flask-cors>=4.0.0
 gunicorn>=21.0.0
 
-# Agent framework dependencies (required by existing agents)
+# Agent framework dependencies (LangGraph migration)
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 aiohttp>=3.8.0
-
-# Official OpenAI Agents SDK for proper tracing
-openai-agents>=0.1.0
 
 # Database and content management
 psycopg2-binary>=2.9.0
@@ -28,6 +24,7 @@ langchain>=0.2.12
 langchain-community>=0.2.11
 langgraph>=0.2.34
 langchain-groq>=0.2.0
+langsmith>=0.1.0
 
 # Additional missing dependencies
 pathlib>=1.0.1
@@ -39,7 +36,7 @@ python-dateutil>=2.8.0
 asyncio-throttle>=0.1.1
 
 # Monitoring and observability
-sentry-sdk[flask,openai]>=2.0.0
+sentry-sdk[flask]>=2.0.0
 
 # AI Visual Pipeline dependencies
 plotly>=5.0.0
