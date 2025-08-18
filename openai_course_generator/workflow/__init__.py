@@ -1,11 +1,21 @@
 """Workflow module for OpenAI Agents Course Generator."""
 
 from .course_runner import CourseRunner
-from .conversation_manager import ConversationManager
-from .progress_tracker import ProgressTracker
+
+try:
+    from .conversation_manager import ConversationManager
+except ImportError:
+    ConversationManager = None
+
+try:
+    from .progress_tracker import ProgressTracker
+except ImportError:
+    ProgressTracker = None
 
 __all__ = [
     "CourseRunner",
-    "ConversationManager", 
-    "ProgressTracker"
 ]
+if ConversationManager:
+    __all__.append("ConversationManager")
+if ProgressTracker:
+    __all__.append("ProgressTracker")
