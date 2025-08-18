@@ -6,21 +6,21 @@ from langchain_core.tools import tool
 @tool
 def analyze_employee_profile_tool(employee_data: str) -> str:
 	"""Analyze employee profile JSON and return structured analysis as JSON string."""
-	from openai_course_generator.tools.planning_tools import analyze_employee_profile
-	return analyze_employee_profile(employee_data)
+	from openai_course_generator.tools.planning_tools import analyze_employee_profile as _fn
+	return _fn(employee_data)
 
 
 @tool
 def generate_course_structure_plan_tool(profile_data: str, skills_gaps: str) -> str:
 	"""Generate a course structure plan given profile and gaps; returns JSON string."""
-	from openai_course_generator.tools.planning_tools import generate_course_structure_plan
-	return generate_course_structure_plan(profile_data, skills_gaps)
+	from openai_course_generator.tools.planning_tools import generate_course_structure_plan as _fn
+	return _fn(profile_data, skills_gaps)
 
 
 @tool
 def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str, course_structure: str, prioritized_gaps: str, research_strategy: str, learning_path: str, company_id: str | None = None) -> str:
 	"""Store the course plan in cm_course_plans; returns status string containing plan_id."""
-	from openai_course_generator.tools.planning_storage_tools_v2 import store_course_plan
+	from openai_course_generator.tools.planning_storage_tools_v2 import store_course_plan as _tool
 	args = {
 		"employee_id": employee_id,
 		"employee_name": employee_name,
@@ -31,13 +31,13 @@ def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str
 		"research_strategy": research_strategy,
 		"learning_path": learning_path,
 	}
-	return store_course_plan.on_invoke_tool(None, args)  # type: ignore[attr-defined]
+	return _tool.on_invoke_tool(None, args)  # type: ignore[attr-defined]
 
 
 @tool
 def store_planning_metadata_tool(plan_id: str, employee_profile: str, tool_calls: str, execution_time: float, agent_turns: int) -> str:
 	"""Store planning metadata for a plan; returns status string."""
-	from openai_course_generator.tools.planning_storage_tools_v2 import store_planning_metadata
+	from openai_course_generator.tools.planning_storage_tools_v2 import store_planning_metadata as _tool
 	args = {
 		"plan_id": plan_id,
 		"employee_profile": employee_profile,
@@ -45,6 +45,6 @@ def store_planning_metadata_tool(plan_id: str, employee_profile: str, tool_calls
 		"execution_time": execution_time,
 		"agent_turns": agent_turns,
 	}
-	return store_planning_metadata.on_invoke_tool(None, args)  # type: ignore[attr-defined]
+	return _tool.on_invoke_tool(None, args)  # type: ignore[attr-defined]
 
 
