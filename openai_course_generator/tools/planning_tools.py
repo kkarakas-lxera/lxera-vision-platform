@@ -13,6 +13,7 @@ from typing import Dict, Any, List
 from lxera_agents import function_tool
 from openai import OpenAI
 from tools.json_utils import extract_json_from_text, safe_json_parse, fix_common_json_issues, fix_nested_json_issues
+from openai_course_generator.utils.json_fixer import json_fixer
 from tools.smart_word_planning import get_smart_word_plan, log_word_plan
 
 # Setup logging
@@ -47,8 +48,22 @@ def analyze_employee_profile(employee_data: str) -> str:
     try:
         logger.info("🔍 Analyzing employee profile with enhanced CV data...")
         
-        # Parse employee data
-        employee_info = json.loads(employee_data) if isinstance(employee_data, str) else employee_data
+        # Parse employee data with JSON fixing for malformed LLM output
+        if isinstance(employee_data, str):
+            employee_info = json_fixer.fix_json(employee_data)
+            if employee_info is None:
+                # Fallback to standard JSON parsing
+                try:
+                    employee_info = json.loads(employee_data)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse employee_data even with JSON fixer: {e}")
+                    logger.error(f"Raw employee_data: {repr(employee_data[:200])}...")
+                    return json.dumps({
+                        "error": "Invalid employee data format",
+                        "raw_data_preview": employee_data[:100] if len(employee_data) > 100 else employee_data
+                    })
+        else:
+            employee_info = employee_data
         
         # Extract basic information
         full_name = employee_info.get("full_name", "Unknown")
@@ -216,9 +231,28 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
     try:
         logger.info("🎯 Generating course structure plan with OpenAI agent...")
         
-        # Parse input data
-        profile = json.loads(profile_data) if isinstance(profile_data, str) else profile_data
-        gaps = json.loads(skills_gaps) if isinstance(skills_gaps, str) else skills_gaps
+        # Parse input data with JSON fixing
+        if isinstance(profile_data, str):
+            profile = json_fixer.fix_json(profile_data)
+            if profile is None:
+                try:
+                    profile = json.loads(profile_data)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse profile_data: {e}")
+                    profile = {"error": "Invalid profile data"}
+        else:
+            profile = profile_data
+            
+        if isinstance(skills_gaps, str):
+            gaps = json_fixer.fix_json(skills_gaps)
+            if gaps is None:
+                try:
+                    gaps = json.loads(skills_gaps)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse skills_gaps: {e}")
+                    gaps = {"error": "Invalid gaps data"}
+        else:
+            gaps = skills_gaps
         
         # Extract rich professional context
         professional_bg = profile.get('professional_background', {})
@@ -652,8 +686,22 @@ def prioritize_skill_gaps(skills_gap_data: str) -> str:
     try:
         logger.info("📊 Prioritizing skill gaps for course planning...")
         
-        # Parse skills gap data
-        gaps_data = json.loads(skills_gap_data) if isinstance(skills_gap_data, str) else skills_gap_data
+        # Parse skills gap data with JSON fixing for malformed LLM output
+        if isinstance(skills_gap_data, str):
+            gaps_data = json_fixer.fix_json(skills_gap_data)
+            if gaps_data is None:
+                # Fallback to standard JSON parsing
+                try:
+                    gaps_data = json.loads(skills_gap_data)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse skills_gap_data even with JSON fixer: {e}")
+                    logger.error(f"Raw skills_gap_data: {repr(skills_gap_data[:200])}...")
+                    return json.dumps({
+                        "error": "Invalid skills gap data format",
+                        "raw_data_preview": skills_gap_data[:100] if len(skills_gap_data) > 100 else skills_gap_data
+                    })
+        else:
+            gaps_data = skills_gap_data
         
         prioritized_gaps = {
             "critical_priority": [],

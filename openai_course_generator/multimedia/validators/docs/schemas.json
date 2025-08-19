@@ -1,0 +1,1169 @@
+{
+  "VisualSpec": {
+    "$defs": {
+      "Constraints": {
+        "description": "Constraints for visual generation",
+        "properties": {
+          "max_width": {
+            "default": 800,
+            "description": "Maximum width in pixels",
+            "maximum": 2000,
+            "minimum": 200,
+            "title": "Max Width",
+            "type": "integer"
+          },
+          "max_height": {
+            "default": 600,
+            "description": "Maximum height in pixels",
+            "maximum": 1500,
+            "minimum": 200,
+            "title": "Max Height",
+            "type": "integer"
+          },
+          "min_font_size": {
+            "default": 10,
+            "description": "Minimum font size",
+            "maximum": 20,
+            "minimum": 8,
+            "title": "Min Font Size",
+            "type": "integer"
+          },
+          "max_elements": {
+            "default": 50,
+            "description": "Maximum visual elements",
+            "maximum": 200,
+            "minimum": 5,
+            "title": "Max Elements",
+            "type": "integer"
+          },
+          "render_timeout_ms": {
+            "default": 5000,
+            "description": "Render timeout in milliseconds",
+            "maximum": 30000,
+            "minimum": 1000,
+            "title": "Render Timeout Ms",
+            "type": "integer"
+          },
+          "memory_limit_mb": {
+            "default": 256,
+            "description": "Memory limit in MB",
+            "maximum": 1024,
+            "minimum": 64,
+            "title": "Memory Limit Mb",
+            "type": "integer"
+          },
+          "max_text_length": {
+            "default": 500,
+            "description": "Maximum text length per element",
+            "maximum": 2000,
+            "minimum": 10,
+            "title": "Max Text Length",
+            "type": "integer"
+          },
+          "allow_animations": {
+            "default": true,
+            "description": "Allow animated elements",
+            "title": "Allow Animations",
+            "type": "boolean"
+          },
+          "require_accessibility": {
+            "default": true,
+            "description": "Require accessibility features",
+            "title": "Require Accessibility",
+            "type": "boolean"
+          }
+        },
+        "title": "Constraints",
+        "type": "object"
+      },
+      "DataPoint": {
+        "description": "Individual data point for visualizations",
+        "properties": {
+          "label": {
+            "description": "Label for this data point",
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Value for this data point",
+            "title": "Value"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Category grouping",
+            "title": "Category"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata",
+            "title": "Metadata"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "DataPoint",
+        "type": "object"
+      },
+      "DataSpec": {
+        "description": "Data specification for visual generation",
+        "properties": {
+          "data_type": {
+            "$ref": "#/$defs/DataType",
+            "description": "Type of data being visualized"
+          },
+          "data_points": {
+            "description": "Data points to visualize",
+            "items": {
+              "$ref": "#/$defs/DataPoint"
+            },
+            "minItems": 1,
+            "title": "Data Points",
+            "type": "array"
+          },
+          "group_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Field to group data by",
+            "title": "Group By"
+          },
+          "sort_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Field to sort data by",
+            "title": "Sort By"
+          },
+          "sort_order": {
+            "default": "asc",
+            "description": "Sort order",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "title": "Sort Order",
+            "type": "string"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Maximum number of data points",
+            "title": "Limit"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Data filters",
+            "title": "Filters"
+          },
+          "total_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total value for percentage calculations",
+            "title": "Total Value"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Minimum value in dataset",
+            "title": "Min Value"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Maximum value in dataset",
+            "title": "Max Value"
+          }
+        },
+        "required": [
+          "data_type",
+          "data_points"
+        ],
+        "title": "DataSpec",
+        "type": "object"
+      },
+      "DataType": {
+        "description": "Data types for visual generation",
+        "enum": [
+          "categorical",
+          "numerical",
+          "time_series",
+          "hierarchical",
+          "relational",
+          "text"
+        ],
+        "title": "DataType",
+        "type": "string"
+      },
+      "RenderingPath": {
+        "description": "Available rendering paths in decision tree",
+        "enum": [
+          "deterministic_registry",
+          "canvas_instructions",
+          "svg_generation",
+          "code_execution",
+          "fallback"
+        ],
+        "title": "RenderingPath",
+        "type": "string"
+      },
+      "Theme": {
+        "description": "Visual themes for consistency",
+        "enum": [
+          "professional",
+          "educational",
+          "corporate",
+          "modern",
+          "minimal"
+        ],
+        "title": "Theme",
+        "type": "string"
+      },
+      "VisualIntent": {
+        "description": "Supported visual intent types for deterministic registry",
+        "enum": [
+          "process_flow",
+          "workflow",
+          "decision_tree",
+          "funnel",
+          "bar_chart",
+          "line_chart",
+          "pie_chart",
+          "scatter_plot",
+          "heatmap",
+          "waterfall",
+          "matrix",
+          "timeline",
+          "hierarchy",
+          "comparison_table",
+          "framework",
+          "quadrant",
+          "pyramid",
+          "custom_diagram",
+          "ai_generated"
+        ],
+        "title": "VisualIntent",
+        "type": "string"
+      }
+    },
+    "description": "Complete visual specification for AI pipeline",
+    "properties": {
+      "scene_id": {
+        "description": "Unique scene identifier",
+        "title": "Scene Id",
+        "type": "string"
+      },
+      "intent": {
+        "$ref": "#/$defs/VisualIntent",
+        "description": "Visual type intent"
+      },
+      "dataspec": {
+        "$ref": "#/$defs/DataSpec",
+        "description": "Data specification"
+      },
+      "title": {
+        "anyOf": [
+          {
+            "maxLength": 100,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Visual title",
+        "title": "Title"
+      },
+      "subtitle": {
+        "anyOf": [
+          {
+            "maxLength": 200,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Visual subtitle",
+        "title": "Subtitle"
+      },
+      "theme": {
+        "$ref": "#/$defs/Theme",
+        "default": "professional",
+        "description": "Visual theme"
+      },
+      "constraints": {
+        "$ref": "#/$defs/Constraints",
+        "description": "Generation constraints"
+      },
+      "path_preferences": {
+        "default": [
+          "deterministic_registry",
+          "canvas_instructions",
+          "svg_generation",
+          "code_execution"
+        ],
+        "description": "Ordered list of preferred rendering paths",
+        "items": {
+          "$ref": "#/$defs/RenderingPath"
+        },
+        "title": "Path Preferences",
+        "type": "array"
+      },
+      "employee_context": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Employee context for personalization",
+        "title": "Employee Context"
+      },
+      "learning_objectives": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Learning objectives this visual supports",
+        "title": "Learning Objectives"
+      },
+      "cache_key": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Cache key for this visual spec",
+        "title": "Cache Key"
+      },
+      "priority": {
+        "default": 5,
+        "description": "Generation priority (1=low, 10=urgent)",
+        "maximum": 10,
+        "minimum": 1,
+        "title": "Priority",
+        "type": "integer"
+      },
+      "created_at": {
+        "description": "Creation timestamp",
+        "format": "date-time",
+        "title": "Created At",
+        "type": "string"
+      },
+      "content_hash": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Hash of content for caching",
+        "title": "Content Hash"
+      }
+    },
+    "required": [
+      "scene_id",
+      "intent",
+      "dataspec"
+    ],
+    "title": "VisualSpec",
+    "type": "object"
+  },
+  "DataSpec": {
+    "$defs": {
+      "DataPoint": {
+        "description": "Individual data point for visualizations",
+        "properties": {
+          "label": {
+            "description": "Label for this data point",
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Value for this data point",
+            "title": "Value"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Category grouping",
+            "title": "Category"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata",
+            "title": "Metadata"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "DataPoint",
+        "type": "object"
+      },
+      "DataType": {
+        "description": "Data types for visual generation",
+        "enum": [
+          "categorical",
+          "numerical",
+          "time_series",
+          "hierarchical",
+          "relational",
+          "text"
+        ],
+        "title": "DataType",
+        "type": "string"
+      }
+    },
+    "description": "Data specification for visual generation",
+    "properties": {
+      "data_type": {
+        "$ref": "#/$defs/DataType",
+        "description": "Type of data being visualized"
+      },
+      "data_points": {
+        "description": "Data points to visualize",
+        "items": {
+          "$ref": "#/$defs/DataPoint"
+        },
+        "minItems": 1,
+        "title": "Data Points",
+        "type": "array"
+      },
+      "group_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Field to group data by",
+        "title": "Group By"
+      },
+      "sort_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Field to sort data by",
+        "title": "Sort By"
+      },
+      "sort_order": {
+        "default": "asc",
+        "description": "Sort order",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "title": "Sort Order",
+        "type": "string"
+      },
+      "limit": {
+        "anyOf": [
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum number of data points",
+        "title": "Limit"
+      },
+      "filters": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Data filters",
+        "title": "Filters"
+      },
+      "total_value": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Total value for percentage calculations",
+        "title": "Total Value"
+      },
+      "min_value": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Minimum value in dataset",
+        "title": "Min Value"
+      },
+      "max_value": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Maximum value in dataset",
+        "title": "Max Value"
+      }
+    },
+    "required": [
+      "data_type",
+      "data_points"
+    ],
+    "title": "DataSpec",
+    "type": "object"
+  },
+  "CanvasInstructions": {
+    "$defs": {
+      "CanvasCircle": {
+        "description": "Circle element",
+        "properties": {
+          "type": {
+            "const": "circle",
+            "default": "circle",
+            "title": "Type",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate",
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate",
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z_index": {
+            "default": 0,
+            "description": "Z-index for layering",
+            "title": "Z Index",
+            "type": "integer"
+          },
+          "radius": {
+            "description": "Circle radius",
+            "exclusiveMinimum": 0,
+            "title": "Radius",
+            "type": "number"
+          },
+          "fill_color": {
+            "default": "#000000",
+            "description": "Fill color (hex)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "title": "Fill Color",
+            "type": "string"
+          },
+          "stroke_color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stroke color (hex)",
+            "title": "Stroke Color"
+          },
+          "stroke_width": {
+            "default": 0,
+            "description": "Stroke width",
+            "minimum": 0,
+            "title": "Stroke Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "radius"
+        ],
+        "title": "CanvasCircle",
+        "type": "object"
+      },
+      "CanvasLine": {
+        "description": "Line element",
+        "properties": {
+          "type": {
+            "const": "line",
+            "default": "line",
+            "title": "Type",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate",
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate",
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z_index": {
+            "default": 0,
+            "description": "Z-index for layering",
+            "title": "Z Index",
+            "type": "integer"
+          },
+          "x2": {
+            "description": "End X coordinate",
+            "title": "X2",
+            "type": "number"
+          },
+          "y2": {
+            "description": "End Y coordinate",
+            "title": "Y2",
+            "type": "number"
+          },
+          "stroke_color": {
+            "default": "#000000",
+            "description": "Line color (hex)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "title": "Stroke Color",
+            "type": "string"
+          },
+          "stroke_width": {
+            "default": 1,
+            "description": "Line width",
+            "exclusiveMinimum": 0,
+            "title": "Stroke Width",
+            "type": "number"
+          },
+          "stroke_dash": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Dash pattern",
+            "title": "Stroke Dash"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "x2",
+          "y2"
+        ],
+        "title": "CanvasLine",
+        "type": "object"
+      },
+      "CanvasPath": {
+        "description": "SVG Path element",
+        "properties": {
+          "type": {
+            "const": "path",
+            "default": "path",
+            "title": "Type",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate",
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate",
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z_index": {
+            "default": 0,
+            "description": "Z-index for layering",
+            "title": "Z Index",
+            "type": "integer"
+          },
+          "path_data": {
+            "description": "SVG path data",
+            "title": "Path Data",
+            "type": "string"
+          },
+          "fill_color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fill color (hex)",
+            "title": "Fill Color"
+          },
+          "stroke_color": {
+            "default": "#000000",
+            "description": "Stroke color (hex)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "title": "Stroke Color",
+            "type": "string"
+          },
+          "stroke_width": {
+            "default": 1,
+            "description": "Stroke width",
+            "minimum": 0,
+            "title": "Stroke Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "path_data"
+        ],
+        "title": "CanvasPath",
+        "type": "object"
+      },
+      "CanvasRect": {
+        "description": "Rectangle element",
+        "properties": {
+          "type": {
+            "const": "rect",
+            "default": "rect",
+            "title": "Type",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate",
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate",
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z_index": {
+            "default": 0,
+            "description": "Z-index for layering",
+            "title": "Z Index",
+            "type": "integer"
+          },
+          "width": {
+            "description": "Rectangle width",
+            "exclusiveMinimum": 0,
+            "title": "Width",
+            "type": "number"
+          },
+          "height": {
+            "description": "Rectangle height",
+            "exclusiveMinimum": 0,
+            "title": "Height",
+            "type": "number"
+          },
+          "fill_color": {
+            "default": "#000000",
+            "description": "Fill color (hex)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "title": "Fill Color",
+            "type": "string"
+          },
+          "stroke_color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stroke color (hex)",
+            "title": "Stroke Color"
+          },
+          "stroke_width": {
+            "default": 0,
+            "description": "Stroke width",
+            "minimum": 0,
+            "title": "Stroke Width",
+            "type": "number"
+          },
+          "border_radius": {
+            "default": 0,
+            "description": "Border radius",
+            "minimum": 0,
+            "title": "Border Radius",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "CanvasRect",
+        "type": "object"
+      },
+      "CanvasText": {
+        "description": "Text element",
+        "properties": {
+          "type": {
+            "const": "text",
+            "default": "text",
+            "title": "Type",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate",
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate",
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z_index": {
+            "default": 0,
+            "description": "Z-index for layering",
+            "title": "Z Index",
+            "type": "integer"
+          },
+          "text": {
+            "description": "Text content",
+            "maxLength": 500,
+            "title": "Text",
+            "type": "string"
+          },
+          "font_size": {
+            "default": 12,
+            "description": "Font size",
+            "maximum": 72,
+            "minimum": 8,
+            "title": "Font Size",
+            "type": "integer"
+          },
+          "font_family": {
+            "default": "Arial",
+            "description": "Font family",
+            "title": "Font Family",
+            "type": "string"
+          },
+          "color": {
+            "default": "#000000",
+            "description": "Text color (hex)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "text_align": {
+            "default": "left",
+            "description": "Text alignment",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ],
+            "title": "Text Align",
+            "type": "string"
+          },
+          "font_weight": {
+            "default": "normal",
+            "description": "Font weight",
+            "enum": [
+              "normal",
+              "bold"
+            ],
+            "title": "Font Weight",
+            "type": "string"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "text"
+        ],
+        "title": "CanvasText",
+        "type": "object"
+      },
+      "Theme": {
+        "description": "Visual themes for consistency",
+        "enum": [
+          "professional",
+          "educational",
+          "corporate",
+          "modern",
+          "minimal"
+        ],
+        "title": "Theme",
+        "type": "string"
+      }
+    },
+    "description": "Complete canvas rendering instructions",
+    "properties": {
+      "canvas_id": {
+        "description": "Unique canvas identifier",
+        "title": "Canvas Id",
+        "type": "string"
+      },
+      "width": {
+        "description": "Canvas width",
+        "maximum": 2000,
+        "minimum": 200,
+        "title": "Width",
+        "type": "integer"
+      },
+      "height": {
+        "description": "Canvas height",
+        "maximum": 1500,
+        "minimum": 200,
+        "title": "Height",
+        "type": "integer"
+      },
+      "background_color": {
+        "default": "#FFFFFF",
+        "description": "Background color (hex)",
+        "pattern": "^#[0-9A-Fa-f]{6}$",
+        "title": "Background Color",
+        "type": "string"
+      },
+      "elements": {
+        "description": "Canvas elements to render",
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CanvasRect"
+            },
+            {
+              "$ref": "#/$defs/CanvasCircle"
+            },
+            {
+              "$ref": "#/$defs/CanvasText"
+            },
+            {
+              "$ref": "#/$defs/CanvasLine"
+            },
+            {
+              "$ref": "#/$defs/CanvasPath"
+            }
+          ]
+        },
+        "minItems": 1,
+        "title": "Elements",
+        "type": "array"
+      },
+      "theme": {
+        "$ref": "#/$defs/Theme",
+        "default": "professional",
+        "description": "Visual theme applied"
+      },
+      "generated_at": {
+        "description": "Generation timestamp",
+        "format": "date-time",
+        "title": "Generated At",
+        "type": "string"
+      },
+      "estimated_render_time_ms": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Estimated render time",
+        "title": "Estimated Render Time Ms"
+      },
+      "validation_passed": {
+        "default": false,
+        "description": "Whether validation passed",
+        "title": "Validation Passed",
+        "type": "boolean"
+      },
+      "validation_errors": {
+        "description": "Validation error messages",
+        "items": {
+          "type": "string"
+        },
+        "title": "Validation Errors",
+        "type": "array"
+      }
+    },
+    "required": [
+      "canvas_id",
+      "width",
+      "height",
+      "elements"
+    ],
+    "title": "CanvasInstructions",
+    "type": "object"
+  }
+}

@@ -1,0 +1,21 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<ns0:rect width="800" height="600" fill="#F8F9FA" />
+<ns0:text x="400" y="30" text-anchor="middle" ft-family="Arial" ft-size="20" ft-weight="bold" fill="#495057">Learning Retenti After 1 Week (%)</ns0:text>
+<ns0:rect x="93.4" y="438.8" width="107.2" height="81.2" fill="#28A745" stroke="#DEE2E6" stroke-width="1" />
+<ns0:text x="147.0" y="433.8235294117647" text-anchor="middle" ft-family="Arial" ft-size="12" fill="#495057">15</ns0:text>
+<ns0:text x="147.0" y="540" text-anchor="middle" ft-family="Arial" ft-size="11" fill="#495057">Re-reading</ns0:text>
+<ns0:rect x="227.4" y="411.8" width="107.2" height="108.2" fill="#28A745" stroke="#DEE2E6" stroke-width="1" />
+<ns0:text x="281.0" y="406.7647058823529" text-anchor="middle" ft-family="Arial" ft-size="12" fill="#495057">20</ns0:text>
+<ns0:text x="281.0" y="540" text-anchor="middle" ft-family="Arial" ft-size="11" fill="#495057">Highlighting</ns0:text>
+<ns0:rect x="361.4" y="276.5" width="107.2" height="243.5" fill="#28A745" stroke="#DEE2E6" stroke-width="1" />
+<ns0:text x="415.0" y="271.47058823529414" text-anchor="middle" ft-family="Arial" ft-size="12" fill="#495057">45</ns0:text>
+<ns0:text x="415.0" y="540" text-anchor="middle" ft-family="Arial" ft-size="11" fill="#495057">Summarizing</ns0:text>
+<ns0:rect x="495.4" y="114.1" width="107.2" height="405.9" fill="#28A745" stroke="#DEE2E6" stroke-width="1" />
+<ns0:text x="549.0" y="109.11764705882354" text-anchor="middle" ft-family="Arial" ft-size="12" fill="#495057">75</ns0:text>
+<ns0:text x="549.0" y="540" text-anchor="middle" ft-family="Arial" ft-size="11" fill="#495057">Practice Testing</ns0:text>
+<ns0:rect x="629.4" y="60.0" width="107.2" height="460.0" fill="#28A745" stroke="#DEE2E6" stroke-width="1" />
+<ns0:text x="683.0" y="55.0" text-anchor="middle" ft-family="Arial" ft-size="12" fill="#495057">85</ns0:text>
+<ns0:text x="683.0" y="540" text-anchor="middle" ft-family="Arial" ft-size="11" fill="#495057">Spaced Repetiti</ns0:text>
+<ns0:line x1="80" y1="60" x2="80" y2="520" stroke="#6C757D" stroke-width="2" />
+<ns0:line x1="80" y1="520" x2="750" y2="520" stroke="#6C757D" stroke-width="2" />
+</ns0:svg>

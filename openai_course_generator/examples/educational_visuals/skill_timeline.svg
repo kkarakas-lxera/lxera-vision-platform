@@ -1,0 +1,12 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<ns0:rect width="800" height="600" fill="#FFFFFF" />
+<ns0:text x="400" y="30" text-anchor="middle" ft-family="Arial" ft-size="20" ft-weight="bold" fill="#333333">Skill Mastery Progressi</ns0:text>
+<ns0:path d="M 80.0,520.0 L 247.5,397.3 L 415.0,274.7 L 582.5,152.0 L 750.0,60.0" fill="ne" stroke="#0066CC" stroke-width="3" />
+<ns0:circle cx="80.0" cy="520.0" r="4" fill="#004499" stroke="#FFFFFF" stroke-width="2" />
+<ns0:circle cx="247.5" cy="397.3" r="4" fill="#004499" stroke="#FFFFFF" stroke-width="2" />
+<ns0:circle cx="415.0" cy="274.7" r="4" fill="#004499" stroke="#FFFFFF" stroke-width="2" />
+<ns0:circle cx="582.5" cy="152.0" r="4" fill="#004499" stroke="#FFFFFF" stroke-width="2" />
+<ns0:circle cx="750.0" cy="60.0" r="4" fill="#004499" stroke="#FFFFFF" stroke-width="2" />
+<ns0:line x1="80" y1="60" x2="80" y2="520" stroke="#666666" stroke-width="2" />
+<ns0:line x1="80" y1="520" x2="750" y2="520" stroke="#666666" stroke-width="2" />
+</ns0:svg>

@@ -41,7 +41,7 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 		name_to_tool = {t.name: t for t in available_tools}
 		llm = _llm().bind_tools(available_tools)
 
-		plan_id = str(state.get("plan_id") or "")
+		plan_id = str(state.get("plan_id") or state.get("job_id") or "")
 		session_id = str(state.get("job_id") or "")
 		messages: list = [
 			SystemMessage(content=(

@@ -114,7 +114,7 @@ serve(async (req) => {
               .eq('id', job.id)
 
             // Call the course generation edge function
-            const { data: courseResult, error: courseError } = await supabase.functions.invoke('generate-course-agents', {
+            const { data: courseResult, error: courseError } = await supabase.functions.invoke('generate-course', {
               body: {
                 employee_id: employeeId,
                 company_id: job.company_id,

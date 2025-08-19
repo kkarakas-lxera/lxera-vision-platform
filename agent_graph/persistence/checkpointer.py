@@ -47,9 +47,12 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 	def __init__(self) -> None:
 		self._client = SupabaseRestClient()
 
-	def put(self, config: Dict[str, Any], checkpoint: Dict[str, Any], metadata: Dict[str, Any]) -> None:
+	def put(self, config: Dict[str, Any], checkpoint: Dict[str, Any], metadata: Dict[str, Any], new_versions: Any = None) -> None:
 		thread_id = _require_thread_id(config)
 		checkpoint_id = _get_or_generate_checkpoint_id(config)
+		# Merge new_versions into metadata if provided
+		if new_versions:
+			metadata = {**metadata, "new_versions": new_versions}
 		self._client.upsert_checkpoint(thread_id=thread_id, checkpoint_id=checkpoint_id, state=checkpoint, metadata=metadata)
 
 	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any]) -> None:
