@@ -381,11 +381,27 @@ def store_research_session_impl(tool_context, args) -> str:
         
         # Extract arguments from the args dictionary
         research_id = args.get('research_id')
+        
+        # Parse JSON string arrays to dictionaries if needed
         search_queries = args.get('search_queries', [])
+        if isinstance(search_queries, str):
+            search_queries = json.loads(search_queries) if search_queries else []
+        
         sources_analyzed = args.get('sources_analyzed', [])
+        if isinstance(sources_analyzed, str):
+            sources_analyzed = json.loads(sources_analyzed) if sources_analyzed else []
+        
         synthesis_sessions = args.get('synthesis_sessions', [])
+        if isinstance(synthesis_sessions, str):
+            synthesis_sessions = json.loads(synthesis_sessions) if synthesis_sessions else []
+        
         tool_calls = args.get('tool_calls', [])
+        if isinstance(tool_calls, str):
+            tool_calls = json.loads(tool_calls) if tool_calls else []
+        
         execution_metrics = args.get('execution_metrics', {})
+        if isinstance(execution_metrics, str):
+            execution_metrics = json.loads(execution_metrics) if execution_metrics else {}
         
         if not research_id:
             raise ValueError("research_id is required")

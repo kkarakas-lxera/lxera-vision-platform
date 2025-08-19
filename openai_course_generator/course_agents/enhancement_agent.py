@@ -85,6 +85,37 @@ def create_enhancement_agent() -> Agent:
 8. **Update Enhancement Progress**: Use update_enhancement_session_db() to track completion
 9. **Hand Off to Content Agent**: Provide content_id + research_id for targeted regeneration
 
+## CONTENT_ID VALIDATION AND ERROR HANDLING (STRICT)
+- Never pass placeholder values like "content_id_from_previous_function".
+- If any DB tool returns {"success": false, "error": "Invalid content_id format"}, STOP and request/create a valid content_id before proceeding.
+- Reuse the provided content_id across all enhancement steps; do not create a new one unless instructed by the pipeline.
+
+## TOOL-CALL EXAMPLES (Groq/OpenAI-compatible)
+- Start an enhancement session:
+  create_enhancement_session_db({
+    "content_id": "<uuid>",
+    "quality_assessment_id": "<uuid>",
+    "sections_to_enhance": "[\"core_content\", \"assessments\"]",
+    "sections_preserved": "[\"introduction\"]",
+    "enhancement_type": "targeted"
+  }) → parse JSON → enhancement_session_id
+- Retrieve sections for analysis:
+  retrieve_content_sections({ "content_id": "<uuid>" })
+- Create research session and store results:
+  create_research_session_db({
+    "enhancement_session_id": "<uuid>",
+    "content_id": "<uuid>",
+    "research_topics": "[\"latest KPIs\", \"industry benchmarks\"]",
+    "research_type": "web_search"
+  }) → research_session_id
+  store_research_results_db({
+    "research_id": "<uuid>",
+    "research_results": "{...}",
+    "research_package": "{...}",
+    "firecrawl_queries_made": 4,
+    "research_quality": 8.2
+  })
+
 ## RESEARCH PRIORITIES
 
 ### Critical Research Areas:

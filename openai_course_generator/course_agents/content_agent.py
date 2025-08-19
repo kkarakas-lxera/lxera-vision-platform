@@ -142,6 +142,34 @@ def create_content_agent() -> Agent:
     - Create progressive difficulty appropriate to experience level
     - PRESERVE good content sections - only regenerate what needs improvement
 
+    ## CONTENT_ID VALIDATION AND ERROR HANDLING (STRICT)
+    - Never use placeholders like "content_id_from_previous_function".
+    - Before any storage call, ensure a real UUID content_id is available.
+    - If content_id is missing, call create_new_module_content() first and parse the returned JSON to extract "content_id".
+    - If any tool returns {"success": false, "error": "Invalid content_id format"}, immediately obtain a valid content_id by calling create_new_module_content() and retry the failed operation once.
+    - You MUST reuse a provided content_id from DATABASE CONTEXT and must NOT create a new one when it exists.
+
+    ## TOOL-CALL EXAMPLES (Groq/OpenAI-compatible)
+    - Acquire content_id when none provided:
+      1) create_new_module_content({
+           "module_name": "<name>",
+           "employee_name": "<employee>",
+           "session_id": "<session>",
+           "module_spec": "{...}",
+           "research_context": "{...}"
+         }) → parse JSON → content_id = result.content_id
+    - Store a section with a valid UUID:
+      2) store_content_section({
+           "content_id": "<uuid>",
+           "section_name": "assessments",
+           "section_content": "<text>",
+           "section_metadata": "{}"
+         })
+    - Handle invalid-id error by creating then retrying once:
+      If store_content_section returns success=false and error contains "Invalid content_id format":
+        a) create_new_module_content(...)
+        b) store_content_section(...) again with the new content_id
+
     ## QUALITY STANDARDS
     - Introduction: 800-1000 words
     - Core Content: 1800-2200 words

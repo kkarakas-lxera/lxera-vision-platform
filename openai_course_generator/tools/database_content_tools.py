@@ -192,7 +192,22 @@ def store_content_section(
         
         # Map section name to database format
         mapped_section_name = section_mapping.get(section_name, section_name.lower())
-        
+
+        # Validate that content_id is a proper UUID to avoid placeholder errors
+        import uuid
+        try:
+            uuid.UUID(str(content_id))
+        except ValueError:
+            logger.error(
+                f"❌ Invalid content_id format provided to store_content_section: {content_id}. Expected UUID."
+            )
+            return json.dumps({
+                "error": f"Invalid content_id format: {content_id} - expected UUID.",
+                "success": False,
+                "content_id": content_id,
+                "section_name": section_name
+            })
+
         logger.info(f"💾 Storing section '{section_name}' -> '{mapped_section_name}' for content {content_id[:8]}")
         
         cm = get_content_manager()

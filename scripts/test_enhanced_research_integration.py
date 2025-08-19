@@ -119,7 +119,8 @@ async def test_tool_functionality():
         from openai_course_generator.tools.enhanced_research_tools import enhanced_multi_source_research
         
         # Test with minimal parameters (should not crash)
-        test_plan_id = "test-plan-123"
+        import uuid
+        test_plan_id = str(uuid.uuid4())
         test_queries = '["business analytics"]'
         
         # This would normally execute research, but we're just testing the function exists
