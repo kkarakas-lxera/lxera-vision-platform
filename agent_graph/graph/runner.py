@@ -10,7 +10,7 @@ from .graph import build_graph as build_placeholder_graph
 from ..persistence.checkpointer import SupabaseCheckpointSaver
 
 
-def _build_langgraph():
+def _build_langgraph(supabase_client=None):
     """Build a minimal LangGraph using the stub nodes and Supabase checkpointer."""
     try:
         from langgraph.graph import StateGraph, START, END
@@ -31,12 +31,13 @@ def _build_langgraph():
     builder.add_edge("research", "content")
     builder.add_edge("content", END)
 
-    checkpointer = SupabaseCheckpointSaver()
+    # Use provided Supabase client if available, otherwise create new one
+    checkpointer = SupabaseCheckpointSaver(supabase_client=supabase_client)
     graph = builder.compile(checkpointer=checkpointer)
     return graph
 
 
-def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optional[Dict[str, Any]] = None, supabase_client=None) -> Dict[str, Any]:
     """Start a LangGraph job with Planning → Research → Content pipeline.
 
     Uses Llama 3.3 70B via Groq API for AI inference.
@@ -48,7 +49,7 @@ def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optiona
     print(f"   Pipeline: Planning → Research → Content")
     print(f"   AI Model: Llama 3.3 70B (Groq API)")
     
-    graph = _build_langgraph()
+    graph = _build_langgraph(supabase_client=supabase_client)
     thread = thread_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread}}
     initial_state: GraphState = {

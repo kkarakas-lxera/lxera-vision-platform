@@ -187,10 +187,13 @@ class LXERADatabasePipeline:
             thread_id = str(uuid.uuid4())
             logger.info(f"🔗 Created LangGraph thread: {thread_id}")
             
+            # Extract employee_id from employee_data dict
+            employee_id = employee_data.get('id') or employee_data.get('employee_id')
+            
             # Prepare initial state for LangGraph
             initial_state = {
                 "job_id": job_id or str(uuid.uuid4()),
-                "employee_id": employee_id,  # Use the actual UUID passed as parameter
+                "employee_id": employee_id,  # Extract from employee_data
                 "employee_name": employee_data.get('full_name', 'Unknown'),
                 "company_id": str(employee_data.get('company_id', '')),  # Ensure string
                 "employee_profile": json.dumps(employee_data),
@@ -217,7 +220,7 @@ class LXERADatabasePipeline:
             
             # Execute the complete LangGraph pipeline
             logger.info("🎯 Executing LangGraph: Planning → Research → Content Generation")
-            result = start_job(job_id, thread_id, initial_state)
+            result = start_job(job_id, thread_id, initial_state, supabase_client=self.supabase)
             
             if not result.get('ok'):
                 raise Exception(f"LangGraph execution failed: {result}")

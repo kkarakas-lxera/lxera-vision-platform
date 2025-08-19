@@ -14,12 +14,17 @@ class AgentGraphSettings(BaseSettings):
 
 	supabase_url: str = Field(default="", description="Supabase project URL")
 	supabase_service_key: str = Field(default="", description="Supabase service role key")
+	
+	# Legacy environment variables that may still be present  
+	openai_api_key: str = Field(default="", description="Legacy OpenAI API key")
+	vite_supabase_url: str = Field(default="", description="Legacy Vite Supabase URL")
+	vite_supabase_anon_key: str = Field(default="", description="Legacy Vite Supabase anon key")
+	supabase_service_role_key: str = Field(default="", description="Legacy Supabase service role key")
 
 	sentry_dsn: str = Field(default="", description="Sentry DSN for observability")
 
 	model_config = SettingsConfigDict(
 		case_sensitive=False,
-		env_prefix="LXERA_",
 		env_file=".env",
 	)
 

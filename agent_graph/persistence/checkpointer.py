@@ -44,8 +44,42 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 	Implements the BaseCheckpointSaver subset. Actual DB operations will be added next.
 	"""
 
-	def __init__(self) -> None:
-		self._client = SupabaseRestClient()
+	def __init__(self, supabase_client=None) -> None:
+		if supabase_client:
+			# Use provided Supabase client - convert to SupabaseRestClient interface
+			self._client = self._adapt_supabase_client(supabase_client)
+		else:
+			# Create new client using environment variables (original behavior)
+			self._client = SupabaseRestClient()
+	
+	def _adapt_supabase_client(self, supabase_client):
+		"""Adapter to make the pipeline's Supabase client compatible with SupabaseRestClient interface."""
+		class SupabaseClientAdapter:
+			def __init__(self, client):
+				self.client = client
+			
+			def upsert_checkpoint(self, thread_id: str, checkpoint_id: str, state: dict, metadata: dict):
+				# Use the pipeline's Supabase client for upserts
+				return self.client.table('graph_checkpoints').upsert({
+					'thread_id': thread_id,
+					'checkpoint_id': checkpoint_id,
+					'state': state,
+					'metadata': metadata
+				}).execute()
+			
+			def get_latest_checkpoint(self, thread_id: str):
+				result = self.client.table('graph_checkpoints').select('*').eq('thread_id', thread_id).order('created_at', desc=True).limit(1).execute()
+				return result.data[0] if result.data else None
+			
+			def get_checkpoint(self, thread_id: str, checkpoint_id: str):
+				result = self.client.table('graph_checkpoints').select('*').eq('thread_id', thread_id).eq('checkpoint_id', checkpoint_id).limit(1).execute()
+				return result.data[0] if result.data else None
+			
+			def list_checkpoints(self, thread_id: str, limit: int = 50):
+				result = self.client.table('graph_checkpoints').select('*').eq('thread_id', thread_id).order('created_at', desc=True).limit(limit).execute()
+				return result.data or []
+		
+		return SupabaseClientAdapter(supabase_client)
 
 	def put(self, config: Dict[str, Any], checkpoint: Dict[str, Any], metadata: Dict[str, Any], new_versions: Any = None) -> None:
 		thread_id = _require_thread_id(config)
