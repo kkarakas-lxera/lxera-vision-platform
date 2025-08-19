@@ -5,6 +5,8 @@ This server exposes the agent pipeline as an HTTP endpoint for the edge function
 """
 
 from flask import Flask, request, jsonify
+from flask.json.provider import DefaultJSONProvider
+import orjson
 from collections import deque
 from decimal import Decimal
 from datetime import datetime, date
@@ -14,7 +16,38 @@ import logging
 import os
 from lxera_database_pipeline import generate_course_with_agents, resume_course_generation
 
+def _orjson_default(obj):
+    """Default serializer for orjson to handle non-native types."""
+    if isinstance(obj, deque):
+        return list(obj)
+    if isinstance(obj, Decimal):
+        # Use float for performance, or str(obj) if exact precision needed
+        return float(obj)
+    if isinstance(obj, (set, tuple)):
+        return list(obj)
+    raise TypeError
+
+
+class ORJSONProvider(DefaultJSONProvider):
+    """Fast JSON provider using orjson with native support for datetime/UUID."""
+    
+    def dumps(self, obj, **kwargs):
+        # orjson natively handles datetime, UUID, and other types
+        return orjson.dumps(
+            obj,
+            default=_orjson_default,
+            option=orjson.OPT_NAIVE_UTC | orjson.OPT_NON_STR_KEYS
+        ).decode("utf-8")
+
+    def loads(self, s, **kwargs):
+        return orjson.loads(s)
+
+
 app = Flask(__name__)
+
+# Configure orjson as the JSON provider
+app.json_provider_class = ORJSONProvider
+app.json = app.json_provider_class(app)
 
 # Configure logging
 logging.basicConfig(
@@ -22,40 +55,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-def _to_jsonable(obj):
-    """Recursively convert pipeline results to JSON-serializable structures.
-    - deque -> list
-    - set/tuple -> list
-    - Decimal -> float
-    - datetime/date -> ISO string
-    - UUID -> string
-    - dict/list recurse
-    """
-    if obj is None:
-        return None
-    # Simple JSON-native types pass through
-    if isinstance(obj, (str, int, float, bool)):
-        return obj
-    # Collections
-    if isinstance(obj, deque):
-        return [_to_jsonable(x) for x in list(obj)]
-    if isinstance(obj, (list, tuple, set)):
-        return [_to_jsonable(x) for x in obj]
-    if isinstance(obj, dict):
-        return {str(k): _to_jsonable(v) for k, v in obj.items()}
-    # Common special types
-    if isinstance(obj, Decimal):
-        try:
-            return float(obj)
-        except Exception:
-            return str(obj)
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    if isinstance(obj, uuid.UUID):
-        return str(obj)
-    # Fallback to string for unknown objects
-    return str(obj)
 
 @app.route('/generate-course', methods=['POST'])
 def generate_course():
@@ -89,9 +88,8 @@ def generate_course():
                 previous_course_content=data.get('previous_course_content')
             )
         )
-        # Ensure JSON-serializable response (handles deque and others)
-        safe_result = _to_jsonable(result)
-        return jsonify(safe_result)
+        
+        return jsonify(result)
         
     except Exception as e:
         logger.error(f"API error: {e}")
@@ -128,9 +126,8 @@ def resume_course():
                 job_id=data.get('job_id')
             )
         )
-        # Ensure JSON-serializable response
-        safe_result = _to_jsonable(result)
-        return jsonify(safe_result)
+        
+        return jsonify(result)
         
     except Exception as e:
         logger.error(f"Resume API error: {e}")
