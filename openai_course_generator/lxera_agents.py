@@ -29,8 +29,19 @@ try:
     logger = logging.getLogger(__name__)
     logger.info("✅ Using official OpenAI Agents SDK with tracing support")
     
+    # Create FunctionTool class for compatibility with storage tools
+    class FunctionTool:
+        def __init__(self, name: str, description: str, params_json_schema: dict, on_invoke_tool: Callable):
+            self.name = name
+            self.description = description
+            self.params_json_schema = params_json_schema
+            self.on_invoke_tool = on_invoke_tool
+            
+        def __call__(self, *args, **kwargs):
+            return self.on_invoke_tool(*args, **kwargs)
+    
     # Export trace and related functionality for use in other modules
-    __all__ = ['Agent', 'Runner', 'function_tool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
+    __all__ = ['Agent', 'Runner', 'function_tool', 'FunctionTool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
     
 except ImportError as e:
     logger = logging.getLogger(__name__)
@@ -51,7 +62,18 @@ except ImportError as e:
         """Dummy handoff for compatibility when SDK not available"""
         return agent
     
-    __all__ = ['Agent', 'Runner', 'function_tool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
+    # Create FunctionTool class for compatibility (fallback)
+    class FunctionTool:
+        def __init__(self, name: str, description: str, params_json_schema: dict, on_invoke_tool: Callable):
+            self.name = name
+            self.description = description
+            self.params_json_schema = params_json_schema
+            self.on_invoke_tool = on_invoke_tool
+            
+        def __call__(self, *args, **kwargs):
+            return self.on_invoke_tool(*args, **kwargs)
+    
+    __all__ = ['Agent', 'Runner', 'function_tool', 'FunctionTool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
     
     # Initialize OpenAI client with fallback handling
     def get_openai_client():

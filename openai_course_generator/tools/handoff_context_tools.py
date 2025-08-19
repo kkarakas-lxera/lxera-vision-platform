@@ -11,7 +11,7 @@ import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from supabase import create_client
-from agents import FunctionTool
+from lxera_agents import FunctionTool
 
 logger = logging.getLogger(__name__)
 
