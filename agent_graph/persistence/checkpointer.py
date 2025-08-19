@@ -78,6 +78,12 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 			def list_checkpoints(self, thread_id: str, limit: int = 50):
 				result = self.client.table('graph_checkpoints').select('*').eq('thread_id', thread_id).order('created_at', desc=True).limit(limit).execute()
 				return result.data or []
+			
+			def update_metadata(self, thread_id: str, checkpoint_id: str, metadata: dict):
+				# Update metadata for a specific checkpoint
+				return self.client.table('graph_checkpoints').update({
+					'metadata': metadata
+				}).eq('thread_id', thread_id).eq('checkpoint_id', checkpoint_id).execute()
 		
 		return SupabaseClientAdapter(supabase_client)
 
