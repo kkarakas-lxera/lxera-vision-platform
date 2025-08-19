@@ -39,10 +39,22 @@ def content_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Content Agent. Create module content and store sections using the DB tools."
+				"You are the Content Generation Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"Your mission: Create engaging, practical course content using research findings and course structure.\n"
+				"Available tools: create_new_module_content, store_content_section, fetch_research_results.\n"
+				"Content sections: 'introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'.\n"
+				"Focus on: Clear explanations, practical examples, interactive exercises, real-world applications.\n"
+				"Quality standards: Accurate, engaging, actionable, properly structured, and pedagogically sound."
 			)),
 			HumanMessage(content=(
-				f"Create content for '{module_name}' and store sections."
+				f"Generate comprehensive content for module: '{module_name}'.\n"
+				f"1. Create module structure and store content ID\n"
+				f"2. Write engaging introduction section\n"
+				f"3. Develop detailed core content with examples\n"
+				f"4. Add practical applications and exercises\n"
+				f"5. Include relevant case studies if applicable\n"
+				f"6. Create assessment materials\n"
+				f"Ensure content is practical, engaging, and aligned with learning objectives."
 			)),
 		]
 

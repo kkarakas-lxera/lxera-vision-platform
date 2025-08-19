@@ -37,10 +37,17 @@ def _build_langgraph():
 
 
 def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Start a job by invoking the graph from START.
+    """Start a LangGraph job with Planning → Research → Content pipeline.
 
+    Uses Llama 3.3 70B via Groq API for AI inference.
     Returns a status dictionary including thread_id and phase.
     """
+    print(f"🚀 LangGraph Pipeline Starting")
+    print(f"   Job ID: {job_id}")
+    print(f"   Thread ID: {thread_id or 'auto-generated'}")
+    print(f"   Pipeline: Planning → Research → Content")
+    print(f"   AI Model: Llama 3.3 70B (Groq API)")
+    
     graph = _build_langgraph()
     thread = thread_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread}}
@@ -52,8 +59,14 @@ def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optiona
     }
     if extra_state:
         initial_state.update(extra_state)  # merge caller-provided fields
+        print(f"   Employee: {extra_state.get('employee_name', 'Unknown')}")
+        print(f"   Mode: {extra_state.get('generation_mode', 'individual')}")
+    
+    print(f"🎯 Executing LangGraph pipeline...")
     # Run the graph to completion for now (no interrupts yet)
     graph.invoke(initial_state, config=config)
+    print(f"✅ LangGraph pipeline completed successfully")
+    
     return {
         "ok": True,
         "thread_id": thread,

@@ -18,10 +18,10 @@ def firecrawl_search_tool(query: str, context: str = "general") -> str:
 
 
 @tool
-def scrape_do_extract_tool(url: str, extraction_type: str = "full") -> str:
-	"""Extract content from a URL via Scrape.do; returns JSON with content."""
-	from openai_course_generator.tools.research_tools import scrape_do_extract
-	return scrape_do_extract(url=url, extraction_type=extraction_type)
+def firecrawl_scrape_tool(url: str, extraction_type: str = "full") -> str:
+	"""Extract content from a URL via Firecrawl; returns JSON with content."""
+	from openai_course_generator.tools.research_tools import firecrawl_scrape
+	return firecrawl_scrape(url=url, extraction_type=extraction_type)
 
 
 @tool

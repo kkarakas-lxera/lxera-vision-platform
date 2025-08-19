@@ -28,7 +28,7 @@ class BaseCheckpointSaver:
 	def put(self, config: Dict[str, Any], checkpoint: Dict[str, Any], metadata: Dict[str, Any]) -> None:
 		raise NotImplementedError
 
-	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any]) -> None:
+	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any], task_id: str = None) -> None:
 		raise NotImplementedError
 
 	def get_tuple(self, config: Dict[str, Any]) -> Optional[CheckpointTuple]:
@@ -55,13 +55,15 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 			metadata = {**metadata, "new_versions": new_versions}
 		self._client.upsert_checkpoint(thread_id=thread_id, checkpoint_id=checkpoint_id, state=checkpoint, metadata=metadata)
 
-	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any]) -> None:
+	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any], task_id: str = None) -> None:
 		thread_id = _require_thread_id(config)
 		checkpoint_id = _get_or_generate_checkpoint_id(config)
 		# Merge pending writes into metadata for simplicity
 		row = self._client.get_checkpoint(thread_id, checkpoint_id)
 		metadata: Dict[str, Any] = (row.get("metadata") if row else {}) or {}
 		metadata["pending_writes"] = writes
+		if task_id:
+			metadata["task_id"] = task_id
 		self._client.update_metadata(thread_id, checkpoint_id, metadata)
 
 	def get_tuple(self, config: Dict[str, Any]) -> Optional[CheckpointTuple]:

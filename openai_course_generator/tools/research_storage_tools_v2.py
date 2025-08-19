@@ -183,7 +183,7 @@ STORE_RESEARCH_RESULTS_SCHEMA = {
     "additionalProperties": False
 }
 
-async def store_research_results_impl(tool_context, args) -> str:
+def store_research_results_impl(tool_context, args) -> str:
     """Implementation of store_research_results function."""
     try:
         # Parse args if it's a string
@@ -372,7 +372,7 @@ STORE_RESEARCH_SESSION_SCHEMA = {
     "additionalProperties": False
 }
 
-async def store_research_session_impl(tool_context, args) -> str:
+def store_research_session_impl(tool_context, args) -> str:
     """Implementation of store_research_session function."""
     try:
         # Parse args if it's a string

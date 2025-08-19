@@ -141,43 +141,80 @@ def firecrawl_search(query: str, context: str = "general") -> str:
 
 
 @function_tool  
-def scrape_do_extract(url: str, extraction_type: str = "full") -> str:
+def firecrawl_scrape(url: str, extraction_type: str = "full") -> str:
     """
-    Extract content from URLs using Scrape.do API.
+    Extract content from URLs using Firecrawl API - much more reliable than Scrape.do.
     
     Use this after firecrawl_search to get actual content from the URLs.
     """
     try:
         import requests
         
-        # Get Scrape.do API key from environment
-        scrape_do_api_key = os.getenv('SCRAPE_DO_API_KEY')
-        if not scrape_do_api_key:
-            logger.error("❌ SCRAPE_DO_API_KEY not found in environment")
-            return json.dumps({"error": "Scrape.do API key not configured"})
+        # Get Firecrawl API key from environment
+        firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY')
+        if not firecrawl_api_key:
+            logger.error("❌ FIRECRAWL_API_KEY not found in environment")
+            return json.dumps({"error": "Firecrawl API key not configured"})
         
-        logger.info(f"🔧 Scraping URL with Scrape.do: {url}")
+        logger.info(f"🔥 Scraping URL with Firecrawl: {url}")
         
-        # Use working Scrape.do API format (GET with query params, not POST)
-        import urllib.parse
-        encoded_url = urllib.parse.quote(url)
-        scrape_url = f"https://api.scrape.do/?token={scrape_do_api_key}&url={encoded_url}"
+        # Configure Firecrawl scraping parameters
+        scrape_params = {
+            "url": url,
+            "formats": ["markdown"],  # Get clean markdown content
+            "onlyMainContent": True,   # Filter out navigation, ads, etc.
+            "waitFor": 3000 if extraction_type == "full" else 1000,  # Wait for dynamic content
+        }
         
         # Add extraction type specific parameters
         if extraction_type == "summary":
-            scrape_url += "&render=true&waitUntil=networkidle"
-        elif extraction_type == "key_points":
-            scrape_url += "&render=true&waitUntil=domcontentloaded"
+            scrape_params["extract"] = {
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "summary": {"type": "string"}, 
+                        "key_points": {"type": "array", "items": {"type": "string"}}
+                    }
+                }
+            }
         
-        # Execute Scrape.do request (GET, not POST)
-        response = requests.get(
-            scrape_url,
+        # Execute Firecrawl scrape request
+        headers = {
+            "Authorization": f"Bearer {firecrawl_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(
+            "https://api.firecrawl.dev/v1/scrape",
+            headers=headers,
+            json=scrape_params,
             timeout=60  # Scraping can take longer
         )
+        
         if response.status_code == 200:
-            # Scrape.do returns HTML directly, not JSON
-            content = response.text or ""
-            title = ""  # Extract title from HTML if needed
+            result = response.json()
+            
+            # Extract content from Firecrawl response
+            content = ""
+            title = ""
+            
+            if result.get("success") and result.get("data"):
+                data = result["data"]
+                content = data.get("markdown", "") or data.get("content", "")
+                title = data.get("metadata", {}).get("title", "") or data.get("title", "")
+                
+                # If we used structured extraction
+                if extraction_type == "summary" and data.get("extract"):
+                    extract_data = data["extract"]
+                    title = extract_data.get("title", title)
+                    summary = extract_data.get("summary", "")
+                    key_points = extract_data.get("key_points", [])
+                    
+                    # Format structured content
+                    content = f"# {title}\n\n## Summary\n{summary}\n\n## Key Points\n"
+                    for i, point in enumerate(key_points, 1):
+                        content += f"{i}. {point}\n"
             
             # Limit content to prevent context overflow (max 5000 words)
             if content:
@@ -198,11 +235,11 @@ def scrape_do_extract(url: str, extraction_type: str = "full") -> str:
             logger.info(f"✅ Scraped {len(content.split())} words from {url}")
             return json.dumps(result_data)
         else:
-            logger.error(f"❌ Scrape.do failed: {response.status_code}")
+            logger.error(f"❌ Firecrawl failed: {response.status_code} - {response.text}")
             return json.dumps({"error": f"Scraping failed: {response.status_code}", "success": False})
         
     except Exception as e:
-        logger.error(f"❌ Scrape.do error for {url}: {e}")
+        logger.error(f"❌ Firecrawl error for {url}: {e}")
         error_data = {
             "error": str(e),
             "content": "",

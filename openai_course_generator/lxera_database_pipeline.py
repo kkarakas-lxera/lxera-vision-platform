@@ -177,10 +177,11 @@ class LXERADatabasePipeline:
         Run the course generation pipeline using pure LangGraph with Llama 3.3 via Groq API.
         """
         try:
-            logger.info("🚀 Starting pure LangGraph course generation pipeline with Llama 3.3")
+            logger.info("🚀 Starting LangGraph course generation pipeline")
+            logger.info("🦙 Using Llama 3.3 70B via Groq API for AI inference")
+            logger.info("🔥 Web research powered by Firecrawl API")
             
-            # **PURE LANGGRAPH IMPLEMENTATION**
-            # Skip all OpenAI SDK logic and use LangGraph directly
+            # **LANGGRAPH PIPELINE: Planning → Research → Content**
             
             # Create unique thread for this job
             thread_id = str(uuid.uuid4())
@@ -189,9 +190,9 @@ class LXERADatabasePipeline:
             # Prepare initial state for LangGraph
             initial_state = {
                 "job_id": job_id or str(uuid.uuid4()),
-                "employee_id": employee_data.get('employee_id', ''),
+                "employee_id": employee_id,  # Use the actual UUID passed as parameter
                 "employee_name": employee_data.get('full_name', 'Unknown'),
-                "company_id": employee_data.get('company_id', ''),
+                "company_id": str(employee_data.get('company_id', '')),  # Ensure string
                 "employee_profile": json.dumps(employee_data),
                 "skills_gaps": json.dumps(skills_gaps),
                 "generation_mode": generation_mode,
@@ -199,6 +200,13 @@ class LXERADatabasePipeline:
                 "feedback_context": feedback_context,
                 "previous_course_content": json.dumps(previous_course_content) if previous_course_content else None
             }
+            
+            # Debug logging for data mapping verification
+            logger.info(f"🔍 LangGraph State Mapping:")
+            logger.info(f"  employee_id: {employee_id}")
+            logger.info(f"  employee_name: {employee_data.get('full_name', 'Unknown')}")
+            logger.info(f"  company_id: {employee_data.get('company_id', '')}")
+            logger.info(f"  generation_mode: {generation_mode}")
             
             # Update job progress
             if job_id:
@@ -245,7 +253,7 @@ class LXERADatabasePipeline:
                 'architecture': 'Pure LangGraph (3 nodes: Planning → Research → Content)'
             }
             
-            # OLD OpenAI SDK CODE (now bypassed)
+            # LEGACY CODE SECTION (replaced by LangGraph pipeline above)
             if False:
                 # No existing plan, run Planning Agent
                 # Update job progress

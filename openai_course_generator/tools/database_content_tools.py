@@ -164,17 +164,46 @@ def store_content_section(
         JSON string with update status
     """
     try:
-        logger.info(f"💾 Storing section '{section_name}' for content {content_id[:8]}")
+        # Map LLM-generated section names to database schema
+        section_mapping = {
+            'introduction': 'introduction',
+            'Introduction': 'introduction',
+            'overview': 'introduction',
+            'Overview': 'introduction',
+            'core_content': 'core_content',
+            'Core Content': 'core_content',
+            'main_content': 'core_content',
+            'Main Content': 'core_content',
+            'content': 'core_content',
+            'Content': 'core_content',
+            'practical_applications': 'practical_applications',
+            'Practical Applications': 'practical_applications',
+            'applications': 'practical_applications',
+            'Applications': 'practical_applications',
+            'case_studies': 'case_studies',
+            'Case Studies': 'case_studies',
+            'examples': 'case_studies',
+            'Examples': 'case_studies',
+            'assessments': 'assessments',
+            'Assessments': 'assessments',
+            'evaluation': 'assessments',
+            'Evaluation': 'assessments'
+        }
+        
+        # Map section name to database format
+        mapped_section_name = section_mapping.get(section_name, section_name.lower())
+        
+        logger.info(f"💾 Storing section '{section_name}' -> '{mapped_section_name}' for content {content_id[:8]}")
         
         cm = get_content_manager()
         
         # Parse metadata
         metadata = json.loads(section_metadata) if section_metadata and isinstance(section_metadata, str) else {}
         
-        # Store section in database
+        # Store section in database using mapped name
         success = cm.update_module_section(
             content_id=content_id,
-            section_name=section_name,
+            section_name=mapped_section_name,
             section_content=section_content,
             metadata=metadata
         )

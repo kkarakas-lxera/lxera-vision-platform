@@ -176,7 +176,7 @@ STORE_COURSE_PLAN_SCHEMA = {
     "additionalProperties": False
 }
 
-async def store_course_plan_impl(tool_context, args) -> str:
+def store_course_plan_impl(tool_context, args) -> str:
     """Implementation of store_course_plan function."""
     # Parse args if it's a string
     if isinstance(args, str):
@@ -325,7 +325,7 @@ STORE_PLANNING_METADATA_SCHEMA = {
     "additionalProperties": False
 }
 
-async def store_planning_metadata_impl(tool_context, args) -> bool:
+def store_planning_metadata_impl(tool_context, args) -> bool:
     """Implementation of store_planning_metadata function."""
     # Parse args if it's a string
     if isinstance(args, str):

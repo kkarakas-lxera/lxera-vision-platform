@@ -47,10 +47,19 @@ def planning_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Planning Agent. Analyze employee profile, generate a course plan, and store it."
+				"You are the Planning Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"Your mission: 1) Analyze employee profile and skills gaps, 2) Generate personalized course structure, "
+				"3) Store the plan in database.\n"
+				"Available tools: analyze_employee_profile_tool, generate_course_structure_plan_tool, "
+				"store_course_plan_tool, store_planning_metadata_tool.\n"
+				"Important: Always call store_course_plan_tool to save the plan and get the plan_id for the research phase."
 			)),
 			HumanMessage(content=(
-				f"Analyze profile and generate a plan for employee_id={employee_id}, name={employee_name}."
+				f"Create a personalized course plan for {employee_name} (ID: {employee_id}).\n"
+				f"1. Analyze their profile and skills gaps\n"
+				f"2. Generate a comprehensive course structure\n"
+				f"3. Store the plan and metadata\n"
+				f"Focus on practical, actionable learning paths aligned with their skill gaps."
 			)),
 		]
 
@@ -87,7 +96,7 @@ def planning_node(state: Dict[str, Any]) -> Dict[str, Any]:
 					)
 				)
 				if tool_name == "store_course_plan_tool" and isinstance(tool_output, str):
-					m = re.search(r"ID:\s*([0-9a-fA-F-]{36})", tool_output)
+					m = re.search(r"with ID:\s*([0-9a-fA-F-]{36})", tool_output)
 					if m:
 						plan_id = m.group(1)
 

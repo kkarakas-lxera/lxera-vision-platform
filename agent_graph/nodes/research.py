@@ -13,7 +13,7 @@ def _tools():
 	from .research_tools_wrappers import (
 		fetch_course_plan_tool,
 		firecrawl_search_tool,
-		scrape_do_extract_tool,
+		firecrawl_scrape_tool,
 		research_synthesizer_tool,
 		store_research_results_tool,
 		store_research_session_tool,
@@ -21,7 +21,7 @@ def _tools():
 	return [
 		fetch_course_plan_tool,
 		firecrawl_search_tool,
-		scrape_do_extract_tool,
+		firecrawl_scrape_tool,
 		research_synthesizer_tool,
 		store_research_results_tool,
 		store_research_session_tool,
@@ -45,12 +45,21 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 		session_id = str(state.get("job_id") or "")
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Research Agent. Use tools to: 1) fetch plan, 2) search (Firecrawl), 3) scrape (Scrape.do), "
-				"4) synthesize, 5) store research results and session metadata."
+				"You are the Research Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"Your mission: Conduct comprehensive web research to enrich course content with current, authoritative information.\n"
+				"Available tools: fetch_course_plan_tool, firecrawl_search_tool, firecrawl_scrape_tool, "
+				"research_synthesizer_tool, store_research_results_tool, store_research_session_tool.\n"
+				"Research workflow: 1) Fetch course plan, 2) Search web with Firecrawl, 3) Scrape relevant content, "
+				"4) Synthesize findings, 5) Store comprehensive research results.\n"
+				"Focus on: Recent trends, best practices, case studies, expert insights, and practical examples."
 			)),
 			HumanMessage(content=(
-				f"Begin research for plan_id={plan_id} session_id={session_id}. "
-				"Fetch plan, then search and scrape key topics, synthesize, and store results."
+				f"Conduct thorough research for course plan_id={plan_id} (session: {session_id}).\n"
+				f"1. First, fetch the course plan to understand learning objectives\n"
+				f"2. Search for current, authoritative content using Firecrawl\n"
+				f"3. Scrape 3-5 high-quality sources per key topic\n"
+				f"4. Synthesize research into actionable knowledge base\n"
+				f"5. Store results and session metadata for content generation phase"
 			)),
 		]
 
