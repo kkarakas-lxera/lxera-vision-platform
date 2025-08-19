@@ -4,10 +4,10 @@ from langchain_core.tools import tool
 
 
 @tool
-def create_new_module_content_tool(module_name: str, employee_name: str, session_id: str, module_spec: str, research_context: str = "{}") -> str:
+def create_new_module_content_tool(module_name: str, employee_name: str, session_id: str, module_spec: str, research_context: str = "{}", plan_id: str = None) -> str:
 	"""Create new module content in DB; returns JSON with content_id."""
 	from openai_course_generator.tools.database_content_tools import create_new_module_content
-	return create_new_module_content(module_name, employee_name, session_id, module_spec, research_context)
+	return create_new_module_content(module_name, employee_name, session_id, module_spec, research_context, plan_id)
 
 
 @tool

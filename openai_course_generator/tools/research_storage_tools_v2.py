@@ -13,6 +13,12 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 from supabase import create_client
 from lxera_agents import FunctionTool
+from .flexible_input_handler import (
+    safe_json_parse, 
+    log_parameter_metrics,
+    robust_json_parse,
+    validate_and_fix_uuid
+)
 
 logger = logging.getLogger(__name__)
 
@@ -186,25 +192,25 @@ STORE_RESEARCH_RESULTS_SCHEMA = {
 def store_research_results_impl(tool_context, args) -> str:
     """Implementation of store_research_results function."""
     try:
-        # Parse args if it's a string
+        # Parse args if it's a string with robust error handling
         if isinstance(args, str):
             try:
                 args = json.loads(args)
             except json.JSONDecodeError as e:
+                log_parameter_metrics("store_research_results", "args_parsing", "str", False, str(e))
                 logger.error(f"Failed to parse args as JSON: {e}")
-                logger.error(f"Raw args: {args[:500]}...")
                 # Try to fix common JSON issues
                 fixed_args = args.replace('\n', ' ').replace('\r', '')
-                args = json.loads(fixed_args)
+                try:
+                    args = json.loads(fixed_args)
+                except json.JSONDecodeError:
+                    return f"❌ Failed to parse JSON arguments: {str(e)}"
         
         # Extract arguments from the args dictionary
         plan_id = args.get('plan_id')
         session_id = args.get('session_id')
-        research_findings = args.get('research_findings', {})
-        content_library = args.get('content_library', {})
-        module_mappings = args.get('module_mappings', {})
         
-        # Validate required fields
+        # Validate required fields early
         if not plan_id or not session_id:
             raise ValueError("plan_id and session_id are required")
         
@@ -213,25 +219,15 @@ def store_research_results_impl(tool_context, args) -> str:
         # Generate unique research ID
         research_id = str(uuid.uuid4())
         
-        # Parse nested JSON if they're strings
-        if isinstance(research_findings, str):
-            try:
-                research_findings = json.loads(research_findings)
-            except:
-                logger.warning("Failed to parse research_findings, using as-is")
-                research_findings = {"error": "Failed to parse", "raw": research_findings[:1000]}
+        # Use enhanced robust parsing with metrics logging
+        research_findings = robust_json_parse(args.get('research_findings', {}), "dict")
+        log_parameter_metrics("store_research_results", "research_findings", type(args.get('research_findings', {})).__name__, True)
         
-        if isinstance(content_library, str):
-            try:
-                content_library = json.loads(content_library)
-            except:
-                content_library = {}
+        content_library = robust_json_parse(args.get('content_library', {}), "dict")
+        log_parameter_metrics("store_research_results", "content_library", type(args.get('content_library', {})).__name__, True)
         
-        if isinstance(module_mappings, str):
-            try:
-                module_mappings = json.loads(module_mappings)
-            except:
-                module_mappings = {}
+        module_mappings = robust_json_parse(args.get('module_mappings', {}), "dict")
+        log_parameter_metrics("store_research_results", "module_mappings", type(args.get('module_mappings', {})).__name__, True)
         
         # Extract metadata safely
         total_topics = 0

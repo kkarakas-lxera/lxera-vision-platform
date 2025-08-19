@@ -15,7 +15,16 @@ def _tools():
 		create_new_module_content_tool,
 		store_content_section_tool,
 	)
-	return [create_new_module_content_tool, store_content_section_tool]
+	from .research_tools_wrappers import (
+		fetch_course_plan_tool,
+		fetch_research_results_tool,
+	)
+	return [
+		fetch_course_plan_tool,
+		fetch_research_results_tool,
+		create_new_module_content_tool,
+		store_content_section_tool
+	]
 
 
 def content_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -33,28 +42,32 @@ def content_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 		job_id = str(state.get("job_id") or "")
 		employee_name = str(state.get("employee_name") or "Learner")
-		module_spec = json.dumps(state.get("module_spec") or {})
-		research_context = json.dumps(state.get("research_context") or {})
+		plan_id = str(state.get("plan_id") or "")
+		research_id = str(state.get("research_id") or "")
 		module_name = str(state.get("module_name") or "Module 1")
 
 		messages: list = [
 			SystemMessage(content=(
 				"You are the Content Generation Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
 				"Your mission: Create engaging, practical course content using research findings and course structure.\n"
-				"Available tools: create_new_module_content, store_content_section, fetch_research_results.\n"
+				"Available tools: fetch_course_plan_tool, fetch_research_results_tool, create_new_module_content_tool, store_content_section_tool.\n"
 				"Content sections: 'introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'.\n"
 				"Focus on: Clear explanations, practical examples, interactive exercises, real-world applications.\n"
-				"Quality standards: Accurate, engaging, actionable, properly structured, and pedagogically sound."
+				"Quality standards: Accurate, engaging, actionable, properly structured, and pedagogically sound.\n\n"
+				"WORKFLOW: 1) First fetch course plan to get structure and research context, 2) Then generate content."
 			)),
 			HumanMessage(content=(
-				f"Generate comprehensive content for module: '{module_name}'.\n"
-				f"1. Create module structure and store content ID\n"
-				f"2. Write engaging introduction section\n"
-				f"3. Develop detailed core content with examples\n"
-				f"4. Add practical applications and exercises\n"
-				f"5. Include relevant case studies if applicable\n"
-				f"6. Create assessment materials\n"
-				f"Ensure content is practical, engaging, and aligned with learning objectives."
+				f"Generate comprehensive content using database-driven approach.\n\n"
+				f"STEP 1: Fetch course plan and research context\n"
+				f"- Call fetch_course_plan_tool with plan_id: {plan_id}\n"
+				f"- Call fetch_research_results_tool with plan_id: {plan_id}\n"
+				f"- This will provide course structure, modules, and research findings\n\n"
+				f"STEP 2: Generate module content for: '{module_name}'\n"
+				f"- Create module structure with research-backed content\n"
+				f"- Write sections: introduction, core_content, practical_applications, case_studies, assessments\n"
+				f"- Use research findings to enrich content with current examples\n\n"
+				f"Employee: {employee_name}, Session: {job_id}, Research ID: {research_id}\n"
+				f"Ensure all content is research-backed, practical, and aligned with learning objectives."
 			)),
 		]
 
@@ -71,14 +84,14 @@ def content_node(state: Dict[str, Any]) -> Dict[str, Any]:
 				tool = name_to_tool.get(tool_name)
 				if tool is None:
 					continue
+				
+				# Enrich args for create_new_module_content_tool to include plan_id
 				if tool_name == "create_new_module_content_tool":
-					tool_args = {
-						"module_name": module_name,
-						"employee_name": employee_name,
-						"session_id": job_id,
-						"module_spec": module_spec,
-						"research_context": research_context,
-					}
+					if isinstance(tool_args, dict):
+						tool_args["plan_id"] = plan_id  # Add plan_id for database linking
+				
+				# Let the LLM pass the data it fetched from fetch_course_plan_tool
+				# Don't override with empty state data
 				tool_output = tool.invoke(tool_args)
 				messages.append(
 					ToolMessage(

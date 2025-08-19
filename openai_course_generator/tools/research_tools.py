@@ -23,7 +23,6 @@ SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-# TODO: Convert to FunctionTool pattern
 def fetch_course_plan(plan_id: str) -> str:
     """
     Fetch course plan details from database using plan_id.
@@ -46,6 +45,7 @@ def fetch_course_plan(plan_id: str) -> str:
                 "course_structure": plan.get('course_structure'),
                 "prioritized_gaps": plan.get('prioritized_gaps'),
                 "research_strategy": plan.get('research_strategy'),
+                "research_queries": plan.get('research_queries'),  # Include research queries for research agent
                 "total_modules": plan.get('total_modules'),
                 "course_duration_weeks": plan.get('course_duration_weeks')
             }
@@ -61,7 +61,52 @@ def fetch_course_plan(plan_id: str) -> str:
         return json.dumps({"error": str(e)})
 
 
-# TODO: Convert to FunctionTool pattern
+def fetch_research_results(plan_id: str) -> str:
+    """
+    Fetch research results and content library for a course plan.
+    
+    Returns comprehensive research findings, content library, and module mappings.
+    """
+    try:
+        logger.info(f"🔍 Fetching research results for plan: {plan_id}")
+        
+        result = supabase.table('cm_research_results').select('*').eq('plan_id', plan_id).single().execute()
+        
+        if result.data:
+            research = result.data
+            
+            # Extract research information for content generation
+            research_info = {
+                "research_id": research.get('research_id'),
+                "plan_id": research.get('plan_id'),
+                "research_findings": research.get('research_findings'),
+                "content_library": research.get('content_library'),
+                "module_mappings": research.get('module_mappings'),
+                "total_topics": research.get('total_topics'),
+                "total_sources": research.get('total_sources'),
+                "status": research.get('status')
+            }
+            
+            logger.info(f"✅ Research results loaded: {research_info['total_topics']} topics, {research_info['total_sources']} sources")
+            return json.dumps(research_info)
+        else:
+            logger.warning(f"⚠️ No research results found for plan: {plan_id} - using basic research context")
+            return json.dumps({
+                "research_id": None,
+                "plan_id": plan_id,
+                "research_findings": {"topics": [], "overall_synthesis": "Basic research context"},
+                "content_library": {"primary_sources": [], "supplementary_materials": []},
+                "module_mappings": {"mappings": []},
+                "total_topics": 0,
+                "total_sources": 0,
+                "status": "not_found"
+            })
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch research results: {e}")
+        return json.dumps({"error": str(e)})
+
+
 def firecrawl_search(query: str, context: str = "general") -> str:
     """
     Web search using Firecrawl API - SEARCH ONLY, returns URLs.

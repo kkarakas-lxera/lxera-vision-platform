@@ -18,8 +18,8 @@ def generate_course_structure_plan_tool(profile_data: str, skills_gaps: str) -> 
 
 
 @tool
-def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str, course_structure: str, prioritized_gaps: str, research_strategy: str, learning_path: str, company_id: str | None = None) -> str:
-	"""Store the course plan in cm_course_plans; returns status string containing plan_id."""
+def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str, course_structure: str, prioritized_gaps: str, research_strategy: str, learning_path: str, research_queries: str, company_id: str | None = None) -> str:
+	"""Store the course plan with research queries in cm_course_plans; returns status string containing plan_id."""
 	from openai_course_generator.tools.planning_storage_tools_v2 import store_course_plan as _tool
 	args = {
 		"employee_id": employee_id,
@@ -30,8 +30,16 @@ def store_course_plan_tool(employee_id: str, employee_name: str, session_id: str
 		"prioritized_gaps": prioritized_gaps,
 		"research_strategy": research_strategy,
 		"learning_path": learning_path,
+		"research_queries": research_queries,
 	}
 	return _tool.on_invoke_tool(None, args)  # type: ignore[attr-defined]
+
+
+@tool
+def generate_research_queries_tool(course_structure: str, employee_profile: str) -> str:
+	"""Generate targeted research queries for course modules; returns JSON string."""
+	from openai_course_generator.tools.planning_tools import generate_research_queries as _fn
+	return _fn(course_structure, employee_profile)
 
 
 @tool

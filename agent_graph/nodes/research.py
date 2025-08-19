@@ -48,18 +48,27 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 				"You are the Research Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
 				"Your mission: Conduct comprehensive web research to enrich course content with current, authoritative information.\n"
 				"Available tools: fetch_course_plan_tool, firecrawl_search_tool, firecrawl_scrape_tool, "
-				"research_synthesizer_tool, store_research_results_tool, store_research_session_tool.\n"
-				"Research workflow: 1) Fetch course plan, 2) Search web with Firecrawl, 3) Scrape relevant content, "
-				"4) Synthesize findings, 5) Store comprehensive research results.\n"
+				"research_synthesizer_tool, store_research_results_tool, store_research_session_tool.\n\n"
+				"DATABASE-DRIVEN WORKFLOW:\n"
+				"1) Fetch course plan from database using plan_id - this provides course structure, modules, employee context\n"
+				"2) Conduct targeted research based on course modules and skill gaps\n"
+				"3) Store comprehensive research results in database for content generation phase\n\n"
 				"Focus on: Recent trends, best practices, case studies, expert insights, and practical examples."
 			)),
 			HumanMessage(content=(
-				f"Conduct thorough research for course plan_id={plan_id} (session: {session_id}).\n"
-				f"1. First, fetch the course plan to understand learning objectives\n"
-				f"2. Search for current, authoritative content using Firecrawl\n"
-				f"3. Scrape 3-5 high-quality sources per key topic\n"
-				f"4. Synthesize research into actionable knowledge base\n"
-				f"5. Store results and session metadata for content generation phase"
+				f"Conduct database-driven research workflow for plan_id: {plan_id}\n\n"
+				f"STEP 1: Fetch course plan from database\n"
+				f"- Call fetch_course_plan_tool with plan_id: {plan_id}\n"
+			"- This will provide course structure, modules, employee context, skill gaps, AND research queries\n"
+			"- The planning agent has already generated targeted research queries based on employee context\n\n"
+				f"STEP 2: Execute targeted research using planning agent's queries\n"
+			"- Use the research_queries from the course plan as your starting point\n"
+			"- Search for current, authoritative content using Firecrawl with these targeted queries\n"
+			"- Scrape 3-5 high-quality sources per query/topic\n\n"
+				f"STEP 3: Store comprehensive results\n"
+			"- Synthesize research into actionable knowledge base\n"
+			"- Store results in database with plan_id: {plan_id} for content generation\n\n"
+				f"Session: {session_id} | Focus: practical, current examples for skill development"
 			)),
 		]
 

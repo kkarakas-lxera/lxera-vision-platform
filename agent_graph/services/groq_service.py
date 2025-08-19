@@ -15,7 +15,17 @@ def get_chat_groq(model: Optional[str] = None):
 		api_key = os.environ.get("GROQ_API_KEY")
 		if not api_key:
 			raise RuntimeError("GROQ_API_KEY is not set")
-		return ChatGroq(model=chosen_model, temperature=0.3, max_tokens=None, groq_api_key=api_key)
+		return ChatGroq(
+			model=chosen_model, 
+			temperature=0.0,  # Zero for consistent tool calling
+			max_tokens=4096, 
+			groq_api_key=api_key,
+			model_kwargs={
+				"top_p": 1.0,
+				"frequency_penalty": 0.0,
+				"presence_penalty": 0.0
+			}
+		)
 	except ImportError as exc:  # pragma: no cover
 		raise RuntimeError(
 			"langchain-groq is not installed. Add `langchain-groq` to requirements.txt"

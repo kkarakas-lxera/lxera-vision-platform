@@ -13,29 +13,14 @@ from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
 from supabase import create_client
 from lxera_agents import FunctionTool
-
-def safe_json_loads(value: Union[str, dict, list], default: Union[dict, list] = None) -> Union[dict, list]:
-    """Safely parse JSON string, handling empty strings and already-parsed objects."""
-    if default is None:
-        default = {}
-    
-    # Already parsed object - return as-is
-    if isinstance(value, (dict, list)):
-        return value
-    
-    # String parsing with empty check
-    if isinstance(value, str):
-        if not value.strip():
-            return default
-        try:
-            return json.loads(value)
-        except (json.JSONDecodeError, ValueError) as e:
-            logger.warning(f"Invalid JSON string: {value[:100]}... Error: {e}")
-            return default
-    
-    # Other types - return default
-    logger.warning(f"Unexpected type for JSON parsing: {type(value)}")
-    return default
+from .flexible_input_handler import (
+    safe_json_parse, 
+    log_parameter_metrics,
+    safe_course_structure_handler,
+    generate_valid_plan_id,
+    validate_and_fix_uuid,
+    robust_json_parse
+)
 
 logger = logging.getLogger(__name__)
 
@@ -193,28 +178,65 @@ STORE_COURSE_PLAN_SCHEMA = {
             },
             "required": ["sequence", "adaptive_elements", "practice_components"],
             "additionalProperties": False
+        },
+        "research_queries": {
+            "type": "object",
+            "description": "Targeted research queries for content generation",
+            "properties": {
+                "queries": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of specific research queries"
+                },
+                "query_metadata": {
+                    "type": "object",
+                    "description": "Metadata about query generation",
+                    "properties": {
+                        "generated_at": {"type": "string"},
+                        "total_queries": {"type": "integer"},
+                        "focus_areas": {
+                            "type": "array",
+                            "items": {"type": "string"}
+                        }
+                    },
+                    "additionalProperties": True
+                }
+            },
+            "required": ["queries"],
+            "additionalProperties": False
         }
     },
-    "required": ["employee_id", "employee_name", "session_id", "course_structure", "prioritized_gaps", "research_strategy", "learning_path"],
+    "required": ["employee_id", "employee_name", "session_id", "course_structure", "prioritized_gaps", "research_strategy", "learning_path", "research_queries"],
     "additionalProperties": False
 }
 
 def store_course_plan_impl(tool_context, args) -> str:
-    """Implementation of store_course_plan function."""
-    # Parse args if it's a string
-    if isinstance(args, str):
-        args = json.loads(args)
-    
-    # Extract arguments from the args dictionary
-    employee_id = args['employee_id']
-    employee_name = args['employee_name']
-    session_id = args['session_id']
-    
-    # Parse JSON strings safely, handling empty strings and type mismatches
-    course_structure = safe_json_loads(args['course_structure'], default={})
-    prioritized_gaps = safe_json_loads(args['prioritized_gaps'], default={})
-    research_strategy = safe_json_loads(args.get('research_strategy', {}), default={})
-    learning_path = safe_json_loads(args.get('learning_path', {}), default={})
+    """Implementation of store_course_plan function with 2025 best practices."""
+    try:
+        # Parse args if it's a string
+        if isinstance(args, str):
+            args = json.loads(args)
+        
+        # Extract arguments from the args dictionary
+        employee_id = args['employee_id']
+        employee_name = args['employee_name']
+        session_id = args['session_id']
+        
+        # Use enhanced robust parsing with metrics logging
+        course_structure = safe_course_structure_handler(robust_json_parse(args['course_structure'], "dict"))
+        log_parameter_metrics("store_course_plan", "course_structure", type(args['course_structure']).__name__, True)
+        
+        prioritized_gaps = robust_json_parse(args['prioritized_gaps'], "dict")
+        log_parameter_metrics("store_course_plan", "prioritized_gaps", type(args['prioritized_gaps']).__name__, True)
+        
+        research_strategy = safe_json_parse(args.get('research_strategy', {}), default_type="dict")
+        learning_path = safe_json_parse(args.get('learning_path', {}), default_type="dict")
+        research_queries = safe_json_parse(args.get('research_queries', {}), default_type="dict")
+        
+    except Exception as e:
+        log_parameter_metrics("store_course_plan", "args_parsing", type(args).__name__, False, str(e))
+        logger.error(f"Failed to parse store_course_plan arguments: {e}")
+        return f"❌ Failed to parse arguments: {str(e)}"
     
     company_id = args.get('company_id')  # Optional - will fetch if not provided
     
@@ -301,6 +323,7 @@ def store_course_plan_impl(tool_context, args) -> str:
             'prioritized_gaps': gaps_formatted,
             'research_strategy': research_strategy,
             'learning_path': learning_path,
+            'research_queries': research_queries,  # Add research queries for research agent
             'course_title': course_title,
             'total_modules': total_modules,
             'course_duration_weeks': course_duration_weeks,

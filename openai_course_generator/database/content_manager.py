@@ -110,7 +110,8 @@ class ContentManager:
         session_id: str,
         module_spec: Dict[str, Any],
         research_context: Dict[str, Any] = None,
-        company_id: str = None
+        company_id: str = None,
+        plan_id: str = None
     ) -> str:
         """
         Create new module content entry and return content_id.
@@ -146,6 +147,7 @@ class ContentManager:
                     'module_name': module_name,
                     'employee_name': employee_name,
                     'session_id': session_id,
+                    'plan_id': plan_id,  # Link to course plan for database-driven workflow
                     'module_spec': module_spec,
                     'research_context': research_context or {},
                     'status': 'draft',

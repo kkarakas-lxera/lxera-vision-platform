@@ -364,7 +364,7 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
                 {"role": "system", "content": "You are an expert learning designer who creates highly personalized course structures. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": planning_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
-            temperature=0.3,
+            temperature=0.0,  # Zero temperature for consistent JSON structure
             max_tokens=8192  # Increased to prevent JSON truncation
         )
         
@@ -616,7 +616,7 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
                 {"role": "system", "content": "You are an expert research strategist who creates targeted search queries for personalized learning. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": query_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
-            temperature=0.3,
+            temperature=0.0,  # Zero temperature for reliable tool calling
             max_tokens=4000  # Increased from 3000
         )
         
@@ -948,7 +948,7 @@ def generate_module_outline_with_allocations(module_spec: str, employee_profile:
                 {"role": "system", "content": "You are an expert instructional designer who creates detailed content outlines. ALWAYS return your response as valid JSON only, no additional text."},
                 {"role": "user", "content": outline_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
-            temperature=0.2,
+            temperature=0.0,  # Zero temperature for structured output
             max_tokens=4096  # Increased for complete response
         )
         

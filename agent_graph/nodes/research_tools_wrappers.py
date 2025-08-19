@@ -61,3 +61,10 @@ def store_research_session_tool(research_id: str, search_queries: str, sources_a
 	return store_research_session.on_invoke_tool(None, args)  # type: ignore[attr-defined]
 
 
+@tool
+def fetch_research_results_tool(plan_id: str) -> str:
+	"""Fetch research results and content library for a course plan; returns JSON string."""
+	from openai_course_generator.tools.research_tools import fetch_research_results
+	return fetch_research_results(plan_id)
+
+

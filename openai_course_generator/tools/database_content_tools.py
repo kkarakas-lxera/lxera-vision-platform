@@ -92,7 +92,8 @@ def create_new_module_content(
     employee_name: str,
     session_id: str,
     module_spec: str,
-    research_context: str = "{}"
+    research_context: str = "{}",
+    plan_id: str = None
 ) -> str:
     """
     Create new module content in database and return content_id.
@@ -122,7 +123,8 @@ def create_new_module_content(
             employee_name=employee_name,
             session_id=session_id,
             module_spec=spec,
-            research_context=research
+            research_context=research,
+            plan_id=plan_id
         )
         
         result = {
