@@ -26,7 +26,8 @@ firecrawl-py>=0.0.16
 langchain>=0.2.12
 langchain-community>=0.2.11
 langgraph>=0.2.34
-langchain-groq>=0.2.0
+langchain-groq>=0.2.0  # Keep for fallback
+langchain-openai>=0.1.0  # For OpenRouter
 langsmith>=0.1.0
 
 # Additional missing dependencies

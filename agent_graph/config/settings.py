@@ -8,6 +8,13 @@ class AgentGraphSettings(BaseSettings):
 	"""Runtime settings for the Agent Graph orchestrator."""
 
 	use_langgraph: bool = Field(default=True, description="Feature-flag to enable LangGraph runner")
+	
+	# OpenRouter settings (preferred)
+	openrouter_api_key: str = Field(default="", description="OpenRouter API key")
+	openrouter_primary_model: str = Field(default="anthropic/claude-3-5-sonnet", description="Primary OpenRouter model")
+	openrouter_fallback_model: str = Field(default="mistralai/mistral-large-2407", description="Fallback OpenRouter model")
+	
+	# Groq settings (legacy/fallback)
 	groq_api_key: str = Field(default="", description="Groq API key")
 	groq_primary_model: str = Field(default="llama-3.3-70b-versatile", description="Primary Groq model")
 	groq_fallback_model: str = Field(default="llama-3.1-8b-instant", description="Fallback Groq model")
