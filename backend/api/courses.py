@@ -429,31 +429,64 @@ async def update_course_progress(
 # Background task function
 async def run_course_generation_pipeline(content_id: str, company_id: str, generation_params: dict):
     """
-    Background task to run the course generation pipeline.
+    Background task to run the course generation pipeline by calling the Render service.
     
     Args:
         content_id: Course content ID
         company_id: Company ID
-        generation_params: Generation parameters
+        generation_params: Generation parameters from CourseGenerationRequest
     """
     try:
-        # Import course generator components
-        # This will be implemented when we integrate the openai_course_generator
+        import httpx
+        
         logger.info(f"Starting course generation pipeline for {content_id}")
         
         # Update status to processing
         supabase = get_supabase_client()
         supabase.table('cm_module_content').update({
-            'status': 'quality_check',
+            'status': 'processing',
             'updated_at': datetime.now(timezone.utc).isoformat()
         }).eq('content_id', content_id).execute()
         
-        # TODO: Integrate actual course generation pipeline
-        # from openai_course_generator.comprehensive_content_generator import ComprehensiveContentGenerator
-        # generator = ComprehensiveContentGenerator()
-        # result = generator.generate_full_module(**generation_params)
+        # Get Render service URL from environment
+        import os
+        render_service_url = os.getenv('RENDER_SERVICE_URL', 'https://lxera-agent-pipeline.onrender.com')
         
-        logger.info(f"Course generation pipeline completed for {content_id}")
+        # Prepare request payload for Render service
+        # Note: This FastAPI endpoint is designed for direct course generation
+        # but the Render service expects employee_id. For now, we'll create a placeholder
+        payload = {
+            'employee_id': 'placeholder-employee',  # This should be updated to use actual employee_id
+            'company_id': company_id,
+            'assigned_by_id': 'system',  # This should be updated to use actual user_id
+            'generation_mode': 'full',
+            'enable_multimedia': False
+        }
+        
+        # Call the Render service
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            response = await client.post(
+                f"{render_service_url}/api/generate-course",
+                json=payload,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('pipeline_success'):
+                    # Update status to completed
+                    supabase.table('cm_module_content').update({
+                        'status': 'completed',
+                        'updated_at': datetime.now(timezone.utc).isoformat(),
+                        'core_content': result.get('content', 'Generated content'),
+                        'total_word_count': result.get('word_count', 0)
+                    }).eq('content_id', content_id).execute()
+                    
+                    logger.info(f"Course generation pipeline completed for {content_id}")
+                else:
+                    raise Exception(f"Pipeline failed: {result.get('error', 'Unknown error')}")
+            else:
+                raise Exception(f"Render service error: {response.status_code} - {response.text}")
         
     except Exception as e:
         logger.error(f"Course generation pipeline failed for {content_id}: {e}")
