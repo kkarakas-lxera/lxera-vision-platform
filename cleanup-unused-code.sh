@@ -20,7 +20,6 @@ UNUSED_FUNCTIONS=(
     "extract-skills"
     "finalize-skills-profile"
     "generate-course"
-    "generate-course-agents"
     "generate-educational-video"
     "send-magic-link"
     "skills-gap-signup"

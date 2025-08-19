@@ -9,7 +9,6 @@ FUNCTIONS_DIR="/Users/kubilaycenk/Lxera Stable/lxera-vision-platform/supabase/fu
 FUNCTIONS=(
   "cv-analyze"
   "extract-skills"
-  "generate-course-agents"
   "generate-course"
   "generate-educational-video"
   "generate-employee-insights"
