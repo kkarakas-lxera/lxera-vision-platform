@@ -9,10 +9,33 @@ import os
 import uuid
 import json
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
 from supabase import create_client
 from lxera_agents import FunctionTool
+
+def safe_json_loads(value: Union[str, dict, list], default: Union[dict, list] = None) -> Union[dict, list]:
+    """Safely parse JSON string, handling empty strings and already-parsed objects."""
+    if default is None:
+        default = {}
+    
+    # Already parsed object - return as-is
+    if isinstance(value, (dict, list)):
+        return value
+    
+    # String parsing with empty check
+    if isinstance(value, str):
+        if not value.strip():
+            return default
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.warning(f"Invalid JSON string: {value[:100]}... Error: {e}")
+            return default
+    
+    # Other types - return default
+    logger.warning(f"Unexpected type for JSON parsing: {type(value)}")
+    return default
 
 logger = logging.getLogger(__name__)
 
@@ -187,22 +210,11 @@ def store_course_plan_impl(tool_context, args) -> str:
     employee_name = args['employee_name']
     session_id = args['session_id']
     
-    # Parse JSON strings to dictionaries if needed
-    course_structure = args['course_structure']
-    if isinstance(course_structure, str):
-        course_structure = json.loads(course_structure)
-    
-    prioritized_gaps = args['prioritized_gaps']
-    if isinstance(prioritized_gaps, str):
-        prioritized_gaps = json.loads(prioritized_gaps)
-    
-    research_strategy = args.get('research_strategy')
-    if isinstance(research_strategy, str):
-        research_strategy = json.loads(research_strategy) if research_strategy else {}
-    
-    learning_path = args.get('learning_path')
-    if isinstance(learning_path, str):
-        learning_path = json.loads(learning_path) if learning_path else {}
+    # Parse JSON strings safely, handling empty strings and type mismatches
+    course_structure = safe_json_loads(args['course_structure'], default={})
+    prioritized_gaps = safe_json_loads(args['prioritized_gaps'], default={})
+    research_strategy = safe_json_loads(args.get('research_strategy', {}), default={})
+    learning_path = safe_json_loads(args.get('learning_path', {}), default={})
     
     company_id = args.get('company_id')  # Optional - will fetch if not provided
     
@@ -210,13 +222,10 @@ def store_course_plan_impl(tool_context, args) -> str:
         logger.info(f"📝 Storing course plan for {employee_name}")
         
         # Extract metadata from course structure
-        # Handle both dict and list formats
-        if isinstance(course_structure, dict):
-            course_title = course_structure.get('title', 'Personalized Development Course')
-            total_modules = len(course_structure.get('modules', []))
-            course_duration_weeks = course_structure.get('duration_weeks', 4)
-        elif isinstance(course_structure, list):
-            # If it's a list, assume it's a list of modules
+        # CRITICAL: Check list FIRST to prevent .get() calls on lists
+        if isinstance(course_structure, list):
+            # Raw list of modules from agent - convert to standard format
+            logger.info(f"📋 Course structure is list with {len(course_structure)} modules")
             course_title = 'Personalized Development Course'
             total_modules = len(course_structure)
             course_duration_weeks = 4  # Default
@@ -226,15 +235,36 @@ def store_course_plan_impl(tool_context, args) -> str:
                 'modules': course_structure,
                 'duration_weeks': course_duration_weeks
             }
+        elif isinstance(course_structure, dict):
+            # Standard dict format from agent
+            logger.info(f"📋 Course structure is dict: {list(course_structure.keys())}")
+            course_title = course_structure.get('title', 'Personalized Development Course')
+            total_modules = len(course_structure.get('modules', []))
+            course_duration_weeks = course_structure.get('duration_weeks', 4)
         else:
-            logger.warning(f"⚠️ Unexpected course_structure type: {type(course_structure)}")
+            logger.warning(f"⚠️ Unexpected course_structure type: {type(course_structure)} - {course_structure}")
             course_title = 'Personalized Development Course'
             total_modules = 0
             course_duration_weeks = 4
+            course_structure = {
+                'title': course_title,
+                'modules': [],
+                'duration_weeks': course_duration_weeks
+            }
         
         # Convert prioritized gaps to expected format
-        # Handle both dict and list formats
-        if isinstance(prioritized_gaps, dict):
+        # CRITICAL: Check list FIRST to prevent .get() calls on lists
+        if isinstance(prioritized_gaps, list):
+            # Raw list of gaps from agent - assume high priority
+            logger.info(f"📊 Prioritized gaps is list with {len(prioritized_gaps)} items")
+            gaps_formatted = {
+                "Critical Skill Gaps": {"gaps": []},
+                "High Priority Gaps": {"gaps": prioritized_gaps},
+                "Development Gaps": {"gaps": []}
+            }
+        elif isinstance(prioritized_gaps, dict):
+            # Standard dict format from agent
+            logger.info(f"📊 Prioritized gaps is dict: {list(prioritized_gaps.keys())}")
             gaps_formatted = {
                 "Critical Skill Gaps": {
                     "gaps": prioritized_gaps.get("critical_gaps", [])
@@ -246,21 +276,8 @@ def store_course_plan_impl(tool_context, args) -> str:
                     "gaps": prioritized_gaps.get("development_gaps", [])
                 }
             }
-        elif isinstance(prioritized_gaps, list):
-            # If it's a list, assume all are high priority
-            gaps_formatted = {
-                "Critical Skill Gaps": {
-                    "gaps": []
-                },
-                "High Priority Gaps": {
-                    "gaps": prioritized_gaps
-                },
-                "Development Gaps": {
-                    "gaps": []
-                }
-            }
         else:
-            logger.warning(f"⚠️ Unexpected prioritized_gaps type: {type(prioritized_gaps)}")
+            logger.warning(f"⚠️ Unexpected prioritized_gaps type: {type(prioritized_gaps)} - {prioritized_gaps}")
             gaps_formatted = {
                 "Critical Skill Gaps": {"gaps": []},
                 "High Priority Gaps": {"gaps": []},
