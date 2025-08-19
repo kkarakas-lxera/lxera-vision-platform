@@ -23,7 +23,7 @@ SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-@function_tool
+# TODO: Convert to FunctionTool pattern
 def fetch_course_plan(plan_id: str) -> str:
     """
     Fetch course plan details from database using plan_id.
@@ -61,7 +61,7 @@ def fetch_course_plan(plan_id: str) -> str:
         return json.dumps({"error": str(e)})
 
 
-@function_tool
+# TODO: Convert to FunctionTool pattern
 def firecrawl_search(query: str, context: str = "general") -> str:
     """
     Web search using Firecrawl API - SEARCH ONLY, returns URLs.
@@ -140,7 +140,7 @@ def firecrawl_search(query: str, context: str = "general") -> str:
         return json.dumps({"error": str(e), "success": False})
 
 
-@function_tool  
+# TODO: Convert to FunctionTool pattern  
 def firecrawl_scrape(url: str, extraction_type: str = "full") -> str:
     """
     Extract content from URLs using Firecrawl API - much more reliable than Scrape.do.
@@ -251,7 +251,7 @@ def firecrawl_scrape(url: str, extraction_type: str = "full") -> str:
 
 
 
-@function_tool
+# TODO: Convert to FunctionTool pattern
 def jina_processor(text_content: str, processing_type: str = "comprehensive") -> str:
     """
     Process and analyze text content using Groq LLM for structured analysis.
@@ -313,7 +313,7 @@ def jina_processor(text_content: str, processing_type: str = "comprehensive") ->
         return json.dumps(error_data)
 
 
-@function_tool
+# TODO: Convert to FunctionTool pattern
 def research_synthesizer(research_results: str, synthesis_focus: str = "comprehensive") -> str:
     """
     Synthesize multiple research sources into structured knowledge base.
@@ -408,7 +408,7 @@ def research_synthesizer(research_results: str, synthesis_focus: str = "comprehe
         return json.dumps(error_data)
 
 
-@function_tool
+# TODO: Convert to FunctionTool pattern
 def citation_manager(research_sources: str) -> str:
     """
     Generate citations and manage source references.
