@@ -6,14 +6,8 @@ import json
 from ..services.sentry_service import start_span
 
 def _llm():
-	# Try OpenRouter first, fallback to Groq if needed
-	try:
-		from ..services.openrouter_service import get_chat_openrouter_with_fallback
-		return get_chat_openrouter_with_fallback()
-	except Exception as e:
-		print(f"OpenRouter failed, falling back to Groq: {e}")
-		from ..services.groq_service import get_chat_groq
-		return get_chat_groq()
+	from ..services.groq_service import get_chat_groq
+	return get_chat_groq()
 
 
 def _tools():
