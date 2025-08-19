@@ -186,10 +186,24 @@ def store_course_plan_impl(tool_context, args) -> str:
     employee_id = args['employee_id']
     employee_name = args['employee_name']
     session_id = args['session_id']
+    
+    # Parse JSON strings to dictionaries if needed
     course_structure = args['course_structure']
+    if isinstance(course_structure, str):
+        course_structure = json.loads(course_structure)
+    
     prioritized_gaps = args['prioritized_gaps']
+    if isinstance(prioritized_gaps, str):
+        prioritized_gaps = json.loads(prioritized_gaps)
+    
     research_strategy = args.get('research_strategy')
+    if isinstance(research_strategy, str):
+        research_strategy = json.loads(research_strategy) if research_strategy else {}
+    
     learning_path = args.get('learning_path')
+    if isinstance(learning_path, str):
+        learning_path = json.loads(learning_path) if learning_path else {}
+    
     company_id = args.get('company_id')  # Optional - will fetch if not provided
     
     try:
@@ -333,8 +347,16 @@ def store_planning_metadata_impl(tool_context, args) -> bool:
     
     # Extract arguments from the args dictionary
     plan_id = args['plan_id']
+    
+    # Parse JSON strings to dictionaries if needed
     employee_profile = args['employee_profile']
+    if isinstance(employee_profile, str):
+        employee_profile = json.loads(employee_profile) if employee_profile else {}
+    
     tool_calls = args['tool_calls']
+    if isinstance(tool_calls, str):
+        tool_calls = json.loads(tool_calls) if tool_calls else []
+    
     execution_time = args['execution_time']
     agent_turns = args['agent_turns']
     
