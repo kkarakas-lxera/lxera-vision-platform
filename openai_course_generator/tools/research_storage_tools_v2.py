@@ -381,6 +381,12 @@ def store_research_session_impl(tool_context, args) -> str:
         
         # Extract arguments from the args dictionary
         research_id = args.get('research_id')
+        # Validate research_id is a UUID to prevent invalid input like "generated_id"
+        try:
+            uuid.UUID(str(research_id))
+        except Exception:
+            logger.error(f"❌ Invalid research_id format: {research_id}")
+            return f"❌ Failed to store research session: Invalid research_id format. Expected UUID, got: {research_id}"
         
         # Parse JSON string arrays to dictionaries if needed
         search_queries = args.get('search_queries', [])

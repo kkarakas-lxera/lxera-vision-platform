@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional
 import uuid
+from collections import deque
+from datetime import datetime, date
+from decimal import Decimal
 
 from ..services.supabase_client import SupabaseRestClient
 
@@ -93,7 +96,9 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 		# Merge new_versions into metadata if provided
 		if new_versions:
 			metadata = {**metadata, "new_versions": new_versions}
-		self._client.upsert_checkpoint(thread_id=thread_id, checkpoint_id=checkpoint_id, state=checkpoint, metadata=metadata)
+		jsonable_state = _to_jsonable(checkpoint)
+		jsonable_metadata = _to_jsonable(metadata)
+		self._client.upsert_checkpoint(thread_id=thread_id, checkpoint_id=checkpoint_id, state=jsonable_state, metadata=jsonable_metadata)
 
 	def put_writes(self, config: Dict[str, Any], writes: Dict[str, Any], task_id: str = None) -> None:
 		thread_id = _require_thread_id(config)
@@ -101,10 +106,11 @@ class SupabaseCheckpointSaver(BaseCheckpointSaver):
 		# Merge pending writes into metadata for simplicity
 		row = self._client.get_checkpoint(thread_id, checkpoint_id)
 		metadata: Dict[str, Any] = (row.get("metadata") if row else {}) or {}
-		metadata["pending_writes"] = writes
+		metadata["pending_writes"] = _to_jsonable(writes)
 		if task_id:
 			metadata["task_id"] = task_id
-		self._client.update_metadata(thread_id, checkpoint_id, metadata)
+		jsonable_metadata = _to_jsonable(metadata)
+		self._client.update_metadata(thread_id, checkpoint_id, jsonable_metadata)
 
 	def get_tuple(self, config: Dict[str, Any]) -> Optional[CheckpointTuple]:
 		thread_id = _require_thread_id(config)
@@ -160,4 +166,31 @@ def _get_or_generate_checkpoint_id(config: Dict[str, Any]) -> str:
 	checkpoint_id = _optional_checkpoint_id(config)
 	return checkpoint_id or str(uuid.uuid4())
 
+
+def _to_jsonable(obj: Any) -> Any:
+	"""Recursively convert common non-JSON types to JSON-serializable values.
+	- deque -> list; set/tuple -> list
+	- Decimal -> float (fallback to str)
+	- datetime/date -> ISO string
+	- UUID -> str
+	- dict/list recurse; otherwise str(obj)
+	"""
+	if obj is None or isinstance(obj, (str, int, float, bool)):
+		return obj
+	if isinstance(obj, deque):
+		return [_to_jsonable(x) for x in list(obj)]
+	if isinstance(obj, (list, tuple, set)):
+		return [_to_jsonable(x) for x in obj]
+	if isinstance(obj, dict):
+		return {str(k): _to_jsonable(v) for k, v in obj.items()}
+	if isinstance(obj, Decimal):
+		try:
+			return float(obj)
+		except Exception:
+			return str(obj)
+	if isinstance(obj, (datetime, date)):
+		return obj.isoformat()
+	if isinstance(obj, (uuid.UUID,)):
+		return str(obj)
+	return str(obj)
 

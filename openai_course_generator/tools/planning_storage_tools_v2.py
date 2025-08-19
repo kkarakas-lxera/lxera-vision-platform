@@ -210,22 +210,62 @@ def store_course_plan_impl(tool_context, args) -> str:
         logger.info(f"📝 Storing course plan for {employee_name}")
         
         # Extract metadata from course structure
-        course_title = course_structure.get('title', 'Personalized Development Course')
-        total_modules = len(course_structure.get('modules', []))
-        course_duration_weeks = course_structure.get('duration_weeks', 4)
+        # Handle both dict and list formats
+        if isinstance(course_structure, dict):
+            course_title = course_structure.get('title', 'Personalized Development Course')
+            total_modules = len(course_structure.get('modules', []))
+            course_duration_weeks = course_structure.get('duration_weeks', 4)
+        elif isinstance(course_structure, list):
+            # If it's a list, assume it's a list of modules
+            course_title = 'Personalized Development Course'
+            total_modules = len(course_structure)
+            course_duration_weeks = 4  # Default
+            # Convert list to dict format for storage
+            course_structure = {
+                'title': course_title,
+                'modules': course_structure,
+                'duration_weeks': course_duration_weeks
+            }
+        else:
+            logger.warning(f"⚠️ Unexpected course_structure type: {type(course_structure)}")
+            course_title = 'Personalized Development Course'
+            total_modules = 0
+            course_duration_weeks = 4
         
         # Convert prioritized gaps to expected format
-        gaps_formatted = {
-            "Critical Skill Gaps": {
-                "gaps": prioritized_gaps.get("critical_gaps", [])
-            },
-            "High Priority Gaps": {
-                "gaps": prioritized_gaps.get("high_priority_gaps", [])
-            },
-            "Development Gaps": {
-                "gaps": prioritized_gaps.get("development_gaps", [])
+        # Handle both dict and list formats
+        if isinstance(prioritized_gaps, dict):
+            gaps_formatted = {
+                "Critical Skill Gaps": {
+                    "gaps": prioritized_gaps.get("critical_gaps", [])
+                },
+                "High Priority Gaps": {
+                    "gaps": prioritized_gaps.get("high_priority_gaps", [])
+                },
+                "Development Gaps": {
+                    "gaps": prioritized_gaps.get("development_gaps", [])
+                }
             }
-        }
+        elif isinstance(prioritized_gaps, list):
+            # If it's a list, assume all are high priority
+            gaps_formatted = {
+                "Critical Skill Gaps": {
+                    "gaps": []
+                },
+                "High Priority Gaps": {
+                    "gaps": prioritized_gaps
+                },
+                "Development Gaps": {
+                    "gaps": []
+                }
+            }
+        else:
+            logger.warning(f"⚠️ Unexpected prioritized_gaps type: {type(prioritized_gaps)}")
+            gaps_formatted = {
+                "Critical Skill Gaps": {"gaps": []},
+                "High Priority Gaps": {"gaps": []},
+                "Development Gaps": {"gaps": []}
+            }
         
         # Get company_id if not provided
         if not company_id:

@@ -470,6 +470,10 @@ export type Database = {
       cm_course_plans: {
         Row: {
           agent_turns: number | null
+          approved_at: string | null
+          approval_feedback: string | null
+          approval_status: string | null
+          approved_by: string | null
           company_id: string
           course_duration_weeks: number | null
           course_structure: Json
@@ -480,11 +484,14 @@ export type Database = {
           employee_profile: Json
           error_message: string | null
           execution_time_seconds: number | null
+          is_preview_mode: boolean | null
           learning_path: Json
           plan_id: string
           planning_agent_version: string | null
           prioritized_gaps: Json
+          rejection_reason: string | null
           research_strategy: Json
+          revision_count: number | null
           session_id: string
           status: string | null
           tool_calls: Json | null
@@ -493,6 +500,10 @@ export type Database = {
         }
         Insert: {
           agent_turns?: number | null
+          approved_at?: string | null
+          approval_feedback?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
           company_id: string
           course_duration_weeks?: number | null
           course_structure: Json
@@ -503,11 +514,14 @@ export type Database = {
           employee_profile: Json
           error_message?: string | null
           execution_time_seconds?: number | null
+          is_preview_mode?: boolean | null
           learning_path: Json
           plan_id?: string
           planning_agent_version?: string | null
           prioritized_gaps: Json
+          rejection_reason?: string | null
           research_strategy: Json
+          revision_count?: number | null
           session_id: string
           status?: string | null
           tool_calls?: Json | null
@@ -516,6 +530,10 @@ export type Database = {
         }
         Update: {
           agent_turns?: number | null
+          approved_at?: string | null
+          approval_feedback?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
           company_id?: string
           course_duration_weeks?: number | null
           course_structure?: Json
@@ -526,11 +544,14 @@ export type Database = {
           employee_profile?: Json
           error_message?: string | null
           execution_time_seconds?: number | null
+          is_preview_mode?: boolean | null
           learning_path?: Json
           plan_id?: string
           planning_agent_version?: string | null
           prioritized_gaps?: Json
+          rejection_reason?: string | null
           research_strategy?: Json
+          revision_count?: number | null
           session_id?: string
           status?: string | null
           tool_calls?: Json | null

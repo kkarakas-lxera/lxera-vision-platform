@@ -294,7 +294,7 @@ export const CourseOutlineApproval = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {outline.course_structure.duration_weeks} weeks
+                      {outline.course_structure?.duration_weeks || 'N/A'} weeks
                     </span>
                     <span className="flex items-center gap-1">
                       <BookOpen className="h-4 w-4" />
@@ -313,59 +313,88 @@ export const CourseOutlineApproval = () => {
               {/* Learning Objectives */}
               <div>
                 <h4 className="font-medium mb-2">Learning Objectives</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  {outline.course_structure.learning_objectives.map((objective, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-blue-500 mt-1">•</span>
-                      {objective}
-                    </li>
-                  ))}
-                </ul>
+                {outline.course_structure?.learning_objectives && outline.course_structure.learning_objectives.length > 0 ? (
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    {outline.course_structure.learning_objectives.map((objective, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        {objective}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="flex items-center justify-center p-6 border border-dashed rounded-lg">
+                    <div className="text-center">
+                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground">No Learning Objectives</p>
+                      <p className="text-xs text-muted-foreground">This course outline is missing learning objectives</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Course Modules */}
               <div>
                 <h4 className="font-medium mb-2">Course Structure</h4>
-                <Accordion type="single" collapsible className="w-full">
-                  {outline.course_structure.modules.map((module, index) => (
-                    <AccordionItem key={index} value={`module-${index}`}>
-                      <AccordionTrigger className="text-sm">
-                        <div className="flex items-center justify-between w-full pr-4">
-                          <span>Module {index + 1}: {module.title}</span>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="outline" className="text-xs">
-                              Week {module.week}
-                            </Badge>
-                            <span>{module.duration}</span>
+                {outline.course_structure?.modules && outline.course_structure.modules.length > 0 ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    {outline.course_structure.modules.map((module, index) => (
+                      <AccordionItem key={index} value={`module-${index}`}>
+                        <AccordionTrigger className="text-sm">
+                          <div className="flex items-center justify-between w-full pr-4">
+                            <span>Module {index + 1}: {module.title}</span>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-xs">
+                                Week {module.week}
+                              </Badge>
+                              <span>{module.duration}</span>
+                            </div>
                           </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2 pt-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={
-                              module.priority === 'Critical' ? 'destructive' :
-                              module.priority === 'High' ? 'default' : 'secondary'
-                            }>
-                              {module.priority} Priority
-                            </Badge>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-2 pt-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={
+                                module.priority === 'Critical' ? 'destructive' :
+                                module.priority === 'High' ? 'default' : 'secondary'
+                              }>
+                                {module.priority} Priority
+                              </Badge>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium mb-2">Topics Covered:</p>
+                              {module.topics && module.topics.length > 0 ? (
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                  {module.topics.map((topic, topicIndex) => (
+                                    <li key={topicIndex} className="flex items-start gap-2">
+                                      <span className="text-blue-500 mt-1">•</span>
+                                      {topic}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="flex items-center justify-center p-4 border border-dashed rounded border-muted-foreground/20">
+                                  <div className="text-center">
+                                    <FileText className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                                    <p className="text-xs text-muted-foreground">No topics defined for this module</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium mb-1">Topics Covered:</p>
-                            <ul className="text-sm text-muted-foreground space-y-1">
-                              {module.topics.map((topic, topicIndex) => (
-                                <li key={topicIndex} className="flex items-start gap-2">
-                                  <span className="text-blue-500 mt-1">•</span>
-                                  {topic}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
+                    <div className="text-center">
+                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-base font-medium text-muted-foreground mb-1">No Course Modules</p>
+                      <p className="text-sm text-muted-foreground">This course outline is missing module definitions</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
