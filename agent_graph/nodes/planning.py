@@ -6,8 +6,8 @@ import re
 from ..services.sentry_service import start_span
 
 def _llm():
-	from ..services.groq_service import get_chat_groq
-	return get_chat_groq()
+	from ..services.ollama_service import get_chat_ollama
+	return get_chat_ollama()
 
 
 def _tools():
@@ -49,7 +49,7 @@ def planning_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Planning Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"You are the Planning Agent in the LangGraph pipeline powered by DeepSeek-R1 8B.\n"
 				"Your mission: 1) Analyze employee profile and skills gaps, 2) Generate personalized course structure, "
 				"3) Generate targeted research queries, 4) Store the complete plan in database.\n"
 				"Available tools: analyze_employee_profile_tool, generate_course_structure_plan_tool, "

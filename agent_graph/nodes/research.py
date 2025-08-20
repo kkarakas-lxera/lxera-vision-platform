@@ -6,8 +6,8 @@ import re
 from ..services.sentry_service import start_span
 
 def _llm():
-	from ..services.groq_service import get_chat_groq
-	return get_chat_groq()
+	from ..services.ollama_service import get_chat_ollama
+	return get_chat_ollama()
 
 def _tools():
 	from .research_tools_wrappers import (

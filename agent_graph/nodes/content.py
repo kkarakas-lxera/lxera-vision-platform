@@ -6,8 +6,9 @@ import json
 from ..services.sentry_service import start_span
 
 def _llm():
-	from ..services.groq_service import get_chat_groq
-	return get_chat_groq()
+	from ..services.ollama_service import get_chat_ollama
+	# Use larger model for content generation
+	return get_chat_ollama("qwen3:14b")
 
 
 def _tools():

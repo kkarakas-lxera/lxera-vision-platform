@@ -40,14 +40,14 @@ def _build_langgraph(supabase_client=None):
 def start_job(job_id: str, thread_id: Optional[str] = None, extra_state: Optional[Dict[str, Any]] = None, supabase_client=None) -> Dict[str, Any]:
     """Start a LangGraph job with Planning → Research → Content pipeline.
 
-    Uses Llama 3.3 70B via Groq API for AI inference.
+    Uses DeepSeek-R1 8B and Qwen3 14B via Ollama on RTX 4090 GPU for AI inference.
     Returns a status dictionary including thread_id and phase.
     """
     print(f"🚀 LangGraph Pipeline Starting")
     print(f"   Job ID: {job_id}")
     print(f"   Thread ID: {thread_id or 'auto-generated'}")
     print(f"   Pipeline: Planning → Research → Content")
-    print(f"   AI Model: Llama 3.3 70B (Groq API)")
+    print(f"   AI Models: DeepSeek-R1 8B + Qwen3 14B (Ollama GPU)")
     
     graph = _build_langgraph(supabase_client=supabase_client)
     thread = thread_id or str(uuid.uuid4())
