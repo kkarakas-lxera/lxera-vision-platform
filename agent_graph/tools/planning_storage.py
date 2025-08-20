@@ -15,7 +15,23 @@ logger = logging.getLogger(__name__)
 
 def get_supabase_client():
     """Get Supabase client for database operations."""
-    from supabase import create_client
+    try:
+        from supabase import create_client
+    except Exception:
+        import site, sys
+        site_paths = []
+        try:
+            site_paths = site.getsitepackages()
+        except Exception:
+            try:
+                site_paths = [site.getusersitepackages()]
+            except Exception:
+                site_paths = []
+        for p in site_paths:
+            if p in sys.path:
+                sys.path.remove(p)
+            sys.path.insert(0, p)
+        from supabase import create_client
     
     supabase_url = os.getenv('SUPABASE_URL', 'https://xwfweumeryrgbguwrocr.supabase.co')
     supabase_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')

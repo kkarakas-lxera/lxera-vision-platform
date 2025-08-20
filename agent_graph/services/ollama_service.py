@@ -53,8 +53,8 @@ class ChatOllama:
     def __init__(
         self, 
         model: str = "qwen3:14b",
-        base_url: str = "http://109.198.107.223:50435",
-        token: str = "a74aa3368d646eb26a2a8470cd8c831774052110f3f8246cc6b208ab9262aaf3",
+        base_url: str = "http://127.0.0.1:11434",
+        token: str = "",
         temperature: float = 0.0,
         max_tokens: int = 4096,
         **kwargs
@@ -247,7 +247,7 @@ class ChatOllama:
             
             # Make request to remote Ollama API with token in cookie
             headers = {"Content-Type": "application/json"}
-            cookies = {f"C.25124719_auth_token": self.token}
+            cookies = {f"C.25124719_auth_token": self.token} if self.token else None
             
             response = requests.post(
                 f"{self.base_url}/api/chat",
@@ -360,8 +360,8 @@ def get_chat_ollama(model: Optional[str] = None) -> ChatOllama:
         ChatOllama instance configured for your Vast.ai GPU with tool calling support
     """
     chosen_model = model or os.environ.get("OLLAMA_MODEL", "qwen3:14b")
-    base_url = os.environ.get("OLLAMA_BASE_URL", "http://109.198.107.223:50435")
-    token = os.environ.get("OLLAMA_TOKEN", "a74aa3368d646eb26a2a8470cd8c831774052110f3f8246cc6b208ab9262aaf3")
+    base_url = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+    token = os.environ.get("OLLAMA_TOKEN", "")
     
     print(f"🤖 Using Ollama model: {chosen_model} (Tool calling optimized)")
     print(f"🔗 Endpoint: {base_url}")
@@ -379,11 +379,11 @@ def get_chat_ollama(model: Optional[str] = None) -> ChatOllama:
 def test_ollama_connection() -> bool:
     """Test connection to Ollama instance."""
     try:
-        base_url = os.environ.get("OLLAMA_BASE_URL", "http://109.198.107.223:50435")
-        token = os.environ.get("OLLAMA_TOKEN", "a74aa3368d646eb26a2a8470cd8c831774052110f3f8246cc6b208ab9262aaf3")
+        base_url = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+        token = os.environ.get("OLLAMA_TOKEN", "")
         
-        # Use cookie authentication for Caddy proxy
-        cookies = {f"C.25124719_auth_token": token}
+        # Use cookie authentication for Caddy proxy only if token provided
+        cookies = {f"C.25124719_auth_token": token} if token else None
         response = requests.get(f"{base_url}/api/tags", cookies=cookies, timeout=10)
         response.raise_for_status()
         models = response.json().get("models", [])
