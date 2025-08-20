@@ -4,6 +4,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+
 class AgentGraphSettings(BaseSettings):
 	"""Runtime settings for the Agent Graph orchestrator."""
 
@@ -26,6 +27,7 @@ class AgentGraphSettings(BaseSettings):
 	model_config = SettingsConfigDict(
 		case_sensitive=False,
 		env_file=".env",
+		extra='ignore',  # Ignore unrelated env vars (e.g., OLLAMA_*, FIRECRAWL_*)
 	)
 
 
