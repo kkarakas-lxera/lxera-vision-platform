@@ -65,15 +65,12 @@ def store_course_plan(
         plan_id = str(uuid.uuid4())
         
         # Parse JSON strings for validation
-        try:
-            structure_data = json.loads(course_structure) if isinstance(course_structure, str) else course_structure
-            gaps_data = json.loads(prioritized_gaps) if isinstance(prioritized_gaps, str) else prioritized_gaps
-            strategy_data = json.loads(research_strategy) if isinstance(research_strategy, str) else research_strategy
-            path_data = json.loads(learning_path) if isinstance(learning_path, str) else learning_path
-            queries_data = json.loads(research_queries) if isinstance(research_queries, str) else research_queries
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing error in course plan data: {e}")
-            return json.dumps({"error": f"Invalid JSON in course plan data: {e}", "success": False})
+        from ..utils.json_repair_utils import try_parse_json
+        structure_data = try_parse_json(course_structure, default={})
+        gaps_data = try_parse_json(prioritized_gaps, default={})
+        strategy_data = try_parse_json(research_strategy, default={})
+        path_data = try_parse_json(learning_path, default={})
+        queries_data = try_parse_json(research_queries, default={})
         
         # Extract course metadata
         course_title = structure_data.get("course_title", "Personalized Learning Course")

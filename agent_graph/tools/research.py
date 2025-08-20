@@ -462,13 +462,10 @@ def store_research_results(
         research_id = str(uuid.uuid4())
         
         # Parse JSON strings for validation
-        try:
-            findings_data = json.loads(research_findings) if isinstance(research_findings, str) else research_findings
-            library_data = json.loads(content_library) if isinstance(content_library, str) else content_library
-            mappings_data = json.loads(module_mappings) if isinstance(module_mappings, str) else module_mappings
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing error in research data: {e}")
-            return json.dumps({"error": f"Invalid JSON in research data: {e}", "success": False})
+        from ..utils.json_repair_utils import try_parse_json
+        findings_data = try_parse_json(research_findings, default={})
+        library_data = try_parse_json(content_library, default={})
+        mappings_data = try_parse_json(module_mappings, default={})
         
         # Calculate metrics
         topics_count = len(findings_data.get("topics", [])) if isinstance(findings_data, dict) else 0
@@ -524,15 +521,12 @@ def store_research_session(
         session_id = str(uuid.uuid4())
         
         # Parse metadata
-        try:
-            queries_data = json.loads(search_queries) if isinstance(search_queries, str) else search_queries
-            sources_data = json.loads(sources_analyzed) if isinstance(sources_analyzed, str) else sources_analyzed
-            synthesis_data = json.loads(synthesis_sessions) if isinstance(synthesis_sessions, str) else synthesis_sessions
-            calls_data = json.loads(tool_calls) if isinstance(tool_calls, str) else tool_calls
-            metrics_data = json.loads(execution_metrics) if isinstance(execution_metrics, str) else execution_metrics
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing error in session data: {e}")
-            return json.dumps({"error": f"Invalid JSON in session data: {e}", "success": False})
+        from ..utils.json_repair_utils import try_parse_json
+        queries_data = try_parse_json(search_queries, default={})
+        sources_data = try_parse_json(sources_analyzed, default={})
+        synthesis_data = try_parse_json(synthesis_sessions, default={})
+        calls_data = try_parse_json(tool_calls, default={})
+        metrics_data = try_parse_json(execution_metrics, default={})
         
         # Prepare session record
         session_record = {

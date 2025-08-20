@@ -76,7 +76,21 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 		max_turns = 12
 		for _ in range(max_turns):
 			ai_msg = llm.invoke(messages)
-			messages.append(ai_msg)
+			# Strip <think> blocks before adding to history
+			def _strip_think(text: str) -> str:
+				if not isinstance(text, str):
+					return text
+				start = text.find("<think>")
+				end = text.find("</think>")
+				if start != -1 and end != -1 and end + len("</think>") <= len(text):
+					return text[end + len("</think>"):].lstrip()
+				return text
+			from langchain_core.messages import AIMessage as _AI
+			clean_content = _strip_think(getattr(ai_msg, "content", ""))
+			clean_ai = _AI(content=clean_content)
+			if hasattr(ai_msg, "tool_calls") and ai_msg.tool_calls:
+				clean_ai.tool_calls = ai_msg.tool_calls
+			messages.append(clean_ai)
 			if not getattr(ai_msg, "tool_calls", None):
 				break
 			for tc in ai_msg.tool_calls:
@@ -90,6 +104,7 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 					ToolMessage(
 						content=str(tool_output),
 						tool_call_id=tc.get("id") if isinstance(tc, dict) else tc["id"],
+						name=tool_name,
 					)
 				)
 				if tool_name == "store_research_results_tool" and isinstance(tool_output, str):
