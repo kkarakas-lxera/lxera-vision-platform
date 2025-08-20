@@ -1,0 +1,27 @@
+# Minimal requirements for Ollama pipeline deployment
+# Core LangGraph and LangChain
+langchain-core>=0.1.0
+langchain-community>=0.0.20
+langgraph>=0.0.40
+
+# Database
+supabase==2.0.2
+postgrest==0.11.0
+
+# Research tools
+firecrawl-py>=0.0.8
+
+# HTTP and utilities
+requests==2.31.0
+python-dotenv==1.0.0
+pydantic==2.5.0
+
+# Monitoring (Sentry)
+sentry-sdk>=1.0.0
+
+# API server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# JSON handling
+orjson>=3.8.0

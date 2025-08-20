@@ -1,5 +1,21 @@
 from __future__ import annotations
 
+import json
+import logging
+from datetime import datetime
+from typing import Dict, Any, Optional
+
+# Enhanced logging for checkpoint operations
+logger = logging.getLogger('langgraph_checkpointer')
+logger.setLevel(logging.INFO)
+
+# Add checkpoint event logging
+checkpoint_logger = logging.getLogger('checkpoint_events')
+checkpoint_handler = logging.FileHandler('langgraph_checkpoints.log')
+checkpoint_handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+checkpoint_logger.addHandler(checkpoint_handler)
+checkpoint_logger.setLevel(logging.INFO)
+
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional
 import uuid

@@ -1,0 +1,22 @@
+# Core Dependencies for Lxera Content Pipeline
+# Standalone deployment - no private packages
+
+# LangChain Core (for tool decorators and messages)
+langchain-core>=0.1.0
+
+# Supabase Database
+supabase>=2.0.0
+
+# HTTP Requests (for Firecrawl API)
+requests>=2.31.0
+
+# Optional: Monitoring and Observability
+sentry-sdk>=1.40.0
+cryptography>=41.0.0
+
+# Optional: Enhanced JSON handling
+python-dotenv>=1.0.0
+
+# Web Framework (if needed for API)
+fastapi>=0.104.0
+uvicorn>=0.24.0

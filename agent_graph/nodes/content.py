@@ -7,7 +7,7 @@ from ..services.sentry_service import start_span
 
 def _llm():
 	from ..services.ollama_service import get_chat_ollama
-	# Use larger model for content generation
+	# Use qwen3:14b for content generation with tool calling support
 	return get_chat_ollama("qwen3:14b")
 
 
@@ -49,7 +49,7 @@ def content_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Content Generation Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"You are the Content Generation Agent in the LangGraph pipeline powered by Qwen3 14B.\n"
 				"Your mission: Create engaging, practical course content using research findings and course structure.\n"
 				"Available tools: fetch_course_plan_tool, fetch_research_results_tool, create_new_module_content_tool, store_content_section_tool.\n"
 				"Content sections: 'introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'.\n"

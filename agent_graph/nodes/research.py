@@ -45,7 +45,7 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
 		session_id = str(state.get("job_id") or "")
 		messages: list = [
 			SystemMessage(content=(
-				"You are the Research Agent in the LangGraph pipeline powered by Llama 3.3 70B.\n"
+				"You are the Research Agent in the LangGraph pipeline powered by Qwen3 14B.\n"
 				"Your mission: Conduct comprehensive web research to enrich course content with current, authoritative information.\n"
 				"Available tools: fetch_course_plan_tool, firecrawl_search_tool, firecrawl_scrape_tool, "
 				"research_synthesizer_tool, store_research_results_tool, store_research_session_tool.\n\n"

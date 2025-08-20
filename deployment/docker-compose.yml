@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  lxera-pipeline:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Ollama Configuration
+      - OLLAMA_MODEL=qwen3:14b
+      - OLLAMA_BASE_URL=http://109.198.107.223:50435
+      - OLLAMA_TOKEN=${OLLAMA_TOKEN}
+      
+      # Supabase Configuration
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      
+      # Research APIs
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      
+      # Optional Monitoring
+      - LANGSMITH_TRACING=true
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_PROJECT=lxera-content-pipeline
+      
+      # Optional Error Tracking
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=production
+      
+      # Application Configuration
+      - LOG_LEVEL=INFO
+      - DEBUG_MODE=false
+      - ENABLE_TRACING=true
+    
+    volumes:
+      - ./logs:/app/logs
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
