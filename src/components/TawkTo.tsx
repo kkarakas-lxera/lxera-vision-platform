@@ -13,7 +13,7 @@ const TawkTo = () => {
 
   useEffect(() => {
     // List of paths where Tawk.to should NOT appear
-    const excludedPaths = ['/dashboard', '/learner', '/admin', '/login', '/waiting-room'];
+    const excludedPaths = ['/dashboard', '/learner', '/admin', '/login', '/waiting-room', '/waiting-list'];
     
     // Check if current path starts with any excluded path
     const shouldExclude = excludedPaths.some(path => 

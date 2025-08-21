@@ -31,6 +31,10 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UnifiedLogin from "./pages/auth/UnifiedLogin";
 import AuthCallback from "./pages/auth/AuthCallback";
+import { WaitingListRedirect } from "./components/WaitingListRedirect";
+
+// Only run third-party analytics/chat in production
+const IS_PROD = import.meta.env.PROD;
 
 // Lazy load auth pages
 const InvitationSignup = lazy(() => import("./pages/auth/InvitationSignup"));
@@ -40,6 +44,9 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const Solutions = lazy(() => import("./pages/Solutions"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Platform = lazy(() => import("./pages/Platform"));
+
+// Waiting List Landing Page
+const WaitingList = lazy(() => import("./pages/marketing/WaitingList"));
 
 // Lazy load company pages
 const About = lazy(() => import("./pages/company/About"));
@@ -857,60 +864,14 @@ const App = () => {
             <ThemeProvider>
               <AuthProvider>
                   <Routes>
-            {/* Public routes - Pass openDemoModal and openEarlyAccessModal to pages that need them */}
-            <Route path="/" element={<Index openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />} />
-            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/solutions" element={<PageSuspense><Solutions openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform" element={<PageSuspense><Platform openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
-            <Route path="/company/about" element={<PageSuspense><About openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/company/blog" element={<PageSuspense><Blog /></PageSuspense>} />
-            <Route path="/company/careers" element={<PageSuspense><Careers /></PageSuspense>} />
-            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/legal/privacy" element={<PageSuspense><PrivacyPolicy /></PageSuspense>} />
-            <Route path="/legal/terms" element={<PageSuspense><TermsOfService /></PageSuspense>} />
-            <Route path="/legal/cookies" element={<PageSuspense><CookiePolicy /></PageSuspense>} />
-
-            {/* Solution routes */}
-            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-
-            {/* Platform routes */}
-            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/platform/integrations" element={<PageSuspense><Integrations openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-
-            {/* Resource routes */}
-            <Route path="/resources/blog" element={<PageSuspense><ResourcesBlog /></PageSuspense>} />
-            <Route path="/resources/success-stories" element={<PageSuspense><SuccessStories /></PageSuspense>} />
-            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
-
-            {/* Auth routes */}
-            <Route path="/login" element={<UnifiedLogin />} />
-            <Route path="/signup/invitation" element={<PageSuspense><InvitationSignup /></PageSuspense>} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/early-access/set-password" element={<PageSuspense><EarlyAccessSetPassword /></PageSuspense>} />
+            {/* WAITING LIST LANDING PAGE - All public traffic redirected here */}
+            <Route path="/waiting-list" element={<PageSuspense><WaitingList /></PageSuspense>} />
             
-            {/* Onboarding routes */}
-            <Route path="/early-access-onboarding" element={<PageSuspense><EarlyAccessOnboarding /></PageSuspense>} />
-            <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
-            <Route path="/skills-gap-analysis" element={<PageSuspense><SkillsGapAnalysisLanding /></PageSuspense>} />
-            <Route path="/skills-gap-signup" element={<PageSuspense><SkillsGapSignup /></PageSuspense>} />
-            <Route path="/skills-gap-onboarding" element={<PageSuspense><SkillsGapOnboarding /></PageSuspense>} />
+            {/* Essential admin auth routes - kept for backend access */}
+            <Route path="/login" element={<UnifiedLogin />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
-            {/* Protected admin routes */}
+            {/* Protected admin routes - kept for admin access */}
             <Route
               path="/admin/*"
               element={
@@ -986,19 +947,22 @@ const App = () => {
               }
             />
 
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
+            {/* Redirect all other routes to waiting list */}
+            <Route path="/" element={<WaitingListRedirect />} />
+            <Route path="*" element={<WaitingListRedirect />} />
                 </Routes>
-                <TawkTo />
+                  {IS_PROD && <TawkTo />}
             </AuthProvider>
             </ThemeProvider>
           </BrowserRouter>
+          {IS_PROD && (
           <ClarityProvider projectId="sbjtfdiclk">
             <HotjarProvider siteId={6458736}>
               <Analytics />
               <SpeedInsights />
             </HotjarProvider>
           </ClarityProvider>
+          )}
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['@react-pdf/renderer'],
+    include: ['@react-pdf/renderer', 'lenis', 'lenis/react'],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -55,6 +55,12 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     // Force new hash on every build
     rollupOptions: {
+      manualChunks: {
+        react: ['react', 'react-dom', 'react-router-dom'],
+        motion: ['framer-motion'],
+        supabase: ['@supabase/supabase-js'],
+        ui: ['lucide-react']
+      },
       output: {
         // Use content hash for all assets
         assetFileNames: (assetInfo) => {

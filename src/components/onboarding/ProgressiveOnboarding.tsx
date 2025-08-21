@@ -18,6 +18,7 @@ interface ProgressiveOnboardingProps {
     use_case?: string;
   };
   onComplete: () => void;
+  onFieldSave?: (args: { field: string; value: string; allData?: FormData }) => Promise<void>;
 }
 
 interface FormData {
@@ -328,7 +329,7 @@ const HEARD_ABOUT_OPTIONS = [
   },
 ];
 
-export default function ProgressiveOnboarding({ email, leadId, initialData, onComplete }: ProgressiveOnboardingProps) {
+export default function ProgressiveOnboarding({ email, leadId, initialData, onComplete, onFieldSave }: ProgressiveOnboardingProps) {
   // Determine initial step based on pre-filled data
   const getInitialStep = () => {
     // Always start with password for new users
@@ -409,16 +410,25 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
   const saveToDatabase = async (field: string, value: string) => {
     setIsSaving(true);
     try {
-      const { error } = await supabase.functions.invoke('update-profile-progressive', {
-        body: {
-          leadId,
+      // If a custom field-save handler is provided, use it instead of the default Supabase persistence
+      if (onFieldSave) {
+        await onFieldSave({
           field,
           value,
           allData: currentStep === STEPS.length ? formData : undefined,
-        },
-      });
-      
-      if (error) throw error;
+        });
+      } else {
+        const { error } = await supabase.functions.invoke('update-profile-progressive', {
+          body: {
+            leadId,
+            field,
+            value,
+            allData: currentStep === STEPS.length ? formData : undefined,
+          },
+        });
+        
+        if (error) throw error;
+      }
       setLastSaved(new Date());
     } catch (error) {
       console.error('Error saving:', error);
