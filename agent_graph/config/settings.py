@@ -16,6 +16,27 @@ class AgentGraphSettings(BaseSettings):
 	supabase_url: str = Field(default="", description="Supabase project URL")
 	supabase_service_key: str = Field(default="", description="Supabase service role key")
 	
+	# Ollama configuration
+	ollama_token: str = Field(default="", description="Ollama API token")
+	ollama_base_url: str = Field(default="http://127.0.0.1:11434", description="Ollama base URL")
+	ollama_model: str = Field(default="qwen3:14b", description="Ollama model name")
+	ollama_planning_model: str = Field(default="deepseek-r1:8b", description="Ollama planning model")
+	ollama_embedding_model: str = Field(default="nomic-embed-text", description="Ollama embedding model")
+	
+	# Research API keys
+	firecrawl_api_key: str = Field(default="", description="Firecrawl API key")
+	scrape_do_api_key: str = Field(default="", description="Scrape.do API key")
+	tavily_api_key: str = Field(default="", description="Tavily API key")
+	brightdata_api_key: str = Field(default="", description="BrightData API key")
+	
+	# Monitoring and tracing
+	langsmith_api_key: str = Field(default="", description="LangSmith API key")
+	langsmith_tracing: bool = Field(default=False, description="Enable LangSmith tracing")
+	langsmith_project: str = Field(default="", description="LangSmith project name")
+	log_level: str = Field(default="INFO", description="Logging level")
+	debug_mode: bool = Field(default=False, description="Enable debug mode")
+	enable_tracing: bool = Field(default=False, description="Enable tracing")
+	
 	# Legacy environment variables that may still be present  
 	openai_api_key: str = Field(default="", description="Legacy OpenAI API key")
 	vite_supabase_url: str = Field(default="", description="Legacy Vite Supabase URL")

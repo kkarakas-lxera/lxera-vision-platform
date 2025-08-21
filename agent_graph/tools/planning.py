@@ -501,3 +501,4 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
     except Exception as e:
         logger.error(f"❌ Research query generation failed: {e}")
         return json.dumps({"error": str(e), "success": False})
+

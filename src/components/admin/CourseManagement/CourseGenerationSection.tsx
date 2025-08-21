@@ -401,8 +401,8 @@ export const CourseGenerationSection = () => {
           initiated_by: user.id,
           total_employees: selectedEmployeeIds.length,
           employee_ids: selectedEmployeeIds,
-          status: 'queued', // Start as queued, not pending
-          current_phase: 'Waiting in queue',
+          status: 'pending', // Worker will claim from pending status
+          current_phase: 'Waiting for worker',
           progress_percentage: 0,
           successful_courses: 0,
           failed_courses: 0,
