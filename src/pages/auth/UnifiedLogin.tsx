@@ -220,16 +220,12 @@ const UnifiedLogin = () => {
           </div>
           
           <div className="relative z-10 h-full flex flex-col justify-center">
-            <div className="mb-8">
-              <Logo className="flex items-center space-x-3 mb-8" />
-            </div>
-            
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-3xl lg:text-4xl font-bold leading-tight tracking-tight mb-6">
+              <h1 className="text-3xl lg:text-4xl font-bold leading-tight tracking-tight mb-6 text-white">
                 Transform your workforce with AI-powered 
                 <span className="text-future-green"> skills intelligence</span>
               </h1>
@@ -245,6 +241,9 @@ const UnifiedLogin = () => {
         <div className="p-8 lg:p-12 lg:w-1/2 flex flex-col justify-center bg-gradient-to-br from-white to-smart-beige/20">
           <div className="max-w-md w-full mx-auto space-y-6">
             <div className="text-center mb-8">
+              <div className="flex justify-center mb-6">
+                <Logo />
+              </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
                 Welcome back<span className="text-future-green">!</span>
               </h2>
