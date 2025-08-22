@@ -17,13 +17,16 @@ export const WaitingListFAQMobile: React.FC = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  // Exact same form handler from desktop version
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
     
     setIsSubmitting(true);
     try {
+      // TODO: Integrate with Supabase edge function
       await new Promise(resolve => setTimeout(resolve, 1000));
+      // Open onboarding helper dialog
       toast({
         title: "Thanks for your interest in LXERA!",
         description: "You've been added to our early access list.",
@@ -42,33 +45,33 @@ export const WaitingListFAQMobile: React.FC = () => {
   }, [name, email, toast]);
 
   return (
-    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white">
-      <div className="px-4">
+    <section className="py-24 bg-gradient-to-b from-black to-gray-900 text-white">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4 lg:text-5xl text-white">
             {FAQ_CONTENT.title}
           </h2>
-          <p className="text-white text-base leading-relaxed">
+          <p className="text-white max-w-2xl mx-auto text-lg">
             {FAQ_CONTENT.subtitle}
           </p>
         </div>
 
-        {/* Mobile-optimized FAQ Items */}
-        <div className="space-y-4 mb-12">
+        {/* FAQ Items */}
+        <div className="space-y-4">
           {FAQ_CONTENT.faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden"
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-5 text-left flex items-start justify-between hover:bg-gray-700/30 transition-colors duration-200"
+                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-200"
               >
-                <h3 className="text-base font-semibold text-white pr-4 leading-tight">
+                <h3 className="text-lg font-semibold text-white pr-4">
                   {faq.question}
                 </h3>
-                <div className="flex-shrink-0 mt-1">
+                <div className="flex-shrink-0">
                   {openIndex === index ? (
                     <ChevronUp className="w-5 h-5 text-[#7AE5C6]" />
                   ) : (
@@ -78,9 +81,9 @@ export const WaitingListFAQMobile: React.FC = () => {
               </button>
               
               {openIndex === index && (
-                <div className="px-6 pb-5">
-                  <div className="pt-3 border-t border-gray-700/50">
-                    <p className="text-gray-300 leading-relaxed text-sm">
+                <div className="px-8 pb-6">
+                  <div className="pt-4 border-t border-gray-700/50">
+                    <p className="text-gray-300 leading-relaxed">
                       {faq.answer}
                     </p>
                   </div>
@@ -90,61 +93,45 @@ export const WaitingListFAQMobile: React.FC = () => {
           ))}
         </div>
 
-        {/* Mobile CTA section */}
-        <div className="text-center">
-          <p className="text-gray-300 mb-8 text-base leading-relaxed px-2">
+        {/* CTA at bottom with exact same form from desktop */}
+        <div className="text-center mt-16">
+          <p className="text-gray-300 mb-8 text-lg">
             {FAQ_CONTENT.ctaText}
           </p>
           
-          {/* Mobile-optimized form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-base"
-            />
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-base"
-            />
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-12 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md shadow-none border-none"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center gap-2 justify-center">
-                  <ClassicLoader />
-                  Getting access…
-                </span>
-              ) : 'Get Early Access'}
-            </Button>
-          </form>
-
-          {/* Mobile trust indicators */}
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <div className="flex items-center gap-4 text-xs text-gray-400">
-              <span className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                Free 30 days
-              </span>
-              <span className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                No credit card
-              </span>
-              <span className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                Limited spots
-              </span>
+          {/* Exact same form from desktop version - Mobile responsive */}
+          <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <Input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+              />
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+              />
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <ClassicLoader />
+                    Getting access…
+                  </span>
+                ) : 'Get Early Access'}
+              </Button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </section>

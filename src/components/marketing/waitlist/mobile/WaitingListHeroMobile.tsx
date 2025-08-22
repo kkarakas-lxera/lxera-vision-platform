@@ -8,6 +8,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../ui/select';
 import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
+import { WavyBackgroundMobile } from './WavyBackgroundMobile';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { HERO_CONTENT, SOCIAL_PROOF_PEOPLE } from '../shared/content';
 
@@ -50,15 +51,15 @@ export const WaitingListHeroMobile: React.FC = () => {
 
   return (
     <>
-      {/* Mobile-optimized hero section */}
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 font-inter relative overflow-hidden">
-        {/* Mobile background pattern */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#7AE5C6]/20 via-transparent to-[#7AE5C6]/10" />
-          <div className="absolute top-20 left-4 w-32 h-32 bg-[#7AE5C6]/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-40 right-4 w-24 h-24 bg-[#7AE5C6]/15 rounded-full blur-2xl" />
-        </div>
-
+      <WavyBackgroundMobile
+        containerClassName="min-h-screen bg-white overflow-hidden font-inter"
+        colors={["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"]}
+        waveWidth={50}
+        backgroundFill="white"
+        blur={10}
+        speed="slow"
+        waveOpacity={0.3}
+      >
         <div className="relative z-10 px-4 py-6 flex flex-col min-h-screen">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -159,7 +160,7 @@ export const WaitingListHeroMobile: React.FC = () => {
             </svg>
           </div>
         </div>
-      </div>
+      </WavyBackgroundMobile>
 
       {/* Mobile-optimized onboarding dialog */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>

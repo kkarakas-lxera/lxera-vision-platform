@@ -1,38 +1,28 @@
 import React from 'react';
 import { Diamond, TrendingUp, Lightbulb, Target } from 'lucide-react';
+import { GradientCard } from './GradientCard';
+import { DIFFERENTIATORS_CONTENT } from '../shared/content';
 
 const differentiators = [
   {
     icon: Diamond,
     title: 'AI, not generic',
     description: 'We use skills & needs.',
-    gradient: 'from-blue-600 to-purple-600',
-    iconBg: 'bg-blue-500/20',
-    iconColor: 'text-blue-300'
   },
   {
     icon: TrendingUp,
     title: 'Always future-ready',
     description: 'Real-time market data keeps skills relevant.',
-    gradient: 'from-teal-500 to-green-500',
-    iconBg: 'bg-teal-500/20',
-    iconColor: 'text-teal-300'
   },
   {
     icon: Lightbulb,
     title: 'From skills to business solutions',
     description: 'Only platform to turn learning into innovation and impact.',
-    gradient: 'from-orange-500 to-red-500',
-    iconBg: 'bg-orange-500/20',
-    iconColor: 'text-orange-300'
   },
   {
     icon: Target,
     title: 'Clarity at every step',
     description: 'Dashboards show measurable progress you can act on.',
-    gradient: 'from-purple-600 to-pink-600',
-    iconBg: 'bg-purple-500/20',
-    iconColor: 'text-purple-300'
   }
 ];
 
@@ -58,45 +48,14 @@ export const WaitingListDifferentiators: React.FC = () => {
 
         {/* Differentiators Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {differentiators.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={index}
-                className="relative group"
-              >
-                {/* Card with gradient background */}
-                <div className={`relative bg-gradient-to-br ${item.gradient} rounded-3xl p-8 h-full min-h-[300px] flex flex-col justify-between overflow-hidden`}>
-                  {/* Background pattern */}
-                  <div className="absolute inset-0 bg-black/20" />
-                  
-                  {/* Content */}
-                  <div className="relative z-10">
-                    {/* Icon */}
-                    <div className={`w-14 h-14 ${item.iconBg} rounded-2xl flex items-center justify-center mb-6`}>
-                      <IconComponent className={`w-7 h-7 ${item.iconColor}`} />
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-2xl font-bold mb-4 text-white leading-tight">
-                      {item.title}
-                    </h3>
-                  </div>
-
-                  {/* Description at bottom */}
-                  <div className="relative z-10">
-                    <p className="text-white/90 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Decorative elements */}
-                  <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full" />
-                  <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-white/10 rounded-full" />
-                </div>
-              </div>
-            );
-          })}
+          {differentiators.map((item, index) => (
+            <GradientCard
+              key={index}
+              icon={item.icon}
+              title={item.title}
+              description={item.description}
+            />
+          ))}
         </div>
       </div>
     </section>

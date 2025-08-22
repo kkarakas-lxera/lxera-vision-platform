@@ -1,74 +1,93 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
+import BeamsBackgroundMobile from './BeamsBackgroundMobile';
 import { FEATURES_CONTENT } from '../shared/content';
 
 const featureIcons = [Target, Zap, TrendingUp, Users, BarChart3, Brain];
 
-export const WaitingListFeaturesMobile: React.FC = () => {
+const FeatureCardMobile: React.FC<{
+  feature: typeof FEATURES_CONTENT.features[0];
+  icon: React.ComponentType<{ className?: string }>;
+}> = ({ feature, icon: IconComponent }) => {
+  const [isPressed, setIsPressed] = useState(false);
+
   return (
-    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white">
-      {/* Mobile background effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-4 w-32 h-32 bg-[#7AE5C6]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-4 w-28 h-28 bg-[#7AE5C6]/15 rounded-full blur-2xl" />
+    <div
+      className={`bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transition-all duration-200 shadow-lg ${
+        isPressed ? 'scale-98 bg-gray-800/80' : 'scale-100 hover:border-[#7AE5C6]/40'
+      }`}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+    >
+      {/* Icon */}
+      <div className="mb-4">
+        <div className="w-12 h-12 bg-[#7AE5C6]/20 rounded-xl flex items-center justify-center">
+          <IconComponent className="w-6 h-6 text-[#7AE5C6]" />
+        </div>
       </div>
 
-      <div className="relative px-4">
-        {/* Header - mobile optimized */}
+      {/* Content */}
+      <h3 className="text-xl font-semibold mb-3 text-white">
+        {feature.title}
+      </h3>
+      <p className="text-gray-300 mb-4 leading-relaxed text-sm">
+        {feature.description}
+      </p>
+
+      {/* Tags - Mobile optimized */}
+      <div className="flex flex-wrap gap-2">
+        {feature.tags.map((tag, tagIndex) => (
+          <span
+            key={tagIndex}
+            className="px-3 py-1 bg-white/90 text-black text-xs rounded-full border border-black/20 shadow-sm font-medium"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const WaitingListFeaturesMobile: React.FC = () => {
+  return (
+    <section className="relative py-16 text-white">
+      {/* Mobile-optimized background beams effect */}
+      <BeamsBackgroundMobile className="pointer-events-none" intensity="strong" />
+      <div className="relative mx-auto max-w-4xl px-4">
+        {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
             {FEATURES_CONTENT.title}
           </h2>
-          <p className="text-white text-base leading-relaxed px-2">
+          <p className="text-white max-w-2xl mx-auto text-base px-2">
             {FEATURES_CONTENT.subtitle}
           </p>
         </div>
 
-        {/* Features - Mobile-first single column layout */}
-        <div className="space-y-6">
+        {/* Features Grid - Mobile optimized single column */}
+        <div className="grid grid-cols-1 gap-6">
           {FEATURES_CONTENT.features.map((feature, index) => {
             const IconComponent = featureIcons[index];
             return (
-              <div
+              <FeatureCardMobile
                 key={index}
-                className="bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-lg"
-              >
-                {/* Icon and Title Row */}
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-[#7AE5C6]/20 rounded-xl flex items-center justify-center">
-                    <IconComponent className="w-6 h-6 text-[#7AE5C6]" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white mb-2 leading-tight">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-300 leading-relaxed text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Tags - Mobile optimized layout */}
-                <div className="flex flex-wrap gap-2">
-                  {feature.tags.map((tag, tagIndex) => (
-                    <span
-                      key={tagIndex}
-                      className="px-3 py-1.5 bg-white/90 text-black text-xs rounded-full border border-black/20 shadow-sm font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                feature={feature}
+                icon={IconComponent}
+              />
             );
           })}
         </div>
-
-        {/* Mobile CTA section */}
-        <div className="text-center mt-12">
+        
+        {/* Mobile CTA hint */}
+        <div className="text-center mt-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#7AE5C6]/10 border border-[#7AE5C6]/30 px-4 py-2">
+            <div className="w-2 h-2 bg-[#7AE5C6] rounded-full animate-pulse"></div>
             <span className="text-[#7AE5C6] text-sm font-medium">
-              Ready to get started? Scroll down to join the waitlist
+              Ready to get started?
             </span>
           </div>
         </div>
