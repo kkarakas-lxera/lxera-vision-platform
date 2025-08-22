@@ -13,7 +13,7 @@ const features = [
     icon: Zap,
     title: 'Create training fast',
     description: 'Use AI to build training from blueprints in minutes or ask your own content.',
-    tags: ['Knowledge hub integration', 'Industry agnostic']
+    tags: ['Knowledge hub integration', 'Industry agnostic', 'Multimedia support', 'Gamified journeys', 'End-to-end generation']
   },
   {
     icon: TrendingUp,
