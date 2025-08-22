@@ -12,6 +12,44 @@ import ClassicLoader from '../../ui/ClassicLoader';
 
 function FloatingPaths({ position }: { position: number }) {
   const colors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
+  const [isInView, setIsInView] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Optimize: Pause animation when scrolling
+  useEffect(() => {
+    let scrollTimer: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimer);
+    };
+  }, []);
+  
+  // Optimize: Use Intersection Observer to pause when out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, []);
   
   const paths = Array.from({ length: 24 }, (_, i) => ({
     id: i,
@@ -26,12 +64,15 @@ function FloatingPaths({ position }: { position: number }) {
     width: 0.5 + i * 0.03,
   }));
 
+  const shouldAnimate = isInView && !isScrolling;
+
   return (
-    <div className="absolute inset-0 pointer-events-none z-0">
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none z-0">
       <svg
         className="w-full h-full"
         viewBox="0 0 696 316"
         fill="none"
+        style={{ willChange: shouldAnimate ? 'auto' : 'unset' }}
       >
         <title>Background Paths</title>
         {paths.map((path) => (
@@ -42,14 +83,18 @@ function FloatingPaths({ position }: { position: number }) {
             strokeWidth={path.width}
             strokeOpacity={0.2 + (path.id * 0.02)}
             initial={{ pathLength: 0.3, opacity: 0.4 }}
-            animate={{
+            animate={shouldAnimate ? {
               pathLength: 1,
               opacity: [0.2, 0.4, 0.2],
               pathOffset: [0, 1, 0],
+            } : {
+              pathLength: 0.7,
+              opacity: 0.3,
+              pathOffset: 0,
             }}
             transition={{
-              duration: 20 + Math.random() * 10,
-              repeat: Number.POSITIVE_INFINITY,
+              duration: shouldAnimate ? 20 + Math.random() * 10 : 0.3,
+              repeat: shouldAnimate ? Number.POSITIVE_INFINITY : 0,
               ease: "linear",
             }}
           />
