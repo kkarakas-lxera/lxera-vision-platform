@@ -33,6 +33,10 @@ const faqs = [
   {
     question: 'How do you check content quality?',
     answer: 'We have a human verification layer where subject matter experts check content on top of our quality specialist agents.'
+  },
+  {
+    question: 'Are you using ChatGPT?',
+    answer: 'No. We have our own fine-tuned models trained specifically for this purpose. We are using Multi-Agent Orchestration.'
   }
 ];
 
