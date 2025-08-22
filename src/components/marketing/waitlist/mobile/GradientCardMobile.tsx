@@ -14,8 +14,8 @@ export const GradientCardMobile: React.FC<GradientCardMobileProps> = ({ icon: Ic
     <div className="w-full px-2">
       {/* Mobile-optimized card - simple styling matching desktop */}
       <div
-        className={`relative bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 border border-gray-700/50 transition-all duration-200 ${
-          isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100'
+        className={`relative bg-white rounded-2xl p-4 border border-gray-200 transition-all duration-200 shadow-sm ${
+          isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100 hover:border-[#7AE5C6]/40'
         }`}
         onTouchStart={() => setIsPressed(true)}
         onTouchEnd={() => setIsPressed(false)}
@@ -31,10 +31,10 @@ export const GradientCardMobile: React.FC<GradientCardMobileProps> = ({ icon: Ic
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-semibold mb-2 text-white">
+        <h3 className="text-lg font-semibold mb-2 text-black">
           {title}
         </h3>
-        <p className="text-gray-300 leading-relaxed text-sm">
+        <p className="text-gray-700 leading-relaxed text-sm">
           {description}
         </p>
       </div>

@@ -80,11 +80,11 @@ export const WaitingListHeroMobile: React.FC = () => {
                 {HERO_CONTENT.subtitle}
               </p>
               
-              {/* CTA Badge - Mobile optimized */}
+              {/* CTA Badge - Mobile optimized with soft orange */}
               <div className="flex justify-center mb-8 px-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-3 py-2 shadow-sm max-w-full">
-                  <span role="img" aria-label="alarm clock" className="text-orange-500 flex-shrink-0">⏰</span>
-                  <AnimatedShinyText className="text-xs font-inter m-0 text-center leading-tight">
+                <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 border border-orange-200 px-3 py-2 shadow-sm max-w-full">
+                  <span role="img" aria-label="alarm clock" className="text-orange-400 flex-shrink-0">⏰</span>
+                  <AnimatedShinyText className="text-xs font-inter m-0 text-center leading-tight text-orange-600">
                     FREE for 30 days. No credit card.
                   </AnimatedShinyText>
                 </div>
@@ -105,7 +105,7 @@ export const WaitingListHeroMobile: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white"
+                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white text-black"
               />
               <Input
                 type="email"
@@ -113,7 +113,7 @@ export const WaitingListHeroMobile: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white"
+                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white text-black"
               />
               <Button
                 type="submit"

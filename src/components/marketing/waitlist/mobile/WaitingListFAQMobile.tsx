@@ -45,14 +45,14 @@ export const WaitingListFAQMobile: React.FC = () => {
   }, [name, email, toast]);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-black to-gray-900 text-white">
+    <section className="py-24 bg-white text-black">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 lg:text-5xl text-white">
+          <h2 className="text-3xl font-bold mb-4 text-black">
             {FAQ_CONTENT.title}
           </h2>
-          <p className="text-white max-w-2xl mx-auto text-lg">
+          <p className="text-gray-700 max-w-2xl mx-auto text-base">
             {FAQ_CONTENT.subtitle}
           </p>
         </div>
@@ -62,28 +62,28 @@ export const WaitingListFAQMobile: React.FC = () => {
           {FAQ_CONTENT.faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden"
+              className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-200"
+                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
               >
-                <h3 className="text-lg font-semibold text-white pr-4">
+                <h3 className="text-lg font-semibold text-black pr-4">
                   {faq.question}
                 </h3>
                 <div className="flex-shrink-0">
                   {openIndex === index ? (
                     <ChevronUp className="w-5 h-5 text-[#7AE5C6]" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-gray-500" />
                   )}
                 </div>
               </button>
               
               {openIndex === index && (
                 <div className="px-8 pb-6">
-                  <div className="pt-4 border-t border-gray-700/50">
-                    <p className="text-gray-300 leading-relaxed">
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-gray-700 leading-relaxed">
                       {faq.answer}
                     </p>
                   </div>
@@ -95,7 +95,7 @@ export const WaitingListFAQMobile: React.FC = () => {
 
         {/* CTA at bottom with exact same form from desktop */}
         <div className="text-center mt-16">
-          <p className="text-gray-300 mb-8 text-lg">
+          <p className="text-gray-700 mb-8 text-base">
             {FAQ_CONTENT.ctaText}
           </p>
           
@@ -108,7 +108,7 @@ export const WaitingListFAQMobile: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+                className="flex-1 h-12 px-4 border border-gray-300 bg-white text-black placeholder-gray-500 rounded-md text-sm font-inter"
               />
               <Input
                 type="email"
@@ -116,7 +116,7 @@ export const WaitingListFAQMobile: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+                className="flex-1 h-12 px-4 border border-gray-300 bg-white text-black placeholder-gray-500 rounded-md text-sm font-inter"
               />
               <Button
                 type="submit"
