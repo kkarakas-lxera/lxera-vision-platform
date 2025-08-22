@@ -11,7 +11,9 @@ import { Stepper, StepperItem, StepperIndicator, StepperSeparator, StepperTitle 
 import ClassicLoader from '../../ui/ClassicLoader';
 
 function FloatingPaths({ position }: { position: number }) {
-  const paths = Array.from({ length: 36 }, (_, i) => ({
+  const colors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
+  
+  const paths = Array.from({ length: 24 }, (_, i) => ({
     id: i,
     d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
       380 - i * 5 * position
@@ -20,14 +22,14 @@ function FloatingPaths({ position }: { position: number }) {
     } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
       684 - i * 5 * position
     } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-    color: `rgba(15,23,42,${0.1 + i * 0.03})`,
+    color: colors[i % colors.length],
     width: 0.5 + i * 0.03,
   }));
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 pointer-events-none z-0">
       <svg
-        className="w-full h-full text-slate-950 dark:text-white"
+        className="w-full h-full"
         viewBox="0 0 696 316"
         fill="none"
       >
@@ -36,13 +38,13 @@ function FloatingPaths({ position }: { position: number }) {
           <motion.path
             key={path.id}
             d={path.d}
-            stroke="currentColor"
+            stroke={path.color}
             strokeWidth={path.width}
-            strokeOpacity={0.1 + path.id * 0.03}
-            initial={{ pathLength: 0.3, opacity: 0.6 }}
+            strokeOpacity={0.2 + (path.id * 0.02)}
+            initial={{ pathLength: 0.3, opacity: 0.4 }}
             animate={{
               pathLength: 1,
-              opacity: [0.3, 0.6, 0.3],
+              opacity: [0.2, 0.4, 0.2],
               pathOffset: [0, 1, 0],
             }}
             transition={{
@@ -162,7 +164,7 @@ export const WaitingListHero: React.FC = memo(() => {
         <FloatingPaths position={-1} />
       </div>
       
-      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-10 h-full flex flex-col justify-center">
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
             <img
