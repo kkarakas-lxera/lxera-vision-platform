@@ -110,6 +110,8 @@ export const WavyBackground = ({
   ];
   
   const drawWave = (n: number) => {
+    if (!ctx) return;
+    
     if (shouldAnimate) {
       nt += getSpeed();
     }
@@ -130,6 +132,8 @@ export const WavyBackground = ({
   const shouldAnimate = isInView && !isScrolling;
   
   const render = () => {
+    if (!ctx || !canvas) return;
+    
     ctx.fillStyle = backgroundFill || "white";
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
@@ -146,7 +150,7 @@ export const WavyBackground = ({
 
   // Separate effect to control animation based on shouldAnimate
   useEffect(() => {
-    if (shouldAnimate) {
+    if (shouldAnimate && ctx && canvas) {
       render();
     } else {
       cancelAnimationFrame(animationId);
