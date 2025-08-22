@@ -90,12 +90,9 @@ export const WaitingListFAQ: React.FC = () => {
 
         {/* CTA at bottom */}
         <div className="text-center mt-16">
-          <p className="text-gray-400 mb-6">
-            Still have questions? We'd love to help.
+          <p className="text-gray-300 mb-6 text-lg">
+            Join the waitlist and be among the first to experience the future of learning and development.
           </p>
-          <button className="bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-semibold px-8 py-3 rounded-lg transition-colors duration-200">
-            Contact Support
-          </button>
         </div>
       </div>
     </section>
