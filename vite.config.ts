@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
+import { compression } from "vite-plugin-compression2";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -37,6 +38,20 @@ export default defineConfig(({ mode }) => ({
     // Temporarily disabled to test visual artifacts
     // mode === 'development' &&
     // componentTagger(),
+    
+    // Dual compression strategy: Brotli for modern browsers, GZIP for compatibility
+    mode === 'production' && compression({
+      algorithm: 'brotliCompress',
+      exclude: [/\.(br|gz)$/, /\.(png|jpe?g|gif|svg|ico|woff|woff2)$/],
+      threshold: 1400, // Only compress files larger than 1.4KB
+      deleteOriginalAssets: false,
+    }),
+    mode === 'production' && compression({
+      algorithm: 'gzip',
+      exclude: [/\.(br|gz)$/, /\.(png|jpe?g|gif|svg|ico|woff|woff2)$/],
+      threshold: 1400, // Only compress files larger than 1.4KB
+      deleteOriginalAssets: false,
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
