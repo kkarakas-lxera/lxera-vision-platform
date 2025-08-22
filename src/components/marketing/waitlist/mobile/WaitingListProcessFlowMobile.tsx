@@ -32,7 +32,7 @@ const ProcessStepCardMobile: React.FC<{
       {/* Content Card with mobile touch interactions */}
       <div className="flex-1">
         <Card 
-          className={`group border-0 bg-gray-800/60 backdrop-blur-md text-white rounded-xl transition-all duration-200 shadow-lg ${
+          className={`group border-0 bg-gray-800 text-white rounded-xl transition-all duration-200 ${
             isPressed ? 'scale-98' : 'scale-100'
           }`}
           onTouchStart={() => setIsPressed(true)}

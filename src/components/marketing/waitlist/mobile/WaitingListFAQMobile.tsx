@@ -62,11 +62,11 @@ export const WaitingListFAQMobile: React.FC = () => {
           {FAQ_CONTENT.faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden"
+              className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-200"
+                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-700 transition-colors duration-200"
               >
                 <h3 className="text-lg font-semibold text-white pr-4">
                   {faq.question}
@@ -82,7 +82,7 @@ export const WaitingListFAQMobile: React.FC = () => {
               
               {openIndex === index && (
                 <div className="px-8 pb-6">
-                  <div className="pt-4 border-t border-gray-700/50">
+                  <div className="pt-4 border-t border-gray-700">
                     <p className="text-gray-300 leading-relaxed">
                       {faq.answer}
                     </p>
@@ -108,7 +108,7 @@ export const WaitingListFAQMobile: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800 text-white placeholder-gray-400 rounded-md text-sm font-inter"
               />
               <Input
                 type="email"
@@ -116,7 +116,7 @@ export const WaitingListFAQMobile: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
+                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800 text-white placeholder-gray-400 rounded-md text-sm font-inter"
               />
               <Button
                 type="submit"

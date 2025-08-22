@@ -12,8 +12,8 @@ const FeatureCardMobile: React.FC<{
 
   return (
     <div
-      className={`bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transition-all duration-200 shadow-lg ${
-        isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100 hover:border-[#7AE5C6]/40'
+      className={`bg-gray-800 rounded-2xl p-6 border border-gray-700 transition-all duration-200 ${
+        isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100'
       }`}
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}

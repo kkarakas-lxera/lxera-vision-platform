@@ -47,38 +47,35 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
     setIsSubmitting(true);
 
     try {
-      // Create a mailto link to open the user's email client
-      const subject = encodeURIComponent(`Waitlist Registration - ${formData.fullName}`);
-      const body = encodeURIComponent(`Hello LXERA Team,
-
-I would like to join the waitlist for early access to LXERA.
-
-Name: ${formData.fullName}
-Email: ${formData.email}
-
-${formData.interest ? `Interest: ${formData.interest}` : ''}
-
-Please add me to your early access list.
-
-Best regards,
-${formData.fullName}`);
-      
-      const mailtoLink = `mailto:hello@lxera.ai?subject=${subject}&body=${body}`;
-      window.open(mailtoLink, '_blank');
-      
-      // Simulate a brief delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsSubmitted(true);
-      toast({
-        title: "Welcome to the Waitlist!",
-        description: "Your email client should open with a pre-filled message to join our waitlist.",
+      const response = await fetch('/api/functions/v1/waitlist-subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          interest: formData.interest,
+          source: 'simple-modal'
+        }),
       });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSubmitted(true);
+        toast({
+          title: "Welcome to the Waitlist!",
+          description: "We'll notify you as soon as early access is available.",
+        });
+      } else {
+        throw new Error(data.error || 'Failed to join waitlist');
+      }
     } catch (error) {
       console.error('Waitlist submission failed:', error);
       toast({
-        title: "Unable to Open Email",
-        description: "Please contact us directly at hello@lxera.ai to join the waitlist.",
+        title: "Something went wrong",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -113,7 +110,7 @@ ${formData.fullName}`);
                 You're on the waitlist!
               </h3>
               <p className="text-business-black/70">
-                Be among the first to experience the future of learning. We'll notify you when LXERA is ready.
+                We'll notify you as soon as early access is available.
               </p>
             </div>
             <Button

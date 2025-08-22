@@ -178,18 +178,20 @@
   }
 }
 
-/* Version: 1.3.1 - FORCE CACHE CLEAR: Mobile demo modal stacking fix - 2025-07-10 22:55 */
-/* TIMESTAMP: 1736542500000 */
+/* Version: 1.4.0 - FORCE CACHE CLEAR: Mobile simplified components deployment - 2025-01-22 */
+/* TIMESTAMP: 1737577200000 */
 
 /* Cache busting rule to force new hash generation */
-.cache-bust-v131-force-clear {
+.cache-bust-v140-force-clear {
   display: none !important;
-  content: "FORCE CACHE CLEAR: Mobile demo modal stacking fix - timestamp-1736542500000";
+  content: "FORCE CACHE CLEAR: Mobile simplified components deployment - timestamp-1737577200000";
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  --force-rebuild: "v131-timestamp-1736542500000";
-  --build-id: "build-2025-07-10-22-55";
+  --force-rebuild: "v140-timestamp-1737577200000";
+  --build-id: "build-2025-01-22-simplified";
+  --mobile-components: "simplified-no-blur-effects";
+  --backgrounds: "white-dark-gradient-teal";
 }
 
 /* Fix for demo form positioning */

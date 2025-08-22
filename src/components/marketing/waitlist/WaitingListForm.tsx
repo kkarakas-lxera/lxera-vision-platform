@@ -41,18 +41,32 @@ export const WaitingListForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Integrate with Supabase edge function
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      setIsSubmitted(true);
-      toast({
-        title: "Welcome to the waiting list!",
-        description: "We'll notify you as soon as early access is available.",
+      const response = await fetch('/api/functions/v1/waitlist-subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: 'detailed-form'
+        }),
       });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSubmitted(true);
+        toast({
+          title: "Welcome to the waiting list!",
+          description: "We'll notify you as soon as early access is available.",
+        });
+      } else {
+        throw new Error(data.error || 'Failed to join waitlist');
+      }
     } catch (error) {
       toast({
         title: "Something went wrong",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -72,9 +86,6 @@ export const WaitingListForm: React.FC = () => {
                 <p className="text-green-700 mb-6">
                   Thank you for joining our waiting list. We'll send you updates about early access and launch news.
                 </p>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Position: #2,501 in queue
-                </Badge>
               </div>
             </CardContent>
           </Card>
