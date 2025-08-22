@@ -45,7 +45,7 @@ export const WaitingListFAQMobile: React.FC = () => {
   }, [name, email, toast]);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-black to-gray-900 text-white">
+    <section className="py-24 text-white" style={{ background: 'linear-gradient(to bottom, rgb(0 0 0), rgb(17 24 39))' }}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">

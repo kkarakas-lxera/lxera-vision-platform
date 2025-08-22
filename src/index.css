@@ -82,6 +82,31 @@
   }
 }
 
+/* Mobile waiting list page overrides */
+@layer base {
+  /* Override beige background for mobile waiting list sections */
+  @media (max-width: 768px) {
+    /* Target waiting list mobile sections specifically */
+    body:has([class*="WaitingListFeaturesMobile"]),
+    body:has([class*="WaitingListProcessFlowMobile"]),
+    body:has([class*="WaitingListDifferentiatorsMobile"]),
+    body:has([class*="WaitingListFAQMobile"]) {
+      background-color: transparent !important;
+    }
+    
+    /* Force dark sections to override beige */
+    section[class*="gradient-to-b"][class*="gray-900"],
+    section[class*="gradient-to-b"][class*="black"] {
+      background: linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0)) !important;
+    }
+    
+    /* Force white sections */
+    section[class*="bg-white"] {
+      background-color: rgb(255 255 255) !important;
+    }
+  }
+}
+
 /* Critical mobile fixes that must override Tailwind */
 @layer base {
   /* Fix mobile viewport and scrolling issues */

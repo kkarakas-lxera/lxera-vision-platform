@@ -62,7 +62,7 @@ const ProcessStepCardMobile: React.FC<{
 
 export const WaitingListProcessFlowMobile: React.FC = () => {
   return (
-    <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
+    <section className="relative py-16 text-white overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
       <div className="relative z-10 mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">

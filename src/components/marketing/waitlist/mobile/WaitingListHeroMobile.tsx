@@ -50,7 +50,7 @@ export const WaitingListHeroMobile: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-white overflow-hidden font-inter">
+      <div className="min-h-screen overflow-hidden font-inter" style={{ backgroundColor: 'rgb(255 255 255)' }}>
         <div className="relative z-10 px-4 py-6 flex flex-col min-h-screen">
           {/* Logo */}
           <div className="flex justify-center mb-8">

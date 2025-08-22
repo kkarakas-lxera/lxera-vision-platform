@@ -28,7 +28,7 @@ const differentiators = [
 
 export const WaitingListDifferentiatorsMobile: React.FC = () => {
   return (
-    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white relative overflow-hidden">      
+    <section className="py-16 text-white relative overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(0 0 0), rgb(17 24 39))' }}>      
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Heading - Mobile optimized */}
         <div className="text-center mb-12">

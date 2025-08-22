@@ -53,7 +53,7 @@ const FeatureCardMobile: React.FC<{
 
 export const WaitingListFeaturesMobile: React.FC = () => {
   return (
-    <section className="relative py-16 text-white bg-gradient-to-b from-gray-900 to-black">
+    <section className="relative py-16 text-white" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
