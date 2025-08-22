@@ -253,8 +253,8 @@ export const WaitingListHero: React.FC = memo(() => {
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 w-full h-full bg-black/50" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg mx-auto px-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl px-6 py-7">
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl mx-auto px-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl px-8 py-8">
               {!showOnboarding ? (
                 <>
                   <div className="flex items-center justify-center w-14 h-14 mx-auto bg-[#7AE5C6]/20 rounded-full">
