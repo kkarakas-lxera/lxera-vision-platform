@@ -47,11 +47,11 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
         ref={cardRef}
         className="relative rounded-[32px] overflow-hidden"
         style={{
-          width: "360px",
-          height: "450px",
+          width: "220px",
+          height: "280px",
           transformStyle: "preserve-3d",
           backgroundColor: "#0e131f",
-          boxShadow: "0 -10px 100px 10px rgba(78, 99, 255, 0.25), 0 0 10px 0 rgba(0, 0, 0, 0.5)",
+          boxShadow: "0 -10px 60px 6px rgba(122, 229, 198, 0.25), 0 0 8px 0 rgba(0, 0, 0, 0.5)",
         }}
         initial={{ y: 0 }}
         animate={{
@@ -122,15 +122,15 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
         />
 
-        {/* Purple/blue glow effect matching the image */}
+        {/* Teal green glow effect */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-2/3 z-20"
           style={{
             background: `
-              radial-gradient(ellipse at bottom right, rgba(172, 92, 255, 0.7) -10%, rgba(79, 70, 229, 0) 70%),
-              radial-gradient(ellipse at bottom left, rgba(56, 189, 248, 0.7) -10%, rgba(79, 70, 229, 0) 70%)
+              radial-gradient(ellipse at bottom right, rgba(122, 229, 198, 0.7) -10%, rgba(46, 167, 132, 0) 70%),
+              radial-gradient(ellipse at bottom left, rgba(94, 219, 186, 0.7) -10%, rgba(46, 167, 132, 0) 70%)
             `,
-            filter: "blur(40px)",
+            filter: "blur(30px)",
           }}
           animate={{
             opacity: isHovered ? 0.9 : 0.8,
@@ -143,14 +143,14 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
         />
 
-        {/* Central purple glow as seen in the image */}
+        {/* Central teal glow */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-2/3 z-21"
           style={{
             background: `
-              radial-gradient(circle at bottom center, rgba(161, 58, 229, 0.7) -20%, rgba(79, 70, 229, 0) 60%)
+              radial-gradient(circle at bottom center, rgba(122, 229, 198, 0.7) -20%, rgba(46, 167, 132, 0) 60%)
             `,
-            filter: "blur(45px)",
+            filter: "blur(35px)",
           }}
           animate={{
             opacity: isHovered ? 0.85 : 0.75,
@@ -171,8 +171,8 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
           animate={{
             boxShadow: isHovered
-              ? "0 0 20px 4px rgba(172, 92, 255, 0.9), 0 0 30px 6px rgba(138, 58, 185, 0.7), 0 0 40px 8px rgba(56, 189, 248, 0.5)"
-              : "0 0 15px 3px rgba(172, 92, 255, 0.8), 0 0 25px 5px rgba(138, 58, 185, 0.6), 0 0 35px 7px rgba(56, 189, 248, 0.4)",
+              ? "0 0 20px 4px rgba(122, 229, 198, 0.9), 0 0 30px 6px rgba(78, 202, 168, 0.7), 0 0 40px 8px rgba(94, 219, 186, 0.5)"
+              : "0 0 15px 3px rgba(122, 229, 198, 0.8), 0 0 25px 5px rgba(78, 202, 168, 0.6), 0 0 35px 7px rgba(94, 219, 186, 0.4)",
             opacity: isHovered ? 1 : 0.9,
             z: 0.5
           }}
@@ -188,8 +188,8 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
           animate={{
             boxShadow: isHovered
-              ? "0 0 20px 4px rgba(172, 92, 255, 0.9), 0 0 30px 6px rgba(138, 58, 185, 0.7), 0 0 40px 8px rgba(56, 189, 248, 0.5)"
-              : "0 0 15px 3px rgba(172, 92, 255, 0.8), 0 0 25px 5px rgba(138, 58, 185, 0.6), 0 0 35px 7px rgba(56, 189, 248, 0.4)",
+              ? "0 0 20px 4px rgba(122, 229, 198, 0.9), 0 0 30px 6px rgba(78, 202, 168, 0.7), 0 0 40px 8px rgba(94, 219, 186, 0.5)"
+              : "0 0 15px 3px rgba(122, 229, 198, 0.8), 0 0 25px 5px rgba(78, 202, 168, 0.6), 0 0 35px 7px rgba(94, 219, 186, 0.4)",
             opacity: isHovered ? 1 : 0.9,
             z: 0.5
           }}
@@ -205,8 +205,8 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
           animate={{
             boxShadow: isHovered
-              ? "0 0 20px 4px rgba(172, 92, 255, 0.9), 0 0 30px 6px rgba(138, 58, 185, 0.7), 0 0 40px 8px rgba(56, 189, 248, 0.5)"
-              : "0 0 15px 3px rgba(172, 92, 255, 0.8), 0 0 25px 5px rgba(138, 58, 185, 0.6), 0 0 35px 7px rgba(56, 189, 248, 0.4)",
+              ? "0 0 20px 4px rgba(122, 229, 198, 0.9), 0 0 30px 6px rgba(78, 202, 168, 0.7), 0 0 40px 8px rgba(94, 219, 186, 0.5)"
+              : "0 0 15px 3px rgba(122, 229, 198, 0.8), 0 0 25px 5px rgba(78, 202, 168, 0.6), 0 0 35px 7px rgba(94, 219, 186, 0.4)",
             opacity: isHovered ? 1 : 0.9,
             z: 0.5
           }}
@@ -222,8 +222,8 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
           animate={{
             boxShadow: isHovered
-              ? "0 0 20px 4px rgba(172, 92, 255, 0.9), 0 0 30px 6px rgba(138, 58, 185, 0.7), 0 0 40px 8px rgba(56, 189, 248, 0.5)"
-              : "0 0 15px 3px rgba(172, 92, 255, 0.8), 0 0 25px 5px rgba(138, 58, 185, 0.6), 0 0 35px 7px rgba(56, 189, 248, 0.4)",
+              ? "0 0 20px 4px rgba(122, 229, 198, 0.9), 0 0 30px 6px rgba(78, 202, 168, 0.7), 0 0 40px 8px rgba(94, 219, 186, 0.5)"
+              : "0 0 15px 3px rgba(122, 229, 198, 0.8), 0 0 25px 5px rgba(78, 202, 168, 0.6), 0 0 35px 7px rgba(94, 219, 186, 0.4)",
             opacity: isHovered ? 1 : 0.9,
             z: 0.5
           }}
@@ -239,8 +239,8 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
           animate={{
             boxShadow: isHovered
-              ? "0 0 20px 4px rgba(172, 92, 255, 0.9), 0 0 30px 6px rgba(138, 58, 185, 0.7), 0 0 40px 8px rgba(56, 189, 248, 0.5)"
-              : "0 0 15px 3px rgba(172, 92, 255, 0.8), 0 0 25px 5px rgba(138, 58, 185, 0.6), 0 0 35px 7px rgba(56, 189, 248, 0.4)",
+              ? "0 0 20px 4px rgba(122, 229, 198, 0.9), 0 0 30px 6px rgba(78, 202, 168, 0.7), 0 0 40px 8px rgba(94, 219, 186, 0.5)"
+              : "0 0 15px 3px rgba(122, 229, 198, 0.8), 0 0 25px 5px rgba(78, 202, 168, 0.6), 0 0 35px 7px rgba(94, 219, 186, 0.4)",
             opacity: isHovered ? 1 : 0.9,
             z: 0.5
           }}
@@ -252,14 +252,14 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
 
         {/* Card content */}
         <motion.div
-          className="relative flex flex-col h-full p-8 z-40"
+          className="relative flex flex-col h-full p-6 z-40"
           animate={{
             z: 2
           }}
         >
           {/* Icon circle with shadow - making it dark like in the image */}
           <motion.div
-            className="w-12 h-12 rounded-full flex items-center justify-center mb-6"
+            className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
             style={{
               background: "linear-gradient(225deg, #171c2c 0%, #121624 100%)",
               position: "relative",
@@ -304,7 +304,7 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
 
             {/* Icon */}
             <div className="flex items-center justify-center w-full h-full relative z-10">
-              <IconComponent className="w-5 h-5 text-white" />
+              <IconComponent className="w-4 h-4 text-white" />
             </div>
           </motion.div>
 
@@ -322,7 +322,7 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
             }}
           >
             <motion.h3
-              className="text-2xl font-medium text-white mb-3"
+              className="text-lg font-medium text-white mb-2"
               style={{
                 letterSpacing: "-0.01em",
                 lineHeight: 1.2,
@@ -339,7 +339,7 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
             </motion.h3>
 
             <motion.p
-              className="text-sm mb-6 text-gray-300"
+              className="text-sm mb-3 text-gray-300"
               style={{
                 lineHeight: 1.5,
                 fontWeight: 350,
@@ -354,46 +354,6 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
             >
               {description}
             </motion.p>
-
-            {/* Learn More with arrow - matching the image */}
-            <motion.a
-              href="#"
-              className="inline-flex items-center text-white text-sm font-medium group"
-              initial={{ filter: "blur(3px)", opacity: 0.7 }}
-              animate={{
-                filter: "blur(0px)",
-                opacity: 0.9,
-                transition: { duration: 1.2, delay: 0.6 }
-              }}
-              whileHover={{
-                filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))"
-              }}
-            >
-              Learn More
-              <motion.svg
-                className="ml-1 w-4 h-4"
-                width="8"
-                height="8"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                animate={{
-                  x: isHovered ? 4 : 0
-                }}
-                transition={{
-                  duration: 0.6,
-                  ease: "easeOut"
-                }}
-              >
-                <path
-                  d="M1 8H15M15 8L8 1M15 8L8 15"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </motion.svg>
-            </motion.a>
           </motion.div>
         </motion.div>
       </motion.div>

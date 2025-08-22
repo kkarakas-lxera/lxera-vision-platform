@@ -8,7 +8,6 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../ui/select';
 import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
-import { WavyBackgroundMobile } from './WavyBackgroundMobile';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { HERO_CONTENT, SOCIAL_PROOF_PEOPLE } from '../shared/content';
 
@@ -51,15 +50,7 @@ export const WaitingListHeroMobile: React.FC = () => {
 
   return (
     <>
-      <WavyBackgroundMobile
-        containerClassName="min-h-screen bg-white overflow-hidden font-inter"
-        colors={["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"]}
-        waveWidth={50}
-        backgroundFill="white"
-        blur={10}
-        speed="slow"
-        waveOpacity={0.3}
-      >
+      <div className="min-h-screen bg-white overflow-hidden font-inter">
         <div className="relative z-10 px-4 py-6 flex flex-col min-h-screen">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -89,12 +80,12 @@ export const WaitingListHeroMobile: React.FC = () => {
                 {HERO_CONTENT.subtitle}
               </p>
               
-              {/* CTA Badge */}
-              <div className="flex justify-center mb-8">
-                <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
-                  <span role="img" aria-label="alarm clock" className="text-orange-500">⏰</span>
-                  <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap">
-                    {HERO_CONTENT.ctaBadge}
+              {/* CTA Badge - Mobile optimized */}
+              <div className="flex justify-center mb-8 px-4">
+                <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-3 py-2 shadow-sm max-w-full">
+                  <span role="img" aria-label="alarm clock" className="text-orange-500 flex-shrink-0">⏰</span>
+                  <AnimatedShinyText className="text-xs font-inter m-0 text-center leading-tight">
+                    FREE for 30 days. No credit card.
                   </AnimatedShinyText>
                 </div>
               </div>
@@ -160,7 +151,7 @@ export const WaitingListHeroMobile: React.FC = () => {
             </svg>
           </div>
         </div>
-      </WavyBackgroundMobile>
+      </div>
 
       {/* Mobile-optimized onboarding dialog */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>

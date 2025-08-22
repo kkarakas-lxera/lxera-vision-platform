@@ -28,20 +28,11 @@ const differentiators = [
 
 export const WaitingListDifferentiatorsMobile: React.FC = () => {
   return (
-    <section className="py-24 bg-gradient-to-b from-black to-gray-900 text-white relative overflow-hidden">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#7AE5C6]/10 via-transparent to-[#7AE5C6]/5" />
-        {/* Teal glow extender to highlight cards and reach bottom */}
-        <div aria-hidden className="absolute inset-x-0 top-0 bottom-0 pointer-events-none flex items-center justify-center">
-          <div className="h-[120%] w-[80rem] max-w-[110vw] translate-y-10 lg:translate-y-24 bg-[#7AE5C6]/22 opacity-70 blur-[120px] rounded-[9999px] [mask-image:radial-gradient(ellipse_75%_60%_at_50%_55%,white_70%,transparent_100%)]" />
-        </div>
-      </div>
-      
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Heading */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold lg:text-5xl text-white">
+    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white relative overflow-hidden">      
+      <div className="relative mx-auto max-w-4xl px-4">
+        {/* Heading - Mobile optimized */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white leading-tight">
             {DIFFERENTIATORS_CONTENT.title}
           </h2>
         </div>

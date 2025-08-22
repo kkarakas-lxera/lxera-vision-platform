@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
-import BeamsBackgroundMobile from './BeamsBackgroundMobile';
 import { FEATURES_CONTENT } from '../shared/content';
 
 const featureIcons = [Target, Zap, TrendingUp, Users, BarChart3, Brain];
@@ -54,9 +53,7 @@ const FeatureCardMobile: React.FC<{
 
 export const WaitingListFeaturesMobile: React.FC = () => {
   return (
-    <section className="relative py-16 text-white">
-      {/* Mobile-optimized background beams effect */}
-      <BeamsBackgroundMobile className="pointer-events-none" intensity="strong" />
+    <section className="relative py-16 text-white bg-black">
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../../../ui/card';
-import WhatsNextBackgroundMobile from './WhatsNextBackgroundMobile';
 import { PROCESS_FLOW_CONTENT } from '../shared/content';
 
 const stepIcons = [ArrowRight, Unlock, Wrench, Users];
@@ -64,7 +63,6 @@ const ProcessStepCardMobile: React.FC<{
 export const WaitingListProcessFlowMobile: React.FC = () => {
   return (
     <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
-      <WhatsNextBackgroundMobile />
       <div className="relative z-10 mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
