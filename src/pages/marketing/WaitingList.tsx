@@ -1,39 +1,59 @@
 import React, { lazy, Suspense } from 'react';
 import { MapPin, Linkedin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
-import { WaitingListHero } from '../../components/marketing/waitlist';
+import { useDeviceType } from '../../components/marketing/waitlist/shared/useDeviceType';
 
-// Lazy load non-critical components for better performance
-const WaitingListFeatures = lazy(() => import('../../components/marketing/waitlist/WaitingListFeatures').then(module => ({ default: module.WaitingListFeatures })));
-const WaitingListDifferentiators = lazy(() => import('../../components/marketing/waitlist/WaitingListDifferentiators').then(module => ({ default: module.WaitingListDifferentiators })));
-const WaitingListProcessFlow = lazy(() => import('../../components/marketing/waitlist/WaitingListProcessFlow').then(module => ({ default: module.WaitingListProcessFlow })));
-const WaitingListFAQ = lazy(() => import('../../components/marketing/waitlist/WaitingListFAQ').then(module => ({ default: module.WaitingListFAQ })));
+// Desktop components (lazy loaded)
+const WaitingListHero = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListHero })));
+const WaitingListFeatures = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListFeatures })));
+const WaitingListDifferentiators = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListDifferentiators })));
+const WaitingListProcessFlow = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListProcessFlow })));
+const WaitingListFAQ = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListFAQ })));
+
+// Mobile components (lazy loaded)
+const WaitingListHeroMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListHeroMobile })));
+const WaitingListFeaturesMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListFeaturesMobile })));
+const WaitingListDifferentiatorsMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListDifferentiatorsMobile })));
+const WaitingListProcessFlowMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListProcessFlowMobile })));
+const WaitingListFAQMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListFAQMobile })));
 
 const WaitingList: React.FC = () => {
+  const deviceType = useDeviceType();
+  const isMobile = deviceType === 'mobile';
+  
+  // Loading fallback component
+  const LoadingFallback = ({ height = "h-96" }: { height?: string }) => (
+    <div className={`${height} flex items-center justify-center`}>
+      <div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with integrated form */}
-      <WaitingListHero />
-      
-      {/* Lazy loaded sections with loading fallbacks */}
-      <Suspense fallback={<div className="h-96 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
-        {/* What You Can Do - Features Grid */}
-        <WaitingListFeatures />
+      {/* Conditional rendering based on device type */}
+      <Suspense fallback={<LoadingFallback height="h-screen" />}>
+        {/* Hero Section */}
+        {isMobile ? <WaitingListHeroMobile /> : <WaitingListHero />}
       </Suspense>
       
-      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
-        {/* What's Next - Process Flow */}
-        <WaitingListProcessFlow />
+      <Suspense fallback={<LoadingFallback />}>
+        {/* Features Section */}
+        {isMobile ? <WaitingListFeaturesMobile /> : <WaitingListFeatures />}
       </Suspense>
       
-      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
-        {/* Why LXERA Is Different */}
-        <WaitingListDifferentiators />
+      <Suspense fallback={<LoadingFallback height="h-64" />}>
+        {/* Process Flow Section */}
+        {isMobile ? <WaitingListProcessFlowMobile /> : <WaitingListProcessFlow />}
       </Suspense>
       
-      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
+      <Suspense fallback={<LoadingFallback height="h-64" />}>
+        {/* Differentiators Section */}
+        {isMobile ? <WaitingListDifferentiatorsMobile /> : <WaitingListDifferentiators />}
+      </Suspense>
+      
+      <Suspense fallback={<LoadingFallback height="h-64" />}>
         {/* FAQ Section */}
-        <WaitingListFAQ />
+        {isMobile ? <WaitingListFAQMobile /> : <WaitingListFAQ />}
       </Suspense>
 
       <UIFooter

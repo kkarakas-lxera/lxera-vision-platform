@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '../../ui/button';
-import { AnimatedShinyText } from '../../ui/AnimatedShinyText';
-import { Input } from '../../ui/input';
-import { useToast } from '../../ui/use-toast';
+import { Button } from '../../../ui/button';
+import { AnimatedShinyText } from '../../../ui/AnimatedShinyText';
+import { Input } from '../../../ui/input';
+import { useToast } from '../../../ui/use-toast';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
-import { Checkbox } from '../../ui/checkbox';
-import ClassicLoader from '../../ui/ClassicLoader';
-import { WavyBackground } from '../../ui/wavy-background';
-import { AnimatedTooltip } from '../../ui/animated-tooltip';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../ui/select';
+import { Checkbox } from '../../../ui/checkbox';
+import ClassicLoader from '../../../ui/ClassicLoader';
+import { WavyBackground } from '../../../ui/wavy-background';
+import { AnimatedTooltip } from '../../../ui/animated-tooltip';
+import { HERO_CONTENT } from '../shared/content';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -190,7 +191,7 @@ export const WaitingListHero: React.FC = memo(() => {
           <div className="flex justify-center mb-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
               <span role="img" aria-label="alarm clock" className="text-orange-500">⏰</span>
-              <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap">
+              <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap text-business-black">
                 Full access FREE for 30 days. No credit card. Limited spots available.
               </AnimatedShinyText>
             </div>
@@ -201,7 +202,7 @@ export const WaitingListHero: React.FC = memo(() => {
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Input
                 type="text"
-                placeholder="Name Surname"
+                placeholder={HERO_CONTENT.formPlaceholders.name}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required

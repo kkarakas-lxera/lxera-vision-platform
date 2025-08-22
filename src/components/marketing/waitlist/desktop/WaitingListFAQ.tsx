@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { useToast } from '../../ui/use-toast';
-import ClassicLoader from '../../ui/ClassicLoader';
+import { Button } from '../../../ui/button';
+import { Input } from '../../../ui/input';
+import { useToast } from '../../../ui/use-toast';
+import ClassicLoader from '../../../ui/ClassicLoader';
+import { HERO_CONTENT } from '../shared/content';
 
 const faqs = [
   {
@@ -139,7 +140,7 @@ export const WaitingListFAQ: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Input
                 type="text"
-                placeholder="Name Surname"
+                placeholder={HERO_CONTENT.formPlaceholders.name}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required

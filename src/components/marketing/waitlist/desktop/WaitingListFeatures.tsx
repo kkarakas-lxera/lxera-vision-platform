@@ -1,5 +1,5 @@
 import React from 'react';
-import BeamsBackground from './BeamsBackground';
+import BeamsBackground from '../BeamsBackground';
 import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
 
 const features = [

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '../../ui/card';
-import WhatsNextBackground from './WhatsNextBackground';
+import { Card, CardContent, CardHeader } from '../../../ui/card';
+import WhatsNextBackground from '../WhatsNextBackground';
 
 const steps = [
   {
