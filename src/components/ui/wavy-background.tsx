@@ -27,6 +27,10 @@ export const WavyBackground = ({
   [key: string]: any;
 }) => {
   const noise = createNoise3D();
+  const [isInView, setIsInView] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   let w: number,
     h: number,
     nt: number,
@@ -35,6 +39,42 @@ export const WavyBackground = ({
     ctx: any,
     canvas: any;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Optimize: Pause animation when scrolling
+  useEffect(() => {
+    let scrollTimer: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimer);
+    };
+  }, []);
+  
+  // Optimize: Use Intersection Observer to pause when out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, []);
+
   const getSpeed = () => {
     switch (speed) {
       case "slow":
@@ -62,12 +102,13 @@ export const WavyBackground = ({
   };
 
   const waveColors = colors ?? [
-    "#38bdf8",
-    "#818cf8",
-    "#c084fc",
-    "#e879f9",
-    "#22d3ee",
+    "#7AE5C6",
+    "#5EDBBA", 
+    "#4ECAA8",
+    "#3EB896",
+    "#2EA784",
   ];
+  
   const drawWave = (n: number) => {
     nt += getSpeed();
     for (i = 0; i < n; i++) {
@@ -84,8 +125,12 @@ export const WavyBackground = ({
   };
 
   let animationId: number;
+  const shouldAnimate = isInView && !isScrolling;
+  
   const render = () => {
-    ctx.fillStyle = backgroundFill || "black";
+    if (!shouldAnimate) return;
+    
+    ctx.fillStyle = backgroundFill || "white";
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);
@@ -93,11 +138,15 @@ export const WavyBackground = ({
   };
 
   useEffect(() => {
-    init();
+    if (shouldAnimate) {
+      init();
+    } else {
+      cancelAnimationFrame(animationId);
+    }
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [shouldAnimate]);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -111,6 +160,7 @@ export const WavyBackground = ({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative w-full h-screen",
         containerClassName
@@ -122,6 +172,7 @@ export const WavyBackground = ({
         id="canvas"
         style={{
           ...(isSafari ? { filter: `blur(${blur}px)` } : {}),
+          willChange: shouldAnimate ? 'transform' : 'unset'
         }}
       ></canvas>
       <div className={cn("relative z-10 w-full h-full", className)} {...props}>

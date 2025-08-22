@@ -8,7 +8,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
 import { Checkbox } from '../../ui/checkbox';
 import ClassicLoader from '../../ui/ClassicLoader';
-import { AuroraBackground } from '../../ui/aurora-background';
+import { WavyBackground } from '../../ui/wavy-background';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -109,7 +109,15 @@ export const WaitingListHero: React.FC = memo(() => {
 
   return (
     <>
-    <AuroraBackground className="font-inter">
+    <WavyBackground
+      containerClassName="min-h-screen bg-white overflow-hidden font-inter"
+      colors={["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"]}
+      waveWidth={30}
+      backgroundFill="white"
+      blur={15}
+      speed="slow"
+      waveOpacity={0.3}
+    >
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
@@ -146,7 +154,7 @@ export const WaitingListHero: React.FC = memo(() => {
           </p>
           
           <div className="flex justify-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#7AE5C6]/15 border border-[#7AE5C6]/30 px-4 py-2 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
               <span role="img" aria-label="fire" className="text-orange-500">🔥</span>
               <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap">
                 Full access FREE for 30 days. No credit card. Limited spots available.
@@ -220,7 +228,7 @@ export const WaitingListHero: React.FC = memo(() => {
           </div>
         </motion.div>
         </div>
-    </AuroraBackground>
+    </WavyBackground>
 
       {/* Onboarding helper dialog using Radix (brand-styled) */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
