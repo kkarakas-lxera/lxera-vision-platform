@@ -7,7 +7,7 @@ const features = [
     icon: Target,
     title: 'Spot skill gaps',
     description: 'See exactly which skills your employees need most.',
-    tags: ['Market benchmark', 'Internal workforce', 'Skills inventory']
+    tags: ['Market data comparison', 'Internal workforce analysis', 'Skills inventory', 'Multi-layered view', 'Customized skills verification']
   },
   {
     icon: Zap,
@@ -25,13 +25,13 @@ const features = [
     icon: Users,
     title: 'Role-based training',
     description: 'Give each role the learning it actually needs.',
-    tags: ['Multiple verticals', 'Fully personalized']
+    tags: ['Multiple verticals', 'Fully personalized', 'Focus on your skills', 'AI-assisted position management']
   },
   {
     icon: BarChart3,
     title: 'Report impact',
     description: 'Share clear reports that show the value of training.',
-    tags: ['Objective ROI', 'Measure training', 'One-click export']
+    tags: ['Objective ROI', 'Measure your training KPIs', 'One-click export', 'Observe business impact']
   },
   {
     icon: Brain,
