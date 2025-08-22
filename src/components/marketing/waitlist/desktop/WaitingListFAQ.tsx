@@ -185,7 +185,7 @@ export const WaitingListFAQ: React.FC = () => {
           
           {/* Exact same form from hero section */}
           <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
-            <div className="flex flex-col sm:flex-row gap-3 mb-2">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <div className="flex-1">
                 <Input
                   type="text"
@@ -212,8 +212,6 @@ export const WaitingListFAQ: React.FC = () => {
                   <p className="text-red-400 text-xs mt-1 font-inter">{emailError}</p>
                 )}
               </div>
-            </div>
-            <div className="flex justify-center mt-4">
               <Button
                 type="submit"
                 disabled={isSubmitting}
