@@ -1,70 +1,38 @@
-import React, { lazy, Suspense, memo } from 'react';
+import React, { memo } from 'react';
 import { MapPin, Linkedin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
 import { useDeviceType } from '../../components/marketing/waitlist/shared/useDeviceType';
 
-// Desktop components (lazy loaded with preload hints)
-const WaitingListHero = lazy(() => {
-  // Preload critical dependencies
-  import('simplex-noise');
-  return import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListHero }));
-});
-const WaitingListFeatures = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListFeatures })));
-const WaitingListDifferentiators = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListDifferentiators })));
-const WaitingListProcessFlow = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListProcessFlow })));
-const WaitingListFAQ = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListFAQ })));
+// Desktop components (direct imports for immediate loading)
+import {
+  WaitingListHero,
+  WaitingListFeatures,
+  WaitingListDifferentiators,
+  WaitingListProcessFlow,
+  WaitingListFAQ
+} from '../../components/marketing/waitlist/desktop';
 
-// Mobile components (lazy loaded)
-const WaitingListHeroMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListHeroMobile })));
-const WaitingListFeaturesMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListFeaturesMobile })));
-const WaitingListDifferentiatorsMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListDifferentiatorsMobile })));
-const WaitingListProcessFlowMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListProcessFlowMobile })));
-const WaitingListFAQMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListFAQMobile })));
+// Mobile components (direct imports for immediate loading)
+import {
+  WaitingListHeroMobile,
+  WaitingListFeaturesMobile,
+  WaitingListDifferentiatorsMobile,
+  WaitingListProcessFlowMobile,
+  WaitingListFAQMobile
+} from '../../components/marketing/waitlist/mobile';
 
 const WaitingList: React.FC = memo(() => {
   const deviceType = useDeviceType();
   const isMobile = deviceType === 'mobile';
-  
-  // Optimized loading fallback with skeleton
-  const LoadingFallback = memo(({ height = "h-96" }: { height?: string }) => (
-    <div className={`${height} flex items-center justify-center bg-gray-50 animate-pulse`}>
-      <div className="w-full max-w-4xl mx-auto px-4">
-        <div className="space-y-4">
-          <div className="h-12 bg-gray-200 rounded-md"></div>
-          <div className="h-6 bg-gray-200 rounded-md w-3/4"></div>
-          <div className="h-6 bg-gray-200 rounded-md w-1/2"></div>
-        </div>
-      </div>
-    </div>
-  ));
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Conditional rendering based on device type */}
-      {/* Hero loads immediately (critical) */}
-      <Suspense fallback={<LoadingFallback height="h-screen" />}>
-        {isMobile ? <WaitingListHeroMobile /> : <WaitingListHero />}
-      </Suspense>
-      
-      {/* Features load with intersection observer */}
-      <Suspense fallback={<LoadingFallback />}>
-        {isMobile ? <WaitingListFeaturesMobile /> : <WaitingListFeatures />}
-      </Suspense>
-      
-      {/* Process Flow deferred */}
-      <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {isMobile ? <WaitingListProcessFlowMobile /> : <WaitingListProcessFlow />}
-      </Suspense>
-      
-      {/* Differentiators lazy */}
-      <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {isMobile ? <WaitingListDifferentiatorsMobile /> : <WaitingListDifferentiators />}
-      </Suspense>
-      
-      {/* FAQ lowest priority */}
-      <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {isMobile ? <WaitingListFAQMobile /> : <WaitingListFAQ />}
-      </Suspense>
+      {/* All components load immediately without progressive loading */}
+      {isMobile ? <WaitingListHeroMobile /> : <WaitingListHero />}
+      {isMobile ? <WaitingListFeaturesMobile /> : <WaitingListFeatures />}
+      {isMobile ? <WaitingListProcessFlowMobile /> : <WaitingListProcessFlow />}
+      {isMobile ? <WaitingListDifferentiatorsMobile /> : <WaitingListDifferentiators />}
+      {isMobile ? <WaitingListFAQMobile /> : <WaitingListFAQ />}
 
       <UIFooter
         className="border-t"
