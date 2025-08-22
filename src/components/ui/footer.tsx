@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 interface SocialLink {
   name: string;
   href: string;
+  icon?: LucideIcon | React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 interface FooterLink {
@@ -24,6 +25,7 @@ interface FooterProps extends React.HTMLAttributes<HTMLDivElement> {
   brand: {
     name: string;
     description: string;
+    logo?: string;
   };
   socialLinks: SocialLink[];
   columns: FooterColumn[];
@@ -41,28 +43,36 @@ export const Footer = React.forwardRef<HTMLDivElement, FooterProps>(
         <div className="max-w-screen-xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12">
             <div className="lg:col-span-4">
-              <a href="#" className="text-xl font-semibold">
-                {brand.name}
+              <a href="#" className="flex items-center gap-3 mb-3">
+                {brand.logo && (
+                  <img
+                    src={brand.logo}
+                    alt={`${brand.name} logo`}
+                    className="h-8 object-contain"
+                  />
+                )}
+                <span className="text-xl font-semibold">{brand.name}</span>
               </a>
               <p className="text-sm text-foreground/60">
                 {brand.description}
               </p>
 
-              <p className="text-sm font-light text-foreground/55 mt-3.5">
-                {socialLinks.map((link, index) => (
-                  <React.Fragment key={link.name}>
-                    <a
-                      className="hover:text-foreground/90"
-                      target="_blank"
-                      href={link.href}
-                      rel="noopener noreferrer"
-                    >
-                      {link.name}
-                    </a>
-                    {index < socialLinks.length - 1 && " • "}
-                  </React.Fragment>
+              <div className="flex items-center gap-3 mt-4">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    className="flex items-center gap-2 text-sm transition-all text-foreground/60 hover:text-foreground/90 group"
+                    target="_blank"
+                    href={link.href}
+                    rel="noopener noreferrer"
+                  >
+                    {link.icon && (
+                      <link.icon className="h-5 w-5 transition-all stroke-foreground/60 group-hover:stroke-foreground/90" />
+                    )}
+                    <span>{link.name}</span>
+                  </a>
                 ))}
-              </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 mt-16 md:grid-cols-3 lg:col-span-8 lg:justify-items-end lg:mt-0">

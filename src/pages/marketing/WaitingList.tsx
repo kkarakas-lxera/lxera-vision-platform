@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Linkedin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
 import { WaitingListHero } from '../../components/marketing/waitlist';
 
@@ -41,9 +41,10 @@ const WaitingList: React.FC = () => {
         brand={{
           name: 'LXERA',
           description: 'Beyond Learning — AI-powered learning & innovation platform.',
+          logo: '/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png'
         }}
         socialLinks={[
-          { name: 'LinkedIn', href: 'https://www.linkedin.com/company/lxera' },
+          { name: 'LinkedIn', href: 'https://www.linkedin.com/company/lxera', icon: Linkedin },
         ]}
         columns={[
           {
