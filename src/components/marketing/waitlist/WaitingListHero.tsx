@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { Button } from '../../ui/button';
 import { AnimatedShinyText } from '../../ui/AnimatedShinyText';
 import { Input } from '../../ui/input';
@@ -11,41 +11,61 @@ import { Stepper, StepperItem, StepperIndicator, StepperSeparator, StepperTitle 
 import ClassicLoader from '../../ui/ClassicLoader';
 
 const FloatingPaths = memo(({ position }: { position: number }) => {
-  // Memoize path calculations for better performance
-  const paths = useMemo(() => Array.from({ length: 8 }, (_, i) => ({
+  // Optimized path count - balanced between performance and visual appeal
+  const paths = useMemo(() => Array.from({ length: 16 }, (_, i) => ({
     id: i,
-    d: `M-${380 - i * 20 * position} -${189 + i * 25}C-${
-      380 - i * 20 * position
-    } -${189 + i * 25} -${312 - i * 20 * position} ${216 - i * 25} ${
-      152 - i * 20 * position
-    } ${343 - i * 25}C${616 - i * 20 * position} ${470 - i * 25} ${
-      684 - i * 20 * position
-    } ${875 - i * 25} ${684 - i * 20 * position} ${875 - i * 25}`,
-    width: 0.8 + i * 0.15, // Slightly thicker lines to maintain visual density
-    className: `floating-path-optimized floating-path-${i + 1}`, // Add CSS animation classes
+    d: `M-${380 - i * 10 * position} -${189 + i * 12}C-${
+      380 - i * 10 * position
+    } -${189 + i * 12} -${312 - i * 10 * position} ${216 - i * 12} ${
+      152 - i * 10 * position
+    } ${343 - i * 12}C${616 - i * 10 * position} ${470 - i * 12} ${
+      684 - i * 10 * position
+    } ${875 - i * 12} ${684 - i * 10 * position} ${875 - i * 12}`,
+    width: 0.5 + i * 0.06,
+    opacity: 0.1 + i * 0.04,
   })), [position]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      <svg
-        className="w-full h-full text-[#7AE5C6]"
-        viewBox="0 0 696 316"
-        fill="none"
-      >
-        <title>Background Paths</title>
-        {paths.map((path) => (
-          <path
-            key={path.id}
-            d={path.d}
-            stroke="currentColor"
-            strokeWidth={path.width}
-            strokeOpacity={0.15 + path.id * 0.08} // Increased opacity to compensate for fewer paths
-            className={path.className} // Use CSS animations instead of Framer Motion
-            fill="none"
-          />
-        ))}
-      </svg>
-    </div>
+    <LazyMotion features={domAnimation}>
+      <div className="absolute inset-0 pointer-events-none">
+        <svg
+          className="w-full h-full text-[#7AE5C6]"
+          viewBox="0 0 696 316"
+          fill="none"
+        >
+          <title>Background Paths</title>
+          {paths.map((path, i) => (
+            <m.path
+              key={path.id}
+              d={path.d}
+              stroke="currentColor"
+              strokeWidth={path.width}
+              strokeOpacity={path.opacity}
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: 1,
+                opacity: [path.opacity * 0.6, path.opacity, path.opacity * 0.6],
+              }}
+              transition={{
+                pathLength: { duration: 3, ease: "easeInOut" },
+                opacity: {
+                  duration: 4 + i * 0.2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut",
+                },
+              }}
+              style={{
+                // Hardware acceleration
+                transform: "translateZ(0)",
+                willChange: "opacity",
+              }}
+            />
+          ))}
+        </svg>
+      </div>
+    </LazyMotion>
   );
 });
 
@@ -149,33 +169,34 @@ export const WaitingListHero: React.FC = memo(() => {
   }, [name, email, toast]);
 
   return (
-    <section className="relative min-h-screen bg-white overflow-hidden font-inter">
-      {/* Animated Floating Paths Background */}
-      <div className="absolute inset-0 opacity-60">
-        <FloatingPaths position={1} />
-        <FloatingPaths position={-1} />
-      </div>
-      
-      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-10">
-        {/* Real Lxera Logo (top-left) */}
-        <div className="absolute top-6 left-4 sm:left-8 z-20">
-          <img
-            src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
-            alt="LXERA logo"
-            className="h-10 sm:h-12 lg:h-14 object-contain"
-            draggable={false}
-            width={160}
-            height={48}
-            loading="eager"
-            decoding="sync"
-          />
+    <LazyMotion features={domAnimation}>
+      <section className="relative min-h-screen bg-white overflow-hidden font-inter">
+        {/* Animated Floating Paths Background */}
+        <div className="absolute inset-0 opacity-60">
+          <FloatingPaths position={1} />
+          <FloatingPaths position={-1} />
         </div>
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
+        
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-10">
+          {/* Real Lxera Logo (top-left) */}
+          <div className="absolute top-6 left-4 sm:left-8 z-20">
+            <img
+              src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+              alt="LXERA logo"
+              className="h-10 sm:h-12 lg:h-14 object-contain"
+              draggable={false}
+              width={160}
+              height={48}
+              loading="eager"
+              decoding="sync"
+            />
+          </div>
+          <m.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
           {/* Spacer to account for fixed logo height on small screens (increased) */}
           <div className="h-10 sm:h-16 lg:h-20" />
           
@@ -264,7 +285,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <circle cx="12" cy="9" r="2" fill="currentColor" className="animate-bounce"/>
             </svg>
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Onboarding helper dialog using Radix (brand-styled) */}
@@ -445,7 +466,8 @@ export const WaitingListHero: React.FC = memo(() => {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </section>
+      </section>
+    </LazyMotion>
   );
 });
 
