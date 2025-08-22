@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion, useInView } from 'framer-motion';
+import { Clock } from 'lucide-react';
 import { Button } from '../../../ui/button';
 import { AnimatedShinyText } from '../../../ui/AnimatedShinyText';
 import { Input } from '../../../ui/input';
@@ -18,6 +19,9 @@ const wavyColors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "100px" });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [nameError, setNameError] = useState('');
@@ -32,6 +36,7 @@ export const WaitingListHero: React.FC = memo(() => {
     roleOther: '',
     teamSize: '',
     useCases: [] as string[],
+    useCasesOther: '',
     heardAbout: '',
   });
   const finishedRef = useRef(false);
@@ -56,18 +61,50 @@ export const WaitingListHero: React.FC = memo(() => {
       return;
     }
 
-    // Step 3 → 4: at least one use case selected
-    if (onboardingStep === 3 && form.useCases.length > 0) {
-      setOnboardingStep(4);
-      return;
-    }
+    // Step 3 → 4: removed auto-advance to allow multiple selections
 
     // Step 4 → finish: heard about selected
     if (onboardingStep === 4 && form.heardAbout && !finishedRef.current) {
       finishedRef.current = true;
+      
+      // Submit detailed onboarding data to waitlist-subscribe
+      const submitOnboardingData = async () => {
+        try {
+          const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NjM0NDAsImV4cCI6MjA2NjMzOTQ0MH0.aDpFDImHTr13UhRHqQZHZ92e8I-tvcuUcDCtfRvfbzw',
+            },
+            body: JSON.stringify({
+              email: captured.email,
+              fullName: captured.name,
+              role: form.role,
+              roleOther: form.roleOther,
+              teamSize: form.teamSize,
+              useCases: form.useCases,
+              useCasesOther: form.useCasesOther,
+              heardAbout: form.heardAbout,
+              onboardingCompleted: true,
+              source: 'hero-waitlist-onboarding'
+            }),
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            console.log('Onboarding data saved successfully');
+          } else {
+            console.error('Failed to save onboarding data:', data.error);
+          }
+        } catch (error) {
+          console.error('Error saving onboarding data:', error);
+        }
+      };
+      
+      submitOnboardingData();
       setShowOnboarding(false);
       setIsDialogOpen(false);
-      toast({ title: 'Thanks!', description: 'Your preferences are saved (preview).' });
+      toast({ title: 'Thanks!', description: 'Your preferences have been saved successfully!' });
     }
   }, [showOnboarding, onboardingStep, form.role, form.roleOther, form.teamSize, form.useCases.length, form.heardAbout]);
 
@@ -90,6 +127,7 @@ export const WaitingListHero: React.FC = memo(() => {
     'Personalized Learning Paths',
     'Innovation Enablement',
     'Compliance Training',
+    'Other',
   ], []);
   const HEARD_ABOUT_OPTIONS = useMemo(() => ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'], []);
 
@@ -197,15 +235,15 @@ export const WaitingListHero: React.FC = memo(() => {
   }, [name, email, toast]);
 
   return (
-    <>
+    <LazyMotion features={domAnimation}>
     <WavyBackground
       containerClassName="min-h-screen bg-white overflow-hidden font-inter"
       colors={wavyColors}
-      waveWidth={30}
+      waveWidth={50}
       backgroundFill="white"
-      blur={15}
-      speed="slow"
-      waveOpacity={0.3}
+      blur={10}
+      speed="fast"
+      waveOpacity={0.4}
     >
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
@@ -221,11 +259,12 @@ export const WaitingListHero: React.FC = memo(() => {
               decoding="sync"
             />
           </div>
-          <motion.div 
+          <m.div 
+            ref={ref}
             className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+            animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
+            transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           >
           {/* Spacer to account for fixed logo height on small screens (increased) */}
           <div className="h-10 sm:h-16 lg:h-20" />
@@ -244,8 +283,11 @@ export const WaitingListHero: React.FC = memo(() => {
           
           <div className="flex justify-center mb-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
-              <span role="img" aria-label="alarm clock" className="text-orange-500">⏰</span>
-              <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap text-business-black">
+              <Clock className="w-4 h-4 text-orange-500" />
+              <AnimatedShinyText 
+                className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-business-black"
+                style={{ color: '#191919' }}
+              >
                 Full access FREE for 30 days. No credit card. Limited spots available.
               </AnimatedShinyText>
             </div>
@@ -310,7 +352,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <circle cx="12" cy="9" r="2" fill="currentColor" className="animate-bounce"/>
             </svg>
           </div>
-        </motion.div>
+        </m.div>
         </div>
     </WavyBackground>
 
@@ -451,7 +493,26 @@ export const WaitingListHero: React.FC = memo(() => {
                           );
                         })}
                       </div>
-                      {/* Auto-advance handled by useEffect */}
+                      {form.useCases.includes('Other') && (
+                        <div className="mt-3">
+                          <Input
+                            placeholder="Please specify..."
+                            value={form.useCasesOther}
+                            onChange={(e) => setForm(prev => ({ ...prev, useCasesOther: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                      )}
+                      {form.useCases.length > 0 && (
+                        <div className="flex justify-end mt-4">
+                          <Button 
+                            onClick={() => setOnboardingStep(4)}
+                            className="bg-business-black text-white hover:bg-business-black/90 px-6 py-2"
+                          >
+                            Continue
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -477,7 +538,7 @@ export const WaitingListHero: React.FC = memo(() => {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </>
+    </LazyMotion>
   );
 });
 

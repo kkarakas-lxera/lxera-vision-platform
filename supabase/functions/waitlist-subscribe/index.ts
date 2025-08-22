@@ -20,6 +20,13 @@ interface WaitlistFormData {
   fullName?: string;
   interest?: string;
   
+  // New onboarding fields
+  roleOther?: string;
+  useCases?: string[];
+  useCasesOther?: string;
+  heardAbout?: string;
+  onboardingCompleted?: boolean;
+  
   // Common fields
   source?: string;
   utm_source?: string;
@@ -96,6 +103,18 @@ serve(async (req) => {
       if (formData.teamSize) updateData.team_size = formData.teamSize;
       if (formData.interest) updateData.interest = formData.interest;
       if (formData.interests && formData.interests.length > 0) updateData.interest = formData.interests.join(', ');
+      
+      // Update onboarding fields
+      if (formData.roleOther) updateData.role_other = formData.roleOther;
+      if (formData.useCases && formData.useCases.length > 0) updateData.use_cases = formData.useCases;
+      if (formData.useCasesOther) updateData.use_cases_other = formData.useCasesOther;
+      if (formData.heardAbout) updateData.heard_about = formData.heardAbout;
+      if (formData.onboardingCompleted !== undefined) {
+        updateData.onboarding_completed = formData.onboardingCompleted;
+        if (formData.onboardingCompleted) {
+          updateData.onboarding_completed_at = new Date().toISOString();
+        }
+      }
 
       const { error: updateError } = await supabase
         .from('waitlist_contacts')
@@ -123,7 +142,14 @@ serve(async (req) => {
           utm_source: formData.utm_source,
           utm_medium: formData.utm_medium,
           utm_campaign: formData.utm_campaign,
-          brevo_sync_status: 'pending'
+          brevo_sync_status: 'pending',
+          // New onboarding fields
+          role_other: formData.roleOther,
+          use_cases: formData.useCases || [],
+          use_cases_other: formData.useCasesOther,
+          heard_about: formData.heardAbout,
+          onboarding_completed: formData.onboardingCompleted || false,
+          onboarding_completed_at: formData.onboardingCompleted ? new Date().toISOString() : null
         })
         .select()
         .single();

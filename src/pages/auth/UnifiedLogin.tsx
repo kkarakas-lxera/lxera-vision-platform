@@ -245,7 +245,7 @@ const UnifiedLogin = () => {
                 <Logo />
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
-                Welcome back<span className="text-future-green">!</span>
+                Welcome back<span className="text-business-black">!</span>
               </h2>
               <p className="mt-2 text-base sm:text-lg text-gray-700 font-medium">
                 Sign in to your account

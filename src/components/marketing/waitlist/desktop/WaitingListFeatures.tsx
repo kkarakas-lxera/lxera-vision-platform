@@ -1,5 +1,6 @@
-import React from 'react';
-import BeamsBackground from '../BeamsBackground';
+import React, { useRef } from 'react';
+import { LazyMotion, domAnimation, m, useReducedMotion, useInView } from 'framer-motion';
+import StaticBeamsBackground from '../StaticBeamsBackground';
 import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
 
 const features = [
@@ -42,42 +43,53 @@ const features = [
 ];
 
 export const WaitingListFeatures: React.FC = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "100px" });
   return (
-    <section className="relative py-24 text-white">
-      {/* Background beams effect */}
-      <BeamsBackground className="pointer-events-none" intensity="strong" />
+    <LazyMotion features={domAnimation}>
+      <section ref={ref} className="relative py-16 text-white">
+      {/* Static SVG beams background */}
+      <StaticBeamsBackground className="pointer-events-none" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 lg:text-5xl text-white">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
             What You Can Do
           </h2>
-          <p className="text-white max-w-3xl mx-auto text-lg">
+          <p className="text-white max-w-3xl mx-auto text-base">
             Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div
+              <m.div
                 key={index}
-                className="bg-gray-800/60 backdrop-blur-md rounded-2xl p-8 border border-gray-700/50 hover:border-[#7AE5C6]/40 transition-all duration-300 shadow-lg"
+                className="bg-gray-800/60 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50 hover:border-[#7AE5C6]/40 transition-all duration-300 shadow-lg"
+                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
+                animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
+                transition={shouldReduceMotion ? undefined : { 
+                  duration: 0.4, 
+                  delay: index * 0.1,
+                  ease: [0.25, 0.1, 0.25, 1] 
+                }}
               >
                 {/* Icon */}
-                <div className="mb-6">
-                  <div className="w-12 h-12 bg-[#7AE5C6]/20 rounded-xl flex items-center justify-center">
-                    <IconComponent className="w-6 h-6 text-[#7AE5C6]" />
+                <div className="mb-4">
+                  <div className="w-10 h-10 bg-[#7AE5C6]/20 rounded-xl flex items-center justify-center">
+                    <IconComponent className="w-5 h-5 text-[#7AE5C6]" />
                   </div>
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-semibold mb-3 text-white">
+                <h3 className="text-lg font-semibold mb-3 text-white">
                   {feature.title}
                 </h3>
-                <p className="text-gray-300 mb-6 leading-relaxed">
+                <p className="text-gray-300 mb-4 leading-snug text-sm">
                   {feature.description}
                 </p>
 
@@ -86,17 +98,19 @@ export const WaitingListFeatures: React.FC = () => {
                   {feature.tags.map((tag, tagIndex) => (
                     <span
                       key={tagIndex}
-                      className="px-3 py-1 bg-white/90 text-black text-xs rounded-full border border-black/20 shadow-sm"
+                      className="px-3 py-1 bg-stone-100/60 text-white text-xs rounded-full border border-stone-200/20 shadow-sm backdrop-blur-sm"
+                      style={{ filter: 'blur(0.3px)' }}
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
-              </div>
+              </m.div>
             );
           })}
         </div>
       </div>
-    </section>
+      </section>
+    </LazyMotion>
   );
 };

@@ -49,15 +49,22 @@ const CardDecorator = ({ children, isLight = false }: { children: React.ReactNod
 
 export const WaitingListProcessFlow: React.FC = () => {
   return (
-    <section className="relative py-24 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
-      <WhatsNextBackground />
+    <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
+      {/* Static gradient background instead of animated WhatsNextBackground */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-slate-900 to-cyan-950/60">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-[#7AE5C6]/5" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(122,229,198,0.15),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.1),transparent_40%)]" />
+        </div>
+      </div>
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 lg:text-5xl text-white">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
             What's Next
           </h2>
-          <p className="text-white max-w-3xl mx-auto text-lg">
+          <p className="text-white max-w-3xl mx-auto text-base">
             Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.
           </p>
         </div>
@@ -68,7 +75,7 @@ export const WaitingListProcessFlow: React.FC = () => {
           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#7AE5C6]/50 via-[#7AE5C6]/30 to-[#7AE5C6]/50 transform -translate-x-1/2 hidden lg:block" />
 
           {/* Steps */}
-          <div className="space-y-16 lg:space-y-24">
+          <div className="space-y-12 lg:space-y-16">
             {steps.map((step, index) => {
               const IconComponent = step.icon;
               const isEven = index % 2 === 0;
@@ -91,18 +98,18 @@ export const WaitingListProcessFlow: React.FC = () => {
                         : 'justify-center lg:justify-start lg:pl-8 lg:col-start-2'
                     }`}
                   >
-                    <Card className={`group border-0 ${step.bgColor === 'bg-white' ? 'bg-white/90 text-black' : 'bg-gray-800/60 text-white'} backdrop-blur-md rounded-2xl max-w-[260px] mx-auto lg:mx-0`}>
-                      <CardHeader className="pb-1 px-4 pt-4">
-                        <div className="w-8 h-8 bg-[#7AE5C6] rounded-full flex items-center justify-center text-black font-bold text-sm mb-4 lg:hidden">
+                    <Card className={`group border-0 ${step.bgColor === 'bg-white' ? 'bg-white/90 text-black' : 'bg-gray-800/60 text-white'} backdrop-blur-md rounded-2xl max-w-[240px] mx-auto lg:mx-0`}>
+                      <CardHeader className="pb-1 px-3 pt-3">
+                        <div className="w-7 h-7 bg-[#7AE5C6] rounded-full flex items-center justify-center text-black font-bold text-xs mb-3 lg:hidden">
                           {index + 1}
                         </div>
                         <CardDecorator isLight={step.bgColor === 'bg-white'}>
                           <IconComponent className={`size-5 ${step.iconColor}`} aria-hidden />
                         </CardDecorator>
-                        <h3 className={`mt-2 font-semibold text-base ${step.textColor === 'text-white' ? 'text-white' : 'text-black'}`}>{step.title}</h3>
+                        <h3 className={`mt-2 font-semibold text-sm ${step.textColor === 'text-white' ? 'text-white' : 'text-black'}`}>{step.title}</h3>
                       </CardHeader>
-                      <CardContent className="pt-0 px-4 pb-4">
-                        <p className={`${step.textColor === 'text-white' ? 'text-gray-300' : 'text-gray-700'} text-xs leading-relaxed`}>{step.description}</p>
+                      <CardContent className="pt-0 px-3 pb-3">
+                        <p className={`${step.textColor === 'text-white' ? 'text-gray-300' : 'text-gray-700'} text-xs leading-snug`}>{step.description}</p>
                       </CardContent>
                     </Card>
                   </div>

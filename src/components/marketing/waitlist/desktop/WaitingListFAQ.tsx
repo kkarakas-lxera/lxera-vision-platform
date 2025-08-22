@@ -9,6 +9,10 @@ import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 const faqs = [
   {
+    question: 'Are you using ChatGPT?',
+    answer: 'No. We have our own fine-tuned models trained specifically for this purpose. We are using Multi-Agent Orchestration.'
+  },
+  {
     question: 'What makes LXERA different from other learning platforms?',
     answer: 'LXERA is the only platform that combines AI-powered skill gap analysis, personalized training creation, and real-time market intelligence in one solution. Unlike generic learning platforms, we focus on your specific business needs and industry requirements.'
   },
@@ -35,10 +39,6 @@ const faqs = [
   {
     question: 'How do you check content quality?',
     answer: 'We have a human verification layer where subject matter experts check content on top of our quality specialist agents.'
-  },
-  {
-    question: 'Are you using ChatGPT?',
-    answer: 'No. We have our own fine-tuned models trained specifically for this purpose. We are using Multi-Agent Orchestration.'
   }
 ];
 
@@ -129,20 +129,20 @@ export const WaitingListFAQ: React.FC = () => {
   }, [name, email, toast]);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-black to-gray-900 text-white">
+    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 lg:text-5xl text-white">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
             Frequently Asked Questions
           </h2>
-          <p className="text-white max-w-2xl mx-auto text-lg">
+          <p className="text-white max-w-2xl mx-auto text-base">
             Dashboards show measurable progress you can act on.
           </p>
         </div>
 
         {/* FAQ Items */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqs.map((faq, index) => (
             <div
               key={index}
@@ -150,9 +150,9 @@ export const WaitingListFAQ: React.FC = () => {
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-200"
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-200"
               >
-                <h3 className="text-lg font-semibold text-white pr-4">
+                <h3 className="text-base font-semibold text-white pr-4">
                   {faq.question}
                 </h3>
                 <div className="flex-shrink-0">
@@ -165,9 +165,9 @@ export const WaitingListFAQ: React.FC = () => {
               </button>
               
               {openIndex === index && (
-                <div className="px-8 pb-6">
-                  <div className="pt-4 border-t border-gray-700/50">
-                    <p className="text-gray-300 leading-relaxed">
+                <div className="px-6 pb-4">
+                  <div className="pt-3 border-t border-gray-700/50">
+                    <p className="text-gray-300 leading-relaxed text-sm">
                       {faq.answer}
                     </p>
                   </div>
@@ -178,8 +178,8 @@ export const WaitingListFAQ: React.FC = () => {
         </div>
 
         {/* CTA at bottom with exact same form from hero */}
-        <div className="text-center mt-16">
-          <p className="text-gray-300 mb-8 text-lg">
+        <div className="text-center mt-12">
+          <p className="text-gray-300 mb-6 text-base">
             Join the waitlist and be among the first to experience the future of learning and development.
           </p>
           

@@ -7,9 +7,10 @@ interface GradientCardProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  variant?: 'dark' | 'light';
 }
 
-export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent, title, description }) => {
+export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent, title, description, variant = 'dark' }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -40,6 +41,9 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
     setRotation({ x: 0, y: 0 });
   };
 
+  // Light variant - keep animations but softer colors
+  const isLight = variant === 'light';
+
   return (
     <div className="w-full flex items-center justify-center">
       {/* Card container with realistic 3D effect */}
@@ -50,8 +54,10 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           width: "220px",
           height: "280px",
           transformStyle: "preserve-3d",
-          backgroundColor: "#0e131f",
-          boxShadow: "0 -10px 60px 6px rgba(122, 229, 198, 0.25), 0 0 8px 0 rgba(0, 0, 0, 0.5)",
+          backgroundColor: isLight ? "#1e293b" : "#0e131f", // Softer black (slate-800 vs pure black)
+          boxShadow: isLight 
+            ? "0 -10px 60px 6px rgba(94, 219, 186, 0.35), 0 0 8px 0 rgba(0, 0, 0, 0.2)"
+            : "0 -10px 60px 6px rgba(122, 229, 198, 0.25), 0 0 8px 0 rgba(0, 0, 0, 0.5)",
         }}
         initial={{ y: 0 }}
         animate={{
@@ -88,11 +94,13 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
         />
 
-        {/* Dark background with black gradient like in the image */}
+        {/* Background with softer black gradient */}
         <motion.div
           className="absolute inset-0 z-0"
           style={{
-            background: "linear-gradient(180deg, #000000 0%, #000000 70%)",
+            background: isLight 
+              ? "linear-gradient(180deg, #374151 0%, #1e293b 70%)" // Softer grays instead of pure black
+              : "linear-gradient(180deg, #374151 0%, #1f2937 70%)",
           }}
           animate={{
             z: -1
@@ -122,11 +130,14 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
         />
 
-        {/* Teal green glow effect */}
+        {/* More prominent teal green glow effect */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-2/3 z-20"
           style={{
-            background: `
+            background: isLight ? `
+              radial-gradient(ellipse at bottom right, rgba(94, 219, 186, 0.6) -10%, rgba(46, 167, 132, 0) 70%),
+              radial-gradient(ellipse at bottom left, rgba(122, 229, 198, 0.6) -10%, rgba(46, 167, 132, 0) 70%)
+            ` : `
               radial-gradient(ellipse at bottom right, rgba(122, 229, 198, 0.7) -10%, rgba(46, 167, 132, 0) 70%),
               radial-gradient(ellipse at bottom left, rgba(94, 219, 186, 0.7) -10%, rgba(46, 167, 132, 0) 70%)
             `,
@@ -143,11 +154,13 @@ export const GradientCard: React.FC<GradientCardProps> = ({ icon: IconComponent,
           }}
         />
 
-        {/* Central teal glow */}
+        {/* More prominent central teal glow */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-2/3 z-21"
           style={{
-            background: `
+            background: isLight ? `
+              radial-gradient(circle at bottom center, rgba(122, 229, 198, 0.65) -20%, rgba(46, 167, 132, 0) 60%)
+            ` : `
               radial-gradient(circle at bottom center, rgba(122, 229, 198, 0.7) -20%, rgba(46, 167, 132, 0) 60%)
             `,
             filter: "blur(35px)",
