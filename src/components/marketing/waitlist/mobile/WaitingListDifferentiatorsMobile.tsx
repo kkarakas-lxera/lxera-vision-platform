@@ -28,11 +28,11 @@ const differentiators = [
 
 export const WaitingListDifferentiatorsMobile: React.FC = () => {
   return (
-    <section className="py-16 bg-white text-black relative overflow-hidden">      
+    <section className="py-16 bg-gradient-to-b from-black to-gray-900 text-white relative overflow-hidden">      
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Heading - Mobile optimized */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-black leading-tight">
+          <h2 className="text-3xl font-bold text-white leading-tight">
             Why LXERA Is Different
           </h2>
         </div>

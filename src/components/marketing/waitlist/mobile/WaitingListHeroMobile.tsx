@@ -143,13 +143,8 @@ export const WaitingListHeroMobile: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="flex justify-center pb-6">
-            <svg width="20" height="32" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-              <rect x="1.5" y="1.5" width="21" height="33" rx="10.5" stroke="currentColor" strokeWidth="1.5"/>
-              <circle cx="12" cy="9" r="2" fill="currentColor" className="animate-bounce"/>
-            </svg>
-          </div>
+          {/* Mobile spacing bottom */}
+          <div className="pb-6"></div>
         </div>
       </div>
 

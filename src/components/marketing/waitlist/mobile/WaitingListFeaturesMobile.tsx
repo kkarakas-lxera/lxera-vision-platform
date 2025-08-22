@@ -12,7 +12,7 @@ const FeatureCardMobile: React.FC<{
 
   return (
     <div
-      className={`bg-white rounded-2xl p-6 border border-gray-200 transition-all duration-200 shadow-sm ${
+      className={`bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transition-all duration-200 shadow-lg ${
         isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100 hover:border-[#7AE5C6]/40'
       }`}
       onTouchStart={() => setIsPressed(true)}
@@ -29,10 +29,10 @@ const FeatureCardMobile: React.FC<{
       </div>
 
       {/* Content */}
-      <h3 className="text-xl font-semibold mb-3 text-black">
+      <h3 className="text-xl font-semibold mb-3 text-white">
         {feature.title}
       </h3>
-      <p className="text-gray-700 mb-4 leading-relaxed text-sm">
+      <p className="text-gray-300 mb-4 leading-relaxed text-sm">
         {feature.description}
       </p>
 
@@ -53,14 +53,14 @@ const FeatureCardMobile: React.FC<{
 
 export const WaitingListFeaturesMobile: React.FC = () => {
   return (
-    <section className="relative py-16 text-black bg-white">
+    <section className="relative py-16 text-white bg-gradient-to-b from-gray-900 to-black">
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-black leading-tight">
+          <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
             {FEATURES_CONTENT.title}
           </h2>
-          <p className="text-gray-700 max-w-2xl mx-auto text-base px-2">
+          <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
             {FEATURES_CONTENT.subtitle}
           </p>
         </div>

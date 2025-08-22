@@ -32,8 +32,8 @@ const ProcessStepCardMobile: React.FC<{
       {/* Content Card with mobile touch interactions */}
       <div className="flex-1">
         <Card 
-          className={`group border border-gray-200 bg-white text-black rounded-xl transition-all duration-200 shadow-sm ${
-            isPressed ? 'scale-98 border-[#7AE5C6]/40' : 'scale-100 hover:border-[#7AE5C6]/40'
+          className={`group border-0 bg-gray-800/60 backdrop-blur-md text-white rounded-xl transition-all duration-200 shadow-lg ${
+            isPressed ? 'scale-98' : 'scale-100'
           }`}
           onTouchStart={() => setIsPressed(true)}
           onTouchEnd={() => setIsPressed(false)}
@@ -45,12 +45,12 @@ const ProcessStepCardMobile: React.FC<{
             <CardDecorator isLight={isLight}>
               <IconComponent className={`size-4 ${step.iconColor}`} aria-hidden />
             </CardDecorator>
-            <h3 className="mt-2 font-semibold text-sm text-black">
+            <h3 className="mt-2 font-semibold text-sm text-white">
               {step.title}
             </h3>
           </CardHeader>
           <CardContent className="pt-0 px-4 pb-4">
-            <p className="text-gray-700 text-xs leading-relaxed">
+            <p className="text-gray-300 text-xs leading-relaxed">
               {step.description}
             </p>
           </CardContent>
@@ -62,14 +62,14 @@ const ProcessStepCardMobile: React.FC<{
 
 export const WaitingListProcessFlowMobile: React.FC = () => {
   return (
-    <section className="relative py-16 bg-white text-black overflow-hidden">
+    <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
       <div className="relative z-10 mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-black leading-tight">
+          <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
             {PROCESS_FLOW_CONTENT.title}
           </h2>
-          <p className="text-gray-700 max-w-2xl mx-auto text-base px-2">
+          <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
             {PROCESS_FLOW_CONTENT.subtitle}
           </p>
         </div>
