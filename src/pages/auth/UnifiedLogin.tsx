@@ -28,7 +28,7 @@ const UnifiedLogin = () => {
   const [personalEmailError, setPersonalEmailError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordSetupSent, setPasswordSetupSent] = useState(false);
-  const [userType, setUserType] = useState<'early_access' | 'company' | null>(null);
+  const [userType, setUserType] = useState<'early_access' | 'company' | 'learner' | null>(null);
 
   // Get redirect path and token from URL parameters
   const redirectPath = searchParams.get('redirect');
@@ -192,24 +192,66 @@ const UnifiedLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige overflow-hidden p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-business-black/5 pointer-events-none" />
       <div className="absolute top-0 right-0 w-96 h-96 bg-future-green/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-lxera-blue/10 rounded-full blur-3xl" />
       
-      <div className="max-w-md w-full space-y-6 relative z-10">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <Logo />
+      <div className="w-full relative max-w-6xl flex flex-col lg:flex-row shadow-2xl rounded-3xl overflow-hidden bg-white/95 backdrop-blur-md z-10">
+        
+        {/* Left Side - Brand Section */}
+        <div className="bg-gradient-to-br from-business-black to-business-black/90 text-white p-8 lg:p-12 lg:w-1/2 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-future-green/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-lxera-blue/10 rounded-full blur-2xl" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-future-green/5 rounded-full blur-xl" />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
-            Welcome back<span className="text-business-black">!</span>
-          </h2>
-          <p className="mt-2 text-base sm:text-lg text-gray-700 font-medium">
-            Sign in to your account
-          </p>
+          
+          {/* Abstract design bars */}
+          <div className="absolute left-0 top-0 h-full flex backdrop-blur-sm opacity-20 space-x-0.5">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="h-full w-16 bg-gradient-to-b from-transparent via-future-green/30 via-70% to-transparent"
+              />
+            ))}
+          </div>
+          
+          <div className="relative z-10 h-full flex flex-col justify-center">
+            <div className="mb-8">
+              <Logo className="flex items-center space-x-3 mb-8" />
+            </div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-3xl lg:text-4xl font-bold leading-tight tracking-tight mb-6">
+                Transform your workforce with AI-powered 
+                <span className="text-future-green"> skills intelligence</span>
+              </h1>
+              <p className="text-lg text-white/80 leading-relaxed">
+                Join forward-thinking companies using LXERA to identify skills gaps, 
+                generate personalized learning paths, and accelerate employee growth.
+              </p>
+            </motion.div>
+          </div>
         </div>
+
+        {/* Right Side - Form Section */}
+        <div className="p-8 lg:p-12 lg:w-1/2 flex flex-col justify-center bg-gradient-to-br from-white to-smart-beige/20">
+          <div className="max-w-md w-full mx-auto space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
+                Welcome back<span className="text-future-green">!</span>
+              </h2>
+              <p className="mt-2 text-base sm:text-lg text-gray-700 font-medium">
+                Sign in to your account
+              </p>
+            </div>
 
         {invitationToken && (
           <Alert className="bg-future-green/10 border-future-green/30">
@@ -220,18 +262,18 @@ const UnifiedLogin = () => {
           </Alert>
         )}
 
-        <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-md hover:shadow-3xl transition-shadow duration-300">
-          <CardHeader className="pb-4 bg-gradient-to-br from-future-green/5 to-transparent">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-business-black">
-              Sign In
-            </CardTitle>
-            <CardDescription className="text-base text-gray-700 mt-1">
-              {step === 'email' 
-                ? 'Enter your email to continue'
-                : 'Enter your password to access your account'
-              }
-            </CardDescription>
-          </CardHeader>
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold text-business-black">
+                  Sign In
+                </CardTitle>
+                <CardDescription className="text-base text-gray-700 mt-1">
+                  {step === 'email' 
+                    ? 'Enter your email to continue'
+                    : 'Enter your password to access your account'
+                  }
+                </CardDescription>
+              </CardHeader>
           <CardContent>
             <AnimatePresence mode="wait">
               {step === 'email' ? (
@@ -528,12 +570,14 @@ const UnifiedLogin = () => {
                 </AlertDescription>
               </Alert>
             )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
-          By continuing, you agree to our <span className="text-business-black">Terms of Service</span> and <span className="text-business-black">Privacy Policy</span>
-        </p>
+            <p className="text-center text-xs sm:text-sm text-gray-600 font-medium mt-6">
+              By continuing, you agree to our <span className="text-business-black font-bold">Terms of Service</span> and <span className="text-business-black font-bold">Privacy Policy</span>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
