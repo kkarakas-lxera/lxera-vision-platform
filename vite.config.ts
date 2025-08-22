@@ -77,45 +77,13 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     // Aggressive CSS splitting for better caching
     cssCodeSplit: true,
-    // Force new hash on every build + optimize chunks
+    // Simplified rollup options to prevent bundling issues
     rollupOptions: {
-      // Custom chunk splitting function
       output: {
-        manualChunks(id) {
-          // Core React libraries
-          if (id.includes('node_modules/react')) {
-            return 'react';
-          }
-          // Animation libraries (heavy)
-          if (id.includes('framer-motion')) {
-            return 'motion';
-          }
-          if (id.includes('simplex-noise')) {
-            return 'canvas';
-          }
-          // UI libraries
-          if (id.includes('@radix-ui')) {
-            return 'ui-radix';
-          }
-          if (id.includes('lucide-react')) {
-            return 'ui-core';
-          }
-          // Heavy utilities
-          if (id.includes('lodash') || id.includes('recharts') || id.includes('date-fns')) {
-            return 'heavy-utils';
-          }
-          // Analytics (defer)
-          if (id.includes('@vercel/analytics') || id.includes('@microsoft/clarity') || id.includes('@hotjar/browser')) {
-            return 'analytics';
-          }
-          // Backend
-          if (id.includes('@supabase/supabase-js')) {
-            return 'supabase';
-          }
-          // Forms
-          if (id.includes('react-hook-form') || id.includes('@hookform/resolvers')) {
-            return 'forms';
-          }
+        // Simplified manual chunks to avoid dependency issues
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', 'lucide-react'],
         },
         // Use content hash for all assets
         assetFileNames: (assetInfo) => {
