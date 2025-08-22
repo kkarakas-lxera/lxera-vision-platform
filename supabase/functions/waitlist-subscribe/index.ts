@@ -138,16 +138,12 @@ serve(async (req) => {
       console.error('BREVO_API_KEY not configured');
     } else {
       try {
-        // Prepare Brevo contact data
+        // Prepare Brevo contact data (basic info only)
         const brevoContact: any = {
           email: formData.email,
           attributes: {
             FIRSTNAME: firstName || '',
             LASTNAME: lastName || '',
-            COMPANY: formData.company || '',
-            JOB_TITLE: formData.role || '',
-            TEAM_SIZE: formData.teamSize || '',
-            INTEREST: formData.interest || (formData.interests && formData.interests.length > 0 ? formData.interests.join(', ') : ''),
             SOURCE: formData.source || 'website'
           },
           listIds: [3], // LXERA Waitlist - All
