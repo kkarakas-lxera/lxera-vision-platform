@@ -189,7 +189,7 @@ export const WaitingListHero: React.FC = memo(() => {
           
           <div className="flex justify-center mb-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
-              <span role="img" aria-label="fire" className="text-orange-500">🔥</span>
+              <span role="img" aria-label="alarm clock" className="text-orange-500">⏰</span>
               <AnimatedShinyText className="text-sm font-inter m-0 max-w-none whitespace-nowrap">
                 Full access FREE for 30 days. No credit card. Limited spots available.
               </AnimatedShinyText>

@@ -86,7 +86,7 @@ export const WaitingListFeatures: React.FC = () => {
                   {feature.tags.map((tag, tagIndex) => (
                     <span
                       key={tagIndex}
-                      className="px-3 py-1 bg-gray-700/50 text-gray-300 text-xs rounded-full border border-gray-600/50"
+                      className="px-3 py-1 bg-white/90 text-black text-xs rounded-full border border-black/20 shadow-sm"
                     >
                       {tag}
                     </span>
