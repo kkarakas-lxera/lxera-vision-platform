@@ -126,15 +126,32 @@ export const WaitingListHero: React.FC = memo(() => {
     
     setIsSubmitting(true);
     try {
-      // TODO: Integrate with Supabase edge function
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Open onboarding helper dialog
-      setCaptured({ name, email });
-      setIsDialogOpen(true);
+      const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NjM0NDAsImV4cCI6MjA2NjMzOTQ0MH0.aDpFDImHTr13UhRHqQZHZ92e8I-tvcuUcDCtfRvfbzw',
+        },
+        body: JSON.stringify({
+          fullName: name,
+          email: email,
+          source: 'hero-waitlist'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Open onboarding helper dialog
+        setCaptured({ name, email });
+        setIsDialogOpen(true);
+      } else {
+        throw new Error(data.error || 'Failed to join waitlist');
+      }
     } catch (error) {
       toast({
         title: "Something went wrong",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
