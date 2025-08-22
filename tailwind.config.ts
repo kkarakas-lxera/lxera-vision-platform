@@ -110,6 +110,14 @@ export default {
 					'30%, 60%': {
 						'background-position': 'calc(100% + var(--shiny-width)) 0'
 					}
+				},
+				'aurora': {
+					'from': {
+						'background-position': '50% 50%, 50% 50%'
+					},
+					'to': {
+						'background-position': '350% 50%, 350% 50%'
+					}
 				}
 			},
 			animation: {
@@ -117,7 +125,8 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'shiny-text': 'shiny-text 8s infinite'
+				'shiny-text': 'shiny-text 8s infinite',
+				'aurora': 'aurora 60s linear infinite'
 			},
 			animationDelay: {
 				'100': '100ms',

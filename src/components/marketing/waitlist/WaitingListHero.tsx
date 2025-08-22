@@ -7,102 +7,8 @@ import { useToast } from '../../ui/use-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
 import { Checkbox } from '../../ui/checkbox';
-import { Stepper, StepperItem, StepperIndicator, StepperSeparator, StepperTitle } from '../../ui/stepper';
 import ClassicLoader from '../../ui/ClassicLoader';
-
-function FloatingPaths({ position }: { position: number }) {
-  const colors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
-  const [isInView, setIsInView] = useState(true);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Optimize: Pause animation when scrolling
-  useEffect(() => {
-    let scrollTimer: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      setIsScrolling(true);
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => {
-        setIsScrolling(false);
-      }, 150);
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimer);
-    };
-  }, []);
-  
-  // Optimize: Use Intersection Observer to pause when out of view
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-    
-    return () => observer.disconnect();
-  }, []);
-  
-  const paths = Array.from({ length: 24 }, (_, i) => ({
-    id: i,
-    d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-      380 - i * 5 * position
-    } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-      152 - i * 5 * position
-    } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-      684 - i * 5 * position
-    } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-    color: colors[i % colors.length],
-    width: 0.5 + i * 0.03,
-  }));
-
-  const shouldAnimate = isInView && !isScrolling;
-
-  return (
-    <div ref={containerRef} className="absolute inset-0 pointer-events-none z-0">
-      <svg
-        className="w-full h-full"
-        viewBox="0 0 696 316"
-        fill="none"
-        style={{ willChange: shouldAnimate ? 'auto' : 'unset' }}
-      >
-        <title>Background Paths</title>
-        {paths.map((path) => (
-          <motion.path
-            key={path.id}
-            d={path.d}
-            stroke={path.color}
-            strokeWidth={path.width}
-            strokeOpacity={0.2 + (path.id * 0.02)}
-            initial={{ pathLength: 0.3, opacity: 0.4 }}
-            animate={shouldAnimate ? {
-              pathLength: 1,
-              opacity: [0.2, 0.4, 0.2],
-              pathOffset: [0, 1, 0],
-            } : {
-              pathLength: 0.7,
-              opacity: 0.3,
-              pathOffset: 0,
-            }}
-            transition={{
-              duration: shouldAnimate ? 20 + Math.random() * 10 : 0.3,
-              repeat: shouldAnimate ? Number.POSITIVE_INFINITY : 0,
-              ease: "linear",
-            }}
-          />
-        ))}
-      </svg>
-    </div>
-  );
-}
+import { AuroraBackground } from '../../ui/aurora-background';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -203,12 +109,7 @@ export const WaitingListHero: React.FC = memo(() => {
 
   return (
     <>
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white font-inter">
-      <div className="absolute inset-0">
-        <FloatingPaths position={1} />
-        <FloatingPaths position={-1} />
-      </div>
-      
+    <AuroraBackground className="font-inter">
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
@@ -319,7 +220,7 @@ export const WaitingListHero: React.FC = memo(() => {
           </div>
         </motion.div>
         </div>
-    </div>
+    </AuroraBackground>
 
       {/* Onboarding helper dialog using Radix (brand-styled) */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -376,27 +277,12 @@ export const WaitingListHero: React.FC = memo(() => {
                     </button>
                   </div>
                   <div className="mb-4">
-                    <Stepper value={onboardingStep - 1} orientation="horizontal">
-                      <StepperItem step={1} className="flex-1">
-                        <StepperIndicator />
-                        <StepperTitle className="ml-2">Role</StepperTitle>
-                      </StepperItem>
-                      <StepperSeparator />
-                      <StepperItem step={2} className="flex-1">
-                        <StepperIndicator />
-                        <StepperTitle className="ml-2">Team size</StepperTitle>
-                      </StepperItem>
-                      <StepperSeparator />
-                      <StepperItem step={3} className="flex-1">
-                        <StepperIndicator />
-                        <StepperTitle className="ml-2">Use case</StepperTitle>
-                      </StepperItem>
-                      <StepperSeparator />
-                      <StepperItem step={4} className="flex-1">
-                        <StepperIndicator />
-                        <StepperTitle className="ml-2">How you heard</StepperTitle>
-                      </StepperItem>
-                    </Stepper>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-[#7AE5C6] h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${(onboardingStep / 4) * 100}%` }}
+                      />
+                    </div>
                   </div>
 
                   {onboardingStep === 1 && (
