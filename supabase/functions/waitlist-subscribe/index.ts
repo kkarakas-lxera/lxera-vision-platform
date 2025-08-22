@@ -97,10 +97,15 @@ serve(async (req) => {
       if (formData.interest) updateData.interest = formData.interest;
       if (formData.interests && formData.interests.length > 0) updateData.interest = formData.interests.join(', ');
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('waitlist_contacts')
         .update(updateData)
         .eq('id', contactId);
+
+      if (updateError) {
+        console.error('Failed to update existing contact:', updateError);
+        throw new Error(`Failed to update contact: ${updateError.message}`);
+      }
     } else {
       // Create new contact
       const { data: newContact, error: contactError } = await supabase
@@ -167,20 +172,50 @@ serve(async (req) => {
         });
 
         if (brevoResponse.ok) {
-          const brevoData = await brevoResponse.json();
-          brevoContactId = brevoData.id;
+          if (brevoResponse.status === 201) {
+            // New contact created - response has JSON body with contact ID
+            const brevoData = await brevoResponse.json();
+            brevoContactId = brevoData.id;
+            console.log(`New contact created in Brevo with ID: ${brevoContactId}`);
+          } else if (brevoResponse.status === 204) {
+            // Contact updated - no response body, keep existing Brevo ID
+            brevoContactId = existingContact?.brevo_contact_id || null;
+            console.log(`Contact updated in Brevo with existing ID: ${brevoContactId}`);
+          } else {
+            // Other success status - try to parse JSON if present
+            const responseText = await brevoResponse.text();
+            if (responseText) {
+              try {
+                const brevoData = JSON.parse(responseText);
+                brevoContactId = brevoData.id || brevoContactId;
+              } catch (parseError) {
+                console.log(`Brevo returned status ${brevoResponse.status} with non-JSON response: ${responseText}`);
+              }
+            }
+          }
 
-          // Update Supabase with Brevo sync info
-          await supabase
-            .from('waitlist_contacts')
-            .update({
-              brevo_contact_id: brevoContactId,
-              brevo_synced_at: new Date().toISOString(),
-              brevo_sync_status: 'synced'
-            })
-            .eq('id', contactId);
+          // Update Supabase with Brevo sync info only if we have a contact ID
+          if (brevoContactId) {
+            await supabase
+              .from('waitlist_contacts')
+              .update({
+                brevo_contact_id: brevoContactId,
+                brevo_synced_at: new Date().toISOString(),
+                brevo_sync_status: 'synced'
+              })
+              .eq('id', contactId);
 
-          console.log(`Contact synced to Brevo with ID: ${brevoContactId}`);
+            console.log(`Contact synced to Brevo successfully with ID: ${brevoContactId}`);
+          } else {
+            console.warn('Brevo sync succeeded but no contact ID available');
+            await supabase
+              .from('waitlist_contacts')
+              .update({
+                brevo_synced_at: new Date().toISOString(),
+                brevo_sync_status: 'synced_no_id'
+              })
+              .eq('id', contactId);
+          }
         } else {
           const errorData = await brevoResponse.text();
           console.error('Brevo sync failed:', errorData);
