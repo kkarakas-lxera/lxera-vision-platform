@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Checkbox } from '../../ui/checkbox';
 import ClassicLoader from '../../ui/ClassicLoader';
 import { WavyBackground } from '../../ui/wavy-background';
+import { AnimatedTooltip } from '../../ui/animated-tooltip';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -83,6 +84,39 @@ export const WaitingListHero: React.FC = memo(() => {
     'Compliance Training',
   ];
   const HEARD_ABOUT_OPTIONS = ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'];
+
+  const people = [
+    {
+      id: 1,
+      name: "Sarah Chen",
+      designation: "Learning Director",
+      image: "/avatars/avatar1.svg",
+    },
+    {
+      id: 2,
+      name: "Michael Rodriguez",
+      designation: "HR Manager",
+      image: "/avatars/avatar2.svg",
+    },
+    {
+      id: 3,
+      name: "Emily Johnson",
+      designation: "Innovation Lead",
+      image: "/avatars/avatar3.svg",
+    },
+    {
+      id: 4,
+      name: "David Park",
+      designation: "VP Operations",
+      image: "/avatars/avatar1.svg",
+    },
+    {
+      id: 5,
+      name: "Lisa Thompson",
+      designation: "CHRO",
+      image: "/avatars/avatar2.svg",
+    },
+  ];
 
   // Memoize form submission handler to prevent unnecessary re-renders
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -196,25 +230,10 @@ export const WaitingListHero: React.FC = memo(() => {
             </div>
           </form>
           
-          {/* Social Proof with Real Persona Faces */}
+          {/* Social Proof with Animated Tooltips */}
           <div className="flex items-center justify-center gap-3 mb-12">
-            <div className="flex -space-x-2">
-              {[
-                '/avatars/avatar1.svg',
-                '/avatars/avatar2.svg',
-                '/avatars/avatar3.svg',
-                '/avatars/avatar2.svg',
-                '/avatars/avatar1.svg',
-              ].map((src, idx) => (
-                <img
-                  key={idx}
-                  src={src}
-                  alt="Persona"
-                  className="h-8 w-8 rounded-full border-2 border-white object-cover"
-                />
-              ))}
-            </div>
-            <span className="text-sm text-gray-600 font-inter">
+            <AnimatedTooltip items={people} />
+            <span className="text-sm text-gray-600 font-inter ml-2">
               Join 100+ people who have already signed up.
             </span>
           </div>
