@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
 
 export const WavyBackground = ({
@@ -39,20 +39,16 @@ export const WavyBackground = ({
     ctx: any,
     canvas: any;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Optimize: Pause animation when scrolling + reduce FPS for performance
-  const [targetFPS, setTargetFPS] = useState(60);
+  let animationId: number;
   
   useEffect(() => {
     let scrollTimer: NodeJS.Timeout;
     
     const handleScroll = () => {
       setIsScrolling(true);
-      setTargetFPS(20); // Reduce FPS during scroll
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
         setIsScrolling(false);
-        setTargetFPS(60); // Resume normal FPS
       }, 150);
     };
     
@@ -63,7 +59,6 @@ export const WavyBackground = ({
     };
   }, []);
   
-  // Optimize: Use Intersection Observer to pause when out of view
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -90,41 +85,22 @@ export const WavyBackground = ({
     }
   };
 
-  // Throttled resize handler for better performance
-  const handleResize = useCallback(() => {
-    if (!ctx) return;
-    w = ctx.canvas.width = window.innerWidth;
-    h = ctx.canvas.height = window.innerHeight;
-    ctx.filter = `blur(${blur}px)`;
-    // Clear wave cache on resize
-    wavePointsCache.current = [];
-  }, [blur]);
-  
   const init = () => {
     canvas = canvasRef.current;
     ctx = canvas.getContext("2d");
     if (!ctx) return;
-    
-    // Enable hardware acceleration hints
-    ctx.imageSmoothingEnabled = false; // Disable for better performance
     
     w = ctx.canvas.width = window.innerWidth;
     h = ctx.canvas.height = window.innerHeight;
     ctx.filter = `blur(${blur}px)`;
     nt = 0;
     
-    // Throttled resize handler
-    let resizeTimeout: NodeJS.Timeout;
-    const throttledResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 100); // 100ms throttle
-    };
-    window.addEventListener('resize', throttledResize, { passive: true });
+    window.addEventListener('resize', () => {
+      w = ctx.canvas.width = window.innerWidth;
+      h = ctx.canvas.height = window.innerHeight;
+      ctx.filter = `blur(${blur}px)`;
+    });
     
-    return () => {
-      window.removeEventListener('resize', throttledResize);
-      clearTimeout(resizeTimeout);
-    };
     render();
   };
 
@@ -136,90 +112,34 @@ export const WavyBackground = ({
     "#2EA784",
   ];
   
-  // Pre-calculate wave points for better performance
-  const wavePointsCache = useRef<number[][]>([]);
-  const lastNt = useRef(0);
-  
   const drawWave = (n: number) => {
     if (!ctx) return;
     
-    if (shouldAnimate) {
-      nt += getSpeed();
-    }
-    
-    // Only recalculate if time has changed significantly (frame throttling)
-    const ntDelta = Math.abs(nt - lastNt.current);
-    if (ntDelta < 0.001 && wavePointsCache.current.length > 0) {
-      // Use cached points
-      for (i = 0; i < n; i++) {
-        ctx.beginPath();
-        ctx.lineWidth = waveWidth || 50;
-        ctx.strokeStyle = waveColors[i % waveColors.length];
-        const cachedPoints = wavePointsCache.current[i];
-        if (cachedPoints) {
-          for (let j = 0; j < cachedPoints.length; j += 2) {
-            ctx.lineTo(cachedPoints[j], cachedPoints[j + 1]);
-          }
-        }
-        ctx.stroke();
-        ctx.closePath();
-      }
-      return;
-    }
-    
-    // Calculate and cache new points
-    wavePointsCache.current = [];
-    lastNt.current = nt;
+    nt += getSpeed();
     
     for (i = 0; i < n; i++) {
       ctx.beginPath();
       ctx.lineWidth = waveWidth || 50;
       ctx.strokeStyle = waveColors[i % waveColors.length];
-      
-      const points: number[] = [];
-      // Reduce calculation frequency for better performance
-      const step = w < 768 ? 8 : 5; // Bigger steps on smaller screens
-      for (x = 0; x < w; x += step) {
-        const y = noise(x / 800, 0.3 * i, nt) * 100;
-        const finalY = y + h * 0.5;
-        ctx.lineTo(x, finalY);
-        points.push(x, finalY);
+      for (x = 0; x < w; x += 5) {
+        var y = noise(x / 800, 0.3 * i, nt) * 100;
+        ctx.lineTo(x, y + h * 0.5);
       }
-      wavePointsCache.current[i] = points;
       ctx.stroke();
       ctx.closePath();
     }
   };
 
-  let animationId: number;
   const shouldAnimate = isInView && !isScrolling;
-  const lastFrameTime = useRef(0);
   
-  const render = (currentTime?: number) => {
-    if (!ctx || !canvas || !shouldAnimate) return;
+  const render = () => {
+    if (!ctx || !canvas) return;
     
-    // FPS throttling based on target FPS
-    const fpsInterval = 1000 / targetFPS;
-    const now = currentTime || performance.now();
-    const elapsed = now - lastFrameTime.current;
-    
-    if (elapsed > fpsInterval) {
-      lastFrameTime.current = now - (elapsed % fpsInterval);
-      
-      // Use requestIdleCallback for background rendering when possible
-      if ('requestIdleCallback' in window && targetFPS < 60) {
-        requestIdleCallback(() => {
-          ctx.fillStyle = backgroundFill || "white";
-          ctx.globalAlpha = waveOpacity || 0.5;
-          ctx.fillRect(0, 0, w, h);
-          drawWave(5);
-        });
-      } else {
-        ctx.fillStyle = backgroundFill || "white";
-        ctx.globalAlpha = waveOpacity || 0.5;
-        ctx.fillRect(0, 0, w, h);
-        drawWave(5);
-      }
+    if (shouldAnimate) {
+      ctx.fillStyle = backgroundFill || "white";
+      ctx.globalAlpha = waveOpacity || 0.5;
+      ctx.fillRect(0, 0, w, h);
+      drawWave(5);
     }
     
     animationId = requestAnimationFrame(render);
@@ -228,25 +148,14 @@ export const WavyBackground = ({
   useEffect(() => {
     init();
     return () => {
-      cancelAnimationFrame(animationId);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
     };
   }, []);
 
-  // Separate effect to control animation based on shouldAnimate
-  useEffect(() => {
-    if (shouldAnimate && ctx && canvas) {
-      render();
-    } else {
-      cancelAnimationFrame(animationId);
-    }
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, [shouldAnimate]);
-
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
-    // I'm sorry but i have got to support it on safari.
     setIsSafari(
       typeof window !== "undefined" &&
         navigator.userAgent.includes("Safari") &&
@@ -268,7 +177,6 @@ export const WavyBackground = ({
         id="canvas"
         style={{
           ...(isSafari ? { filter: `blur(${blur}px)` } : {}),
-          willChange: shouldAnimate ? 'transform' : 'unset'
         }}
       ></canvas>
       <div className={cn("relative z-10 w-full h-full", className)} {...props}>
