@@ -10,11 +10,14 @@ import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { HERO_CONTENT, SOCIAL_PROOF_PEOPLE } from '../shared/content';
+import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 export const WaitingListHeroMobile: React.FC = () => {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -28,9 +31,38 @@ export const WaitingListHeroMobile: React.FC = () => {
     heardAbout: '',
   });
 
+  // Clear validation errors when user types
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (nameError) setNameError('');
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailError) setEmailError('');
+  };
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    
+    // Clear previous errors
+    setNameError('');
+    setEmailError('');
+    
+    // Validate form
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    
+    if (!nameValidation.isValid) {
+      setNameError(nameValidation.error || '');
+    }
+    
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+    }
+    
+    if (!isFormValid) {
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -117,22 +149,32 @@ export const WaitingListHeroMobile: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             >
-              <Input
-                type="text"
-                placeholder={HERO_CONTENT.formPlaceholders.name}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white text-black"
-              />
-              <Input
-                type="email"
-                placeholder={HERO_CONTENT.formPlaceholders.email}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full h-12 px-4 border border-gray-300 rounded-md text-base font-inter bg-white text-black"
-              />
+              <div>
+                <Input
+                  type="text"
+                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  value={name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  required
+                  className={`w-full h-12 px-4 border rounded-md text-base font-inter bg-white text-black ${nameError ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {nameError && (
+                  <p className="text-red-500 text-xs mt-1 font-inter px-1">{nameError}</p>
+                )}
+              </div>
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Enter your work email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  required
+                  className={`w-full h-12 px-4 border rounded-md text-base font-inter bg-white text-black ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {emailError && (
+                  <p className="text-red-500 text-xs mt-1 font-inter px-1">{emailError}</p>
+                )}
+              </div>
               <Button
                 type="submit"
                 disabled={isSubmitting}

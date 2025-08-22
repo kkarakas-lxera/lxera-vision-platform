@@ -5,6 +5,7 @@ import { Input } from '../../../ui/input';
 import { useToast } from '../../../ui/use-toast';
 import ClassicLoader from '../../../ui/ClassicLoader';
 import { HERO_CONTENT } from '../shared/content';
+import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 const faqs = [
   {
@@ -47,16 +48,47 @@ export const WaitingListFAQ: React.FC = () => {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  // Clear validation errors when user types
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (nameError) setNameError('');
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailError) setEmailError('');
+  };
+
   // Exact same form handler from hero section
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    
+    // Clear previous errors
+    setNameError('');
+    setEmailError('');
+    
+    // Validate form
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    
+    if (!nameValidation.isValid) {
+      setNameError(nameValidation.error || '');
+    }
+    
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+    }
+    
+    if (!isFormValid) {
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -153,23 +185,35 @@ export const WaitingListFAQ: React.FC = () => {
           
           {/* Exact same form from hero section */}
           <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <Input
-                type="text"
-                placeholder={HERO_CONTENT.formPlaceholders.name}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
-              />
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="flex-1 h-12 px-4 border border-gray-600 bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter"
-              />
+            <div className="flex flex-col sm:flex-row gap-3 mb-2">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  value={name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  required
+                  className={`h-12 px-4 border bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter ${nameError ? 'border-red-500' : 'border-gray-600'}`}
+                />
+                {nameError && (
+                  <p className="text-red-400 text-xs mt-1 font-inter">{nameError}</p>
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="email"
+                  placeholder="Enter your work email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  required
+                  className={`h-12 px-4 border bg-gray-800/50 text-white placeholder-gray-400 rounded-md text-sm font-inter ${emailError ? 'border-red-500' : 'border-gray-600'}`}
+                />
+                {emailError && (
+                  <p className="text-red-400 text-xs mt-1 font-inter">{emailError}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-center mt-4">
               <Button
                 type="submit"
                 disabled={isSubmitting}

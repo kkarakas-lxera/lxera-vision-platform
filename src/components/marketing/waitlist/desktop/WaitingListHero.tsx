@@ -11,11 +11,14 @@ import ClassicLoader from '../../../ui/ClassicLoader';
 import { WavyBackground } from '../../../ui/wavy-background';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { HERO_CONTENT } from '../shared/content';
+import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -119,10 +122,39 @@ export const WaitingListHero: React.FC = memo(() => {
     },
   ];
 
+  // Clear validation errors when user types
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (nameError) setNameError('');
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailError) setEmailError('');
+  };
+
   // Memoize form submission handler to prevent unnecessary re-renders
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    
+    // Clear previous errors
+    setNameError('');
+    setEmailError('');
+    
+    // Validate form
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    
+    if (!nameValidation.isValid) {
+      setNameError(nameValidation.error || '');
+    }
+    
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+    }
+    
+    if (!isFormValid) {
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -216,23 +248,35 @@ export const WaitingListHero: React.FC = memo(() => {
           
           {/* Inline Form */}
           <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <Input
-                type="text"
-                placeholder={HERO_CONTENT.formPlaceholders.name}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="flex-1 h-12 px-4 border border-gray-300 rounded-md text-sm font-inter bg-white"
-              />
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="flex-1 h-12 px-4 border border-gray-300 rounded-md text-sm font-inter bg-white"
-              />
+            <div className="flex flex-col sm:flex-row gap-3 mb-2">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  value={name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  required
+                  className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {nameError && (
+                  <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="email"
+                  placeholder="Enter your work email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  required
+                  className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {emailError && (
+                  <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-center mt-4">
               <Button
                 type="submit"
                 disabled={isSubmitting}
