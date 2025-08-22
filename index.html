@@ -8,10 +8,10 @@
     <meta name="description" content="LXERA is the world's first Learning & Innovation Experience Platform. Empower employee-led innovation and personalize learning through AI and behavioral science." />
     <meta name="author" content="LXERA" />
     
-    <!-- Cache control meta tags -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <!-- Performance optimization meta tags -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#7AE5C6">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <meta property="og:title" content="LXERA - Learning & Innovation Experience Platform" />
     <meta property="og:description" content="LXERA is the world's first Learning & Innovation Experience Platform. Empower employee-led innovation and personalize learning through AI and behavioral science." />
@@ -41,8 +41,13 @@
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     <link rel="dns-prefetch" href="https://www.google-analytics.com">
     
-    <!-- Preload critical images -->
-    <link rel="preload" href="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" as="image" type="image/png">
+    <!-- Preload critical images with fetchpriority -->
+    <link rel="preload" href="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" as="image" type="image/png" fetchpriority="high">
+    
+    <!-- Prefetch critical scripts for faster loading -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    <link rel="prefetch" href="/src/components/ui/wavy-background.tsx">
+    <link rel="prefetch" href="/src/components/marketing/waitlist/desktop/WaitingListHero.tsx">
     
     <!-- Optimized Font Loading with Critical Weights -->
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
@@ -60,9 +65,24 @@
         src: url("https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2") format('woff2');
       }
       
-      /* Preload critical CSS */
+      /* Critical CSS for faster rendering */
       body {
         font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Prevent layout shift during load */
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Optimize image loading */
+      img {
+        max-width: 100%;
+        height: auto;
       }
     </style>
     

@@ -1,10 +1,14 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, memo } from 'react';
 import { MapPin, Linkedin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
 import { useDeviceType } from '../../components/marketing/waitlist/shared/useDeviceType';
 
-// Desktop components (lazy loaded)
-const WaitingListHero = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListHero })));
+// Desktop components (lazy loaded with preload hints)
+const WaitingListHero = lazy(() => {
+  // Preload critical dependencies
+  import('simplex-noise');
+  return import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListHero }));
+});
 const WaitingListFeatures = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListFeatures })));
 const WaitingListDifferentiators = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListDifferentiators })));
 const WaitingListProcessFlow = lazy(() => import('../../components/marketing/waitlist/desktop').then(module => ({ default: module.WaitingListProcessFlow })));
@@ -17,42 +21,48 @@ const WaitingListDifferentiatorsMobile = lazy(() => import('../../components/mar
 const WaitingListProcessFlowMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListProcessFlowMobile })));
 const WaitingListFAQMobile = lazy(() => import('../../components/marketing/waitlist/mobile').then(module => ({ default: module.WaitingListFAQMobile })));
 
-const WaitingList: React.FC = () => {
+const WaitingList: React.FC = memo(() => {
   const deviceType = useDeviceType();
   const isMobile = deviceType === 'mobile';
   
-  // Loading fallback component
-  const LoadingFallback = ({ height = "h-96" }: { height?: string }) => (
-    <div className={`${height} flex items-center justify-center`}>
-      <div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div>
+  // Optimized loading fallback with skeleton
+  const LoadingFallback = memo(({ height = "h-96" }: { height?: string }) => (
+    <div className={`${height} flex items-center justify-center bg-gray-50 animate-pulse`}>
+      <div className="w-full max-w-4xl mx-auto px-4">
+        <div className="space-y-4">
+          <div className="h-12 bg-gray-200 rounded-md"></div>
+          <div className="h-6 bg-gray-200 rounded-md w-3/4"></div>
+          <div className="h-6 bg-gray-200 rounded-md w-1/2"></div>
+        </div>
+      </div>
     </div>
-  );
+  ));
 
   return (
     <div className="min-h-screen bg-white">
       {/* Conditional rendering based on device type */}
+      {/* Hero loads immediately (critical) */}
       <Suspense fallback={<LoadingFallback height="h-screen" />}>
-        {/* Hero Section */}
         {isMobile ? <WaitingListHeroMobile /> : <WaitingListHero />}
       </Suspense>
       
+      {/* Features load with intersection observer */}
       <Suspense fallback={<LoadingFallback />}>
-        {/* Features Section */}
         {isMobile ? <WaitingListFeaturesMobile /> : <WaitingListFeatures />}
       </Suspense>
       
+      {/* Process Flow deferred */}
       <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {/* Process Flow Section */}
         {isMobile ? <WaitingListProcessFlowMobile /> : <WaitingListProcessFlow />}
       </Suspense>
       
+      {/* Differentiators lazy */}
       <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {/* Differentiators Section */}
         {isMobile ? <WaitingListDifferentiatorsMobile /> : <WaitingListDifferentiators />}
       </Suspense>
       
+      {/* FAQ lowest priority */}
       <Suspense fallback={<LoadingFallback height="h-64" />}>
-        {/* FAQ Section */}
         {isMobile ? <WaitingListFAQMobile /> : <WaitingListFAQ />}
       </Suspense>
 
@@ -87,6 +97,8 @@ const WaitingList: React.FC = () => {
       />
     </div>
   );
-};
+});
+
+WaitingList.displayName = 'WaitingList';
 
 export default WaitingList;

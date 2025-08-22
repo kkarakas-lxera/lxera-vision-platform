@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, memo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../../../ui/button';
 import { AnimatedShinyText } from '../../../ui/AnimatedShinyText';
@@ -12,6 +12,9 @@ import { WavyBackground } from '../../../ui/wavy-background';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { HERO_CONTENT } from '../shared/content';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
+
+// Memoized colors array for WavyBackground
+const wavyColors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -68,7 +71,8 @@ export const WaitingListHero: React.FC = memo(() => {
     }
   }, [showOnboarding, onboardingStep, form.role, form.roleOther, form.teamSize, form.useCases.length, form.heardAbout]);
 
-  const ROLE_OPTIONS = [
+  // Memoized constants to prevent array recreation
+  const ROLE_OPTIONS = useMemo(() => [
     'Learning & Development Specialist',
     'Human Resources Specialist',
     'Innovation Manager',
@@ -77,19 +81,20 @@ export const WaitingListHero: React.FC = memo(() => {
     'CEO',
     'Founder',
     'Other',
-  ];
+  ], []);
 
-  const TEAM_SIZE_OPTIONS = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'];
-  const USE_CASE_OPTIONS = [
+  const TEAM_SIZE_OPTIONS = useMemo(() => ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'], []);
+  const USE_CASE_OPTIONS = useMemo(() => [
     'Skills Gap Analysis',
     'Employee Training',
     'Personalized Learning Paths',
     'Innovation Enablement',
     'Compliance Training',
-  ];
-  const HEARD_ABOUT_OPTIONS = ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'];
+  ], []);
+  const HEARD_ABOUT_OPTIONS = useMemo(() => ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'], []);
 
-  const people = [
+  // Memoized static data to prevent recreation on every render
+  const people = useMemo(() => [
     {
       id: 1,
       name: "Sarah Chen",
@@ -120,18 +125,18 @@ export const WaitingListHero: React.FC = memo(() => {
       designation: "CHRO",
       image: "/avatars/avatar2.svg",
     },
-  ];
+  ], []);
 
-  // Clear validation errors when user types
-  const handleNameChange = (value: string) => {
+  // Memoized input handlers to prevent unnecessary re-renders
+  const handleNameChange = useCallback((value: string) => {
     setName(value);
     if (nameError) setNameError('');
-  };
+  }, [nameError]);
 
-  const handleEmailChange = (value: string) => {
+  const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
     if (emailError) setEmailError('');
-  };
+  }, [emailError]);
 
   // Memoize form submission handler to prevent unnecessary re-renders
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -195,7 +200,7 @@ export const WaitingListHero: React.FC = memo(() => {
     <>
     <WavyBackground
       containerClassName="min-h-screen bg-white overflow-hidden font-inter"
-      colors={["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"]}
+      colors={wavyColors}
       waveWidth={30}
       backgroundFill="white"
       blur={15}

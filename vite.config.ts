@@ -19,7 +19,16 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['@react-pdf/renderer', 'lenis', 'lenis/react'],
+    include: [
+      '@react-pdf/renderer', 
+      'lenis', 
+      'lenis/react',
+      // Pre-bundle critical dependencies for faster startup
+      'framer-motion',
+      'simplex-noise',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-select'
+    ],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -64,24 +73,50 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Generate source maps for production debugging
-    sourcemap: true,
-    // Ensure CSS gets proper content hash
+    // Disable source maps in production for better performance
+    sourcemap: false,
+    // Aggressive CSS splitting for better caching
     cssCodeSplit: true,
-    // Force new hash on every build
+    // Force new hash on every build + optimize chunks
     rollupOptions: {
-      manualChunks: {
-        react: ['react', 'react-dom', 'react-router-dom'],
-        motion: ['framer-motion'],
-        supabase: ['@supabase/supabase-js'],
-        ui: ['lucide-react'],
-        // Separate waiting list components for better caching
-        'waitlist-core': ['@radix-ui/react-dialog', '@radix-ui/react-select'],
-        'waitlist-forms': ['@hookform/resolvers', 'react-hook-form'],
-        // Split heavy analytics into separate chunk
-        analytics: ['@vercel/analytics', '@microsoft/clarity', '@hotjar/browser']
-      },
+      // Custom chunk splitting function
       output: {
+        manualChunks(id) {
+          // Core React libraries
+          if (id.includes('node_modules/react')) {
+            return 'react';
+          }
+          // Animation libraries (heavy)
+          if (id.includes('framer-motion')) {
+            return 'motion';
+          }
+          if (id.includes('simplex-noise')) {
+            return 'canvas';
+          }
+          // UI libraries
+          if (id.includes('@radix-ui')) {
+            return 'ui-radix';
+          }
+          if (id.includes('lucide-react')) {
+            return 'ui-core';
+          }
+          // Heavy utilities
+          if (id.includes('lodash') || id.includes('recharts') || id.includes('date-fns')) {
+            return 'heavy-utils';
+          }
+          // Analytics (defer)
+          if (id.includes('@vercel/analytics') || id.includes('@microsoft/clarity') || id.includes('@hotjar/browser')) {
+            return 'analytics';
+          }
+          // Backend
+          if (id.includes('@supabase/supabase-js')) {
+            return 'supabase';
+          }
+          // Forms
+          if (id.includes('react-hook-form') || id.includes('@hookform/resolvers')) {
+            return 'forms';
+          }
+        },
         // Use content hash for all assets
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.');
