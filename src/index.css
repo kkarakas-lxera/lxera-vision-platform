@@ -42,11 +42,6 @@
     }
   }
 
-  /* Tawk.to Chat Widget Positioning - Prevent overlap */
-  #tawk-chat-widget {
-    bottom: 80px !important;
-    z-index: 1000 !important;
-  }
   
   /* Custom border utilities for tabs */
   .border-b-3 {
@@ -73,13 +68,6 @@
     transition: width 0.5s ease-out;
   }
 
-  /* Mobile-specific positioning */
-  @media (max-width: 768px) {
-    #tawk-chat-widget {
-      bottom: 80px !important;
-      right: 16px !important;
-    }
-  }
 }
 
 /* Utility class to hide scrollbars */

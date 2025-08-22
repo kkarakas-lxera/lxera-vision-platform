@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../../ui/button';
 import { AnimatedShinyText } from '../../ui/AnimatedShinyText';
@@ -10,18 +10,20 @@ import { Checkbox } from '../../ui/checkbox';
 import { Stepper, StepperItem, StepperIndicator, StepperSeparator, StepperTitle } from '../../ui/stepper';
 import ClassicLoader from '../../ui/ClassicLoader';
 
-function FloatingPaths({ position }: { position: number }) {
-  const paths = Array.from({ length: 36 }, (_, i) => ({
+const FloatingPaths = memo(({ position }: { position: number }) => {
+  // Memoize path calculations for better performance
+  const paths = useMemo(() => Array.from({ length: 8 }, (_, i) => ({
     id: i,
-    d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-      380 - i * 5 * position
-    } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-      152 - i * 5 * position
-    } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-      684 - i * 5 * position
-    } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-    width: 0.5 + i * 0.03,
-  }));
+    d: `M-${380 - i * 20 * position} -${189 + i * 25}C-${
+      380 - i * 20 * position
+    } -${189 + i * 25} -${312 - i * 20 * position} ${216 - i * 25} ${
+      152 - i * 20 * position
+    } ${343 - i * 25}C${616 - i * 20 * position} ${470 - i * 25} ${
+      684 - i * 20 * position
+    } ${875 - i * 25} ${684 - i * 20 * position} ${875 - i * 25}`,
+    width: 0.8 + i * 0.15, // Slightly thicker lines to maintain visual density
+    className: `floating-path-optimized floating-path-${i + 1}`, // Add CSS animation classes
+  })), [position]);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -32,31 +34,24 @@ function FloatingPaths({ position }: { position: number }) {
       >
         <title>Background Paths</title>
         {paths.map((path) => (
-          <motion.path
+          <path
             key={path.id}
             d={path.d}
             stroke="currentColor"
             strokeWidth={path.width}
-            strokeOpacity={0.1 + path.id * 0.03}
-            initial={{ pathLength: 0.3, opacity: 0.6 }}
-            animate={{
-              pathLength: 1,
-              opacity: [0.3, 0.6, 0.3],
-              pathOffset: [0, 1, 0],
-            }}
-            transition={{
-              duration: 20 + Math.random() * 10,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
-            }}
+            strokeOpacity={0.15 + path.id * 0.08} // Increased opacity to compensate for fewer paths
+            className={path.className} // Use CSS animations instead of Framer Motion
+            fill="none"
           />
         ))}
       </svg>
     </div>
   );
-}
+});
 
-export const WaitingListHero: React.FC = () => {
+FloatingPaths.displayName = 'FloatingPaths';
+
+export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -130,7 +125,8 @@ export const WaitingListHero: React.FC = () => {
   ];
   const HEARD_ABOUT_OPTIONS = ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Memoize form submission handler to prevent unnecessary re-renders
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
     
@@ -150,7 +146,7 @@ export const WaitingListHero: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [name, email, toast]);
 
   return (
     <section className="relative min-h-screen bg-white overflow-hidden font-inter">
@@ -451,4 +447,6 @@ export const WaitingListHero: React.FC = () => {
       </Dialog.Root>
     </section>
   );
-};
+});
+
+WaitingListHero.displayName = 'WaitingListHero';

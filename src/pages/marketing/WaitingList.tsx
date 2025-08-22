@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { MapPin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
-import {
-  WaitingListHero,
-  WaitingListFeatures,
-  WaitingListDifferentiators,
-  WaitingListProcessFlow,
-  WaitingListFAQ
-} from '../../components/marketing/waitlist';
+import { WaitingListHero } from '../../components/marketing/waitlist';
+
+// Lazy load non-critical components for better performance
+const WaitingListFeatures = lazy(() => import('../../components/marketing/waitlist/WaitingListFeatures').then(module => ({ default: module.WaitingListFeatures })));
+const WaitingListDifferentiators = lazy(() => import('../../components/marketing/waitlist/WaitingListDifferentiators').then(module => ({ default: module.WaitingListDifferentiators })));
+const WaitingListProcessFlow = lazy(() => import('../../components/marketing/waitlist/WaitingListProcessFlow').then(module => ({ default: module.WaitingListProcessFlow })));
+const WaitingListFAQ = lazy(() => import('../../components/marketing/waitlist/WaitingListFAQ').then(module => ({ default: module.WaitingListFAQ })));
 
 const WaitingList: React.FC = () => {
   return (
@@ -15,17 +15,26 @@ const WaitingList: React.FC = () => {
       {/* Hero Section with integrated form */}
       <WaitingListHero />
       
-      {/* What You Can Do - Features Grid */}
-      <WaitingListFeatures />
+      {/* Lazy loaded sections with loading fallbacks */}
+      <Suspense fallback={<div className="h-96 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
+        {/* What You Can Do - Features Grid */}
+        <WaitingListFeatures />
+      </Suspense>
       
-      {/* What's Next - Process Flow */}
-      <WaitingListProcessFlow />
+      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
+        {/* What's Next - Process Flow */}
+        <WaitingListProcessFlow />
+      </Suspense>
       
-      {/* Why LXERA Is Different */}
-      <WaitingListDifferentiators />
+      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
+        {/* Why LXERA Is Different */}
+        <WaitingListDifferentiators />
+      </Suspense>
       
-      {/* FAQ Section */}
-      <WaitingListFAQ />
+      <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-2 border-[#7AE5C6] border-t-transparent rounded-full"></div></div>}>
+        {/* FAQ Section */}
+        <WaitingListFAQ />
+      </Suspense>
 
       <UIFooter
         className="border-t"

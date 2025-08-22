@@ -59,7 +59,12 @@ export default defineConfig(({ mode }) => ({
         react: ['react', 'react-dom', 'react-router-dom'],
         motion: ['framer-motion'],
         supabase: ['@supabase/supabase-js'],
-        ui: ['lucide-react']
+        ui: ['lucide-react'],
+        // Separate waiting list components for better caching
+        'waitlist-core': ['@radix-ui/react-dialog', '@radix-ui/react-select'],
+        'waitlist-forms': ['@hookform/resolvers', 'react-hook-form'],
+        // Split heavy analytics into separate chunk
+        analytics: ['@vercel/analytics', '@microsoft/clarity', '@hotjar/browser']
       },
       output: {
         // Use content hash for all assets

@@ -454,6 +454,72 @@
   }
 }
 
+/* Optimized CSS animations for waiting list floating paths */
+@keyframes floating-path-1 {
+  0%, 100% { 
+    stroke-dashoffset: 0; 
+    opacity: 0.4; 
+  }
+  50% { 
+    stroke-dashoffset: 100; 
+    opacity: 0.8; 
+  }
+}
+
+@keyframes floating-path-2 {
+  0%, 100% { 
+    stroke-dashoffset: 0; 
+    opacity: 0.45; 
+  }
+  50% { 
+    stroke-dashoffset: 120; 
+    opacity: 0.75; 
+  }
+}
+
+@keyframes floating-path-3 {
+  0%, 100% { 
+    stroke-dashoffset: 0; 
+    opacity: 0.5; 
+  }
+  50% { 
+    stroke-dashoffset: 140; 
+    opacity: 0.7; 
+  }
+}
+
+/* CSS-based floating path animations */
+.floating-path-optimized {
+  stroke-dasharray: 20 10;
+  will-change: stroke-dashoffset, opacity;
+}
+
+.floating-path-1 { animation: floating-path-1 30s linear infinite; }
+.floating-path-2 { animation: floating-path-2 35s linear infinite; }
+.floating-path-3 { animation: floating-path-3 40s linear infinite; }
+.floating-path-4 { animation: floating-path-1 32s linear infinite reverse; }
+.floating-path-5 { animation: floating-path-2 37s linear infinite reverse; }
+.floating-path-6 { animation: floating-path-3 42s linear infinite reverse; }
+.floating-path-7 { animation: floating-path-1 34s linear infinite; }
+.floating-path-8 { animation: floating-path-2 39s linear infinite; }
+
+/* Mobile optimizations - simpler animations */
+@media (max-width: 768px) {
+  .floating-path-optimized {
+    animation: none !important;
+    opacity: 0.3 !important;
+    stroke-dasharray: none !important;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .floating-path-optimized {
+    animation: none !important;
+    opacity: 0.4 !important;
+  }
+}
+
 /* Subtle pulse animation for primary CTAs */
 @keyframes pulse-subtle {
   0%, 100% {
