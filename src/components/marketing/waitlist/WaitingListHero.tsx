@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../../ui/button';
 import { AnimatedShinyText } from '../../ui/AnimatedShinyText';
@@ -9,60 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Checkbox } from '../../ui/checkbox';
 import { Stepper, StepperItem, StepperIndicator, StepperSeparator, StepperTitle } from '../../ui/stepper';
 import ClassicLoader from '../../ui/ClassicLoader';
-
-const FloatingPaths = memo(({ position }: { position: number }) => {
-  // Use original proven approach with optimized count
-  const paths = useMemo(() => Array.from({ length: 24 }, (_, i) => ({
-    id: i,
-    d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-      380 - i * 5 * position
-    } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-      152 - i * 5 * position
-    } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-      684 - i * 5 * position
-    } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-    width: 0.5 + i * 0.03,
-    opacity: 0.1 + i * 0.03,
-  })), [position]);
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      <svg
-        className="w-full h-full text-[#7AE5C6]"
-        viewBox="0 0 696 316"
-        fill="none"
-      >
-        <title>Background Paths</title>
-        {paths.map((path) => (
-          <motion.path
-            key={path.id}
-            d={path.d}
-            stroke="currentColor"
-            strokeWidth={path.width}
-            strokeOpacity={path.opacity}
-            fill="none"
-            initial={{ pathLength: 0.3, opacity: 0.6 }}
-            animate={{
-              pathLength: 1,
-              opacity: [0.3, 0.6, 0.3],
-              pathOffset: [0, 1, 0],
-            }}
-            transition={{
-              duration: 15 + Math.random() * 5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              transform: "translateZ(0)",
-            }}
-          />
-        ))}
-      </svg>
-    </div>
-  );
-});
-
-FloatingPaths.displayName = 'FloatingPaths';
+import { WavyBackground } from '../../ui/wavy-background';
 
 export const WaitingListHero: React.FC = memo(() => {
   const { toast } = useToast();
@@ -162,14 +109,17 @@ export const WaitingListHero: React.FC = memo(() => {
   }, [name, email, toast]);
 
   return (
-    <section className="relative min-h-screen bg-white overflow-hidden font-inter">
-        {/* Animated Floating Paths Background */}
-        <div className="absolute inset-0 opacity-60">
-          <FloatingPaths position={1} />
-          <FloatingPaths position={-1} />
-        </div>
-        
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-10">
+    <>
+    <WavyBackground
+      containerClassName="min-h-screen bg-white overflow-hidden font-inter"
+      colors={["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"]}
+      waveWidth={30}
+      backgroundFill="white"
+      blur={15}
+      speed="slow"
+      waveOpacity={0.3}
+    >
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-10 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
             <img
@@ -278,7 +228,8 @@ export const WaitingListHero: React.FC = memo(() => {
             </svg>
           </div>
         </motion.div>
-      </div>
+        </div>
+    </WavyBackground>
 
       {/* Onboarding helper dialog using Radix (brand-styled) */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -458,7 +409,7 @@ export const WaitingListHero: React.FC = memo(() => {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-      </section>
+    </>
   );
 });
 

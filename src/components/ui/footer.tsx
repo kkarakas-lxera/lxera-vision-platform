@@ -51,7 +51,6 @@ export const Footer = React.forwardRef<HTMLDivElement, FooterProps>(
                     className="h-8 object-contain"
                   />
                 )}
-                <span className="text-xl font-semibold">{brand.name}</span>
               </a>
               <p className="text-sm text-foreground/60">
                 {brand.description}
@@ -61,15 +60,15 @@ export const Footer = React.forwardRef<HTMLDivElement, FooterProps>(
                 {socialLinks.map((link) => (
                   <a
                     key={link.name}
-                    className="flex items-center gap-2 text-sm transition-all text-foreground/60 hover:text-foreground/90 group"
+                    className="text-sm transition-all text-foreground/60 hover:text-foreground/90 group"
                     target="_blank"
                     href={link.href}
                     rel="noopener noreferrer"
+                    title={link.name}
                   >
                     {link.icon && (
                       <link.icon className="h-5 w-5 transition-all stroke-foreground/60 group-hover:stroke-foreground/90" />
                     )}
-                    <span>{link.name}</span>
                   </a>
                 ))}
               </div>
