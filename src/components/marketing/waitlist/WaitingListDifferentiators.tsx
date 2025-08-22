@@ -1,5 +1,4 @@
 import React from 'react';
-import LampHeader from './LampHeader';
 import { Diamond, TrendingUp, Lightbulb, Target } from 'lucide-react';
 
 const differentiators = [
@@ -50,14 +49,12 @@ export const WaitingListDifferentiators: React.FC = () => {
       </div>
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Heading above lamp */}
-        <div className="text-center mb-4">
+        {/* Heading */}
+        <div className="text-center mb-16">
           <h2 className="text-4xl font-bold lg:text-5xl text-white">
             Why LXERA Is Different
           </h2>
         </div>
-        {/* Lamp glow without text */}
-        <LampHeader className="mb-10">{null}</LampHeader>
 
         {/* Differentiators Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

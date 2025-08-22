@@ -4,7 +4,6 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { useToast } from '../../ui/use-toast';
 import ClassicLoader from '../../ui/ClassicLoader';
-import { AnimatedTooltip } from '../../ui/animated-tooltip';
 
 const faqs = [
   {
@@ -37,38 +36,6 @@ const faqs = [
   }
 ];
 
-const people = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    designation: "Learning Director",
-    image: "/avatars/avatar1.svg",
-  },
-  {
-    id: 2,
-    name: "Michael Rodriguez",
-    designation: "HR Manager",
-    image: "/avatars/avatar2.svg",
-  },
-  {
-    id: 3,
-    name: "Emily Johnson",
-    designation: "Innovation Lead",
-    image: "/avatars/avatar3.svg",
-  },
-  {
-    id: 4,
-    name: "David Park",
-    designation: "VP Operations",
-    image: "/avatars/avatar1.svg",
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    designation: "CHRO",
-    image: "/avatars/avatar2.svg",
-  },
-];
 
 export const WaitingListFAQ: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -196,14 +163,6 @@ export const WaitingListFAQ: React.FC = () => {
               </Button>
             </div>
           </form>
-          
-          {/* Social Proof with avatars (no tooltips) */}
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <AnimatedTooltip items={people} />
-            <span className="text-sm text-gray-300 font-inter ml-2">
-              Join 100+ people who have already signed up.
-            </span>
-          </div>
         </div>
       </div>
     </section>
