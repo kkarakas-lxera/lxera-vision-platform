@@ -8,6 +8,7 @@ import { Badge } from '../../ui/badge';
 import { Checkbox } from '../../ui/checkbox';
 import { CheckCircle, Mail, Users, Building2 } from 'lucide-react';
 import { useToast } from '../../ui/use-toast';
+import { validateWaitlistForm } from '../../../utils/waitlistValidation';
 
 interface FormData {
   email: string;
@@ -32,9 +33,16 @@ export const WaitingListForm: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear errors when user types
+    if (field === 'firstName') setFirstNameError('');
+    if (field === 'lastName') setLastNameError('');
+    if (field === 'email') setEmailError('');
   };
 
   const handleInterestToggle = (interest: string) => {
@@ -48,6 +56,32 @@ export const WaitingListForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setFirstNameError('');
+    setLastNameError('');
+    setEmailError('');
+    
+    // Validate form
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(fullName, formData.email);
+    
+    if (!nameValidation.isValid) {
+      const nameParts = fullName.trim().split(' ').filter(part => part.length > 0);
+      if (nameParts.length < 2) {
+        setFirstNameError('Please enter your first name');
+        setLastNameError('Please enter your last name');
+      }
+    }
+    
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+    }
+    
+    if (!isFormValid) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -140,7 +174,11 @@ export const WaitingListForm: React.FC = () => {
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
                     placeholder="Enter your first name"
+                    className={firstNameError ? 'border-red-500' : ''}
                   />
+                  {firstNameError && (
+                    <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="lastName">Last Name *</Label>
@@ -151,7 +189,11 @@ export const WaitingListForm: React.FC = () => {
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     placeholder="Enter your last name"
+                    className={lastNameError ? 'border-red-500' : ''}
                   />
+                  {lastNameError && (
+                    <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
+                  )}
                 </div>
               </div>
 
@@ -165,7 +207,11 @@ export const WaitingListForm: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="you@company.com"
+                  className={emailError ? 'border-red-500' : ''}
                 />
+                {emailError && (
+                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                )}
               </div>
 
               {/* Company */}

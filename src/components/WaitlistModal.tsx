@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { validateWaitlistForm } from "@/utils/waitlistValidation";
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const { toast } = useToast();
 
   const handleInputChange = (field: keyof typeof formData) => (
@@ -30,17 +33,30 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
       ...prev,
       [field]: e.target.value
     }));
+    // Clear errors when user types
+    if (field === 'fullName') setNameError('');
+    if (field === 'email') setEmailError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName || !formData.email) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide your full name and email.",
-        variant: "destructive",
-      });
+    // Clear previous errors
+    setNameError('');
+    setEmailError('');
+    
+    // Validate form
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(formData.fullName, formData.email);
+    
+    if (!nameValidation.isValid) {
+      setNameError(nameValidation.error || '');
+    }
+    
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+    }
+    
+    if (!isFormValid) {
       return;
     }
 
@@ -138,9 +154,12 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
                   placeholder="Enter your full name"
                   value={formData.fullName}
                   onChange={handleInputChange("fullName")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green ${nameError ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {nameError && (
+                  <p className="text-red-500 text-xs mt-1">{nameError}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -153,9 +172,12 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
                   placeholder="your.email@example.com"
                   value={formData.email}
                   onChange={handleInputChange("email")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green ${emailError ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {emailError && (
+                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                )}
               </div>
 
               <div className="space-y-2">
