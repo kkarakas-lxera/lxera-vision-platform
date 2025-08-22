@@ -95,6 +95,7 @@ serve(async (req) => {
       if (formData.role) updateData.role = formData.role;
       if (formData.teamSize) updateData.team_size = formData.teamSize;
       if (formData.interest) updateData.interest = formData.interest;
+      if (formData.interests && formData.interests.length > 0) updateData.interest = formData.interests.join(', ');
 
       await supabase
         .from('waitlist_contacts')
@@ -112,7 +113,7 @@ serve(async (req) => {
           company: formData.company,
           role: formData.role,
           team_size: formData.teamSize,
-          interest: formData.interest,
+          interest: formData.interest || (formData.interests && formData.interests.length > 0 ? formData.interests.join(', ') : null),
           source: formData.source || 'website',
           utm_source: formData.utm_source,
           utm_medium: formData.utm_medium,
@@ -141,7 +142,7 @@ serve(async (req) => {
             COMPANY: formData.company || '',
             JOB_TITLE: formData.role || '',
             TEAM_SIZE: formData.teamSize || '',
-            INTEREST: formData.interest || '',
+            INTEREST: formData.interest || (formData.interests && formData.interests.length > 0 ? formData.interests.join(', ') : ''),
             SOURCE: formData.source || 'website'
           },
           listIds: [3], // LXERA Waitlist - All

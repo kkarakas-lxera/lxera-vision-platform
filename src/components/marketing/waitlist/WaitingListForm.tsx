@@ -5,6 +5,7 @@ import { Label } from '../../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 import { Badge } from '../../ui/badge';
+import { Checkbox } from '../../ui/checkbox';
 import { CheckCircle, Mail, Users, Building2 } from 'lucide-react';
 import { useToast } from '../../ui/use-toast';
 
@@ -36,12 +37,21 @@ export const WaitingListForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleInterestToggle = (interest: string) => {
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest]
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/functions/v1/waitlist-subscribe', {
+      const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,6 +213,35 @@ export const WaitingListForm: React.FC = () => {
                     <SelectItem value="1000+">1000+ employees</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Interests */}
+              <div>
+                <Label>What interests you most about LXERA? (Select all that apply)</Label>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {[
+                    'Skills Gap Analysis',
+                    'Employee Development',
+                    'Learning Pathways',
+                    'Team Performance',
+                    'AI-Powered Insights',
+                    'Compliance Training'
+                  ].map((interest) => (
+                    <div key={interest} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={interest}
+                        checked={formData.interests.includes(interest)}
+                        onCheckedChange={() => handleInterestToggle(interest)}
+                      />
+                      <Label 
+                        htmlFor={interest} 
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {interest}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Submit Button */}

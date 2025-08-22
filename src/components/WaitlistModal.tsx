@@ -47,7 +47,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/functions/v1/waitlist-subscribe', {
+      const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

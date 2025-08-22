@@ -19,6 +19,8 @@ import SkillsHealthSnapshot from '@/components/dashboard/company/SkillsHealthSna
 import MarketStrip from '@/components/dashboard/company/MarketStrip';
 import TopRisks from '@/components/dashboard/company/TopRisks';
 import NextBestActions from '@/components/dashboard/company/NextBestActions';
+import SkillsTrendsView from '@/components/dashboard/skills/SkillsTrendsView';
+import { mockHistoricalData, mockSkillsMomentum } from '@/data/mockSkillsData';
 // Removed: import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 
 interface DashboardMetrics {
@@ -704,6 +706,13 @@ export default function CompanyDashboard() {
           onAssignLearning={() => navigate('/dashboard/courses')}
           onViewSkills={() => navigate('/dashboard/skills')}
           onImportCVs={() => navigate('/dashboard/employees?tab=import')}
+        />
+
+        {/* Skills Trends Section */}
+        <SkillsTrendsView
+          historicalData={mockHistoricalData}
+          skillsMomentum={mockSkillsMomentum}
+          isLoading={loading}
         />
                     </div>
                     
