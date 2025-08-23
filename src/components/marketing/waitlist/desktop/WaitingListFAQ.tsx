@@ -202,7 +202,7 @@ export const WaitingListFAQ: React.FC = () => {
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Enter your work email"
+                  placeholder="Company email"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required

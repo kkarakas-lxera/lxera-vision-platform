@@ -38,7 +38,7 @@ const features = [
     icon: Brain,
     title: 'Market intelligence',
     description: "Know what's growing in popularity to keep team's relevant.",
-    tags: ['Real-time data', 'Geo-specific', 'Target-specific data']
+    tags: ['Real-time data', 'Geo-specific', 'Target-specific data', 'Skills demand analysis', 'Experience segmentation']
   }
 ];
 
@@ -55,7 +55,7 @@ export const WaitingListFeatures: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
-            What You Can Do
+            What You Can Do with Lxera
           </h2>
           <p className="text-white max-w-3xl mx-auto text-base">
             Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.
@@ -98,7 +98,7 @@ export const WaitingListFeatures: React.FC = () => {
                   {feature.tags.map((tag, tagIndex) => (
                     <span
                       key={tagIndex}
-                      className="px-3 py-1 bg-stone-100/60 text-white text-xs rounded-full border border-stone-200/20 shadow-sm backdrop-blur-sm"
+                      className="px-3 py-1 bg-stone-100/60 text-business-black text-xs rounded-full border border-stone-200/20 shadow-sm backdrop-blur-sm"
                       style={{ filter: 'blur(0.3px)' }}
                     >
                       {tag}

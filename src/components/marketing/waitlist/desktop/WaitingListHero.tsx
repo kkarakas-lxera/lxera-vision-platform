@@ -259,6 +259,16 @@ export const WaitingListHero: React.FC = memo(() => {
               decoding="sync"
             />
           </div>
+          
+          {/* Login Button (top-right) */}
+          <div className="absolute top-6 right-4 sm:right-8 z-20">
+            <Button
+              onClick={() => window.location.href = '/login'}
+              className="px-6 py-2 bg-gradient-to-b from-business-black to-gray-800 text-white font-inter text-sm font-medium rounded-md hover:from-gray-800 hover:to-business-black transition-all duration-200 shadow-sm border-none"
+            >
+              Login
+            </Button>
+          </div>
           <m.div 
             ref={ref}
             className="text-center"
@@ -312,7 +322,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Enter your work email"
+                  placeholder="Company email"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required

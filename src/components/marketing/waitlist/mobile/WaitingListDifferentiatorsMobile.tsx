@@ -7,22 +7,22 @@ const differentiators = [
   {
     icon: Diamond,
     title: 'AI, not generic',
-    description: 'We use skills & needs.',
+    description: 'Training isn\'t one-size-fits-all. LXERA adapts to real skills and actual needs.',
   },
   {
     icon: TrendingUp,
-    title: 'Always future-ready',
-    description: 'Real-time market data keeps skills relevant.',
+    title: 'Future-ready',
+    description: 'We use real-time market data so skills stay current, relevant, and future-proof.',
   },
   {
     icon: Lightbulb,
-    title: 'From skills to business solutions',
-    description: 'Only platform to turn learning into innovation and impact.',
+    title: 'Skills to solutions',
+    description: 'LXERA turns new skills into innovation, real outcomes, and measurable impact.',
   },
   {
     icon: Target,
     title: 'Clarity at every step',
-    description: 'Dashboards show measurable progress you can act on.',
+    description: 'Dashboards make progress visible, actionable, and easy to share with leaders.',
   }
 ];
 

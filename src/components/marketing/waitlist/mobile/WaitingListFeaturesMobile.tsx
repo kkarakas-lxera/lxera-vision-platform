@@ -58,7 +58,7 @@ export const WaitingListFeaturesMobile: React.FC = () => {
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
-            {FEATURES_CONTENT.title}
+            What You Can Do with Lxera
           </h2>
           <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
             {FEATURES_CONTENT.subtitle}
