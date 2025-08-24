@@ -173,14 +173,14 @@ class ChatOllama:
             if has_json:
                 payload["think"] = False
             
-            # Make request to remote Ollama API (use cookie if token provided)
+            # Make request to remote Ollama API (use Bearer token if provided)
             headers = {"Content-Type": "application/json"}
-            cookies = {"C.25124719_auth_token": self.token} if self.token else None
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"
             response = requests.post(
                 f"{self.base_url}/api/chat",
                 json=payload,
                 headers=headers,
-                cookies=cookies,
                 timeout=300
             )
             response.raise_for_status()
@@ -243,8 +243,10 @@ def test_ollama_connection() -> bool:
     try:
         base_url = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
         token = os.environ.get("OLLAMA_TOKEN", "")
-        cookies = {"C.25124719_auth_token": token} if token else None
-        response = requests.get(f"{base_url}/api/tags", cookies=cookies, timeout=10)
+        headers = {}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        response = requests.get(f"{base_url}/api/tags", headers=headers, timeout=10)
         response.raise_for_status()
         models = response.json().get("models", [])
         print(f"✅ Connected to Ollama. Available models: {[m['name'] for m in models]}")

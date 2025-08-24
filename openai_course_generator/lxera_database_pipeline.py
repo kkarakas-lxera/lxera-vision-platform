@@ -880,6 +880,13 @@ class LXERADatabasePipeline:
             
             # If still no output_text, try dict format
             if not output_text and isinstance(result, dict):
+                # First check if plan_id is directly in the dict (LangGraph node format)
+                if 'plan_id' in result and result['plan_id']:
+                    plan_id = result['plan_id']
+                    logger.info(f"✅ Found plan_id directly in dict result: {plan_id}")
+                    return plan_id
+                
+                # Fallback to content field
                 output_text = str(result.get('content', ''))
             
             # Look for plan_id pattern
