@@ -7,7 +7,7 @@ from ..services.sentry_service import start_span
 
 def _llm():
 	from ..services.ollama_service import get_chat_ollama
-	return get_chat_ollama()
+	return get_chat_ollama("gpt-oss:20b")
 
 def _tools():
 	from .research_tools_wrappers import (

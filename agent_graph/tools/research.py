@@ -384,7 +384,7 @@ def research_synthesizer(research_results: str, synthesis_focus: str = "comprehe
         from ..services.ollama_service import get_chat_ollama
         from langchain_core.messages import SystemMessage, HumanMessage
         
-        llm = get_chat_ollama("qwen3:14b")
+        llm = get_chat_ollama("gpt-oss:20b")
         
         messages = [
             SystemMessage(content="You are an expert research analyst who synthesizes multiple sources into structured knowledge. ALWAYS return valid JSON only."),

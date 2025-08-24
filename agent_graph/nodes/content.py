@@ -7,8 +7,8 @@ from ..services.sentry_service import start_span
 
 def _llm():
 	from ..services.ollama_service import get_chat_ollama
-	# Use qwen3:14b for content generation with tool calling support
-	return get_chat_ollama("qwen3:14b")
+	# Use gpt-oss:20b for content generation with tool calling support
+	return get_chat_ollama("gpt-oss:20b")
 
 
 def _tools():

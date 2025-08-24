@@ -9,7 +9,7 @@ from ..utils.json_repair_utils import try_parse_json
 
 def _llm():
 	from ..services.ollama_service import get_chat_ollama
-	return get_chat_ollama()
+	return get_chat_ollama("gpt-oss:20b")
 
 
 def _tools():

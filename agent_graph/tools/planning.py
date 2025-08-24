@@ -307,7 +307,7 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         from ..services.ollama_service import get_chat_ollama
         from langchain_core.messages import SystemMessage, HumanMessage
         
-        llm = get_chat_ollama("qwen3:14b")
+        llm = get_chat_ollama("gpt-oss:20b")
         
         messages = [
             SystemMessage(content="You are an expert learning designer who creates highly personalized course structures. ALWAYS return your response as valid JSON only, no additional text."),
@@ -447,7 +447,7 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
         from ..services.ollama_service import get_chat_ollama
         from langchain_core.messages import SystemMessage, HumanMessage
         
-        llm = get_chat_ollama("qwen3:14b")
+        llm = get_chat_ollama("gpt-oss:20b")
         
         messages = [
             SystemMessage(content="You are an expert research strategist who creates targeted search queries for personalized learning. ALWAYS return your response as valid JSON only, no additional text."),
