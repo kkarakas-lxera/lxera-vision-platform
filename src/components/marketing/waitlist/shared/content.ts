@@ -1,18 +1,18 @@
 // Shared content constants for waitlist components
 export const HERO_CONTENT = {
   title: "All-in-One Learning and Skill Management Platform",
-  subtitle: "Identify skill gaps, create AI-powered training, and measure ROI in one platform. Perfect for HR leaders, L&D managers, and talent development teams.",
+  subtitle: "Identify skill gaps, create AI-powered training, and measure ROI in one platform.",
   ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots available.",
   formPlaceholders: {
     name: "Full Name",
     email: "Enter your email",
   },
-  socialProof: "Join 100+ people who have already signed up.",
+  socialProof: "Join 100+ talent managers who have already signed up.",
 };
 
 export const FEATURES_CONTENT = {
   title: "What You Can Do",
-  subtitle: "Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.",
+  subtitle: "Stop juggling tools. LXERA gives you one platform to bridge skill gaps and prove business impact. Perfect for HR leaders, L&D managers, and talent development teams.",
   features: [
     {
       title: 'Spot skill gaps',
