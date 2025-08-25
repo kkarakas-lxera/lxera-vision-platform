@@ -32,60 +32,15 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Agent Pipeline API endpoint (Render deployment)
-    const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'https://lxera-agent-pipeline.onrender.com/api/generate-course'
+    // Groq API integration
+    const groqApiKey = Deno.env.get('GROQ_API_KEY') || ''
+    const groqModel = 'openai/gpt-oss-20b'  // Same model as Ollama gpt-oss:20b
+    const groqBaseUrl = 'https://api.groq.com/openai/v1/chat/completions'
 
-    // For outline_only mode, skip directly to agent pipeline
-    if (generation_mode === 'outline_only') {
-      console.log('Outline-only mode detected, skipping skills gap analysis')
-      
-      // Call the agent pipeline directly for outline generation
-      const pipelineRequest = {
-        employee_id,
-        company_id,
-        assigned_by_id,
-        job_id,
-        generation_mode: 'outline_only'
-      }
+    console.log(`🎯 Generation mode: ${generation_mode}`)
+    console.log(`🤖 Using Groq model: ${groqModel} at ${groqBaseUrl}`)
 
-      const pipelineResponse = await fetch(agentPipelineUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(pipelineRequest)
-      })
-
-      if (!pipelineResponse.ok) {
-        const errorText = await pipelineResponse.text()
-        throw new Error(`Agent pipeline failed: ${errorText}`)
-      }
-
-      const pipelineResult = await pipelineResponse.json()
-
-      if (!pipelineResult.pipeline_success) {
-        throw new Error(pipelineResult.error || 'Agent pipeline execution failed')
-      }
-
-      // Return outline-only results
-      return new Response(
-        JSON.stringify({
-          success: true,
-          plan_id: pipelineResult.plan_id,
-          course_title: pipelineResult.course_title,
-          employee_name: pipelineResult.employee_name,
-          generation_mode: 'outline_only',
-          is_outline_only: true,
-          processing_time: pipelineResult.total_processing_time
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
-    }
-
-    // Update job progress helper
+    // Phase 1: Retrieve employee data
     const updateJobProgress = async (updates: any) => {
       if (!job_id) return
       
@@ -98,7 +53,6 @@ serve(async (req) => {
         .eq('id', job_id)
     }
 
-    // Phase 1: Retrieve employee data
     await updateJobProgress({
       current_phase: 'Retrieving employee data',
       progress_percentage: 10
@@ -126,6 +80,8 @@ serve(async (req) => {
       throw new Error('Employee not found')
     }
 
+    console.log(`👤 Employee: ${employee.users?.full_name} (${employee.position})`)
+
     // Phase 2: Retrieve existing skills gap analysis
     await updateJobProgress({
       current_phase: 'Retrieving skills gap analysis',
@@ -142,6 +98,8 @@ serve(async (req) => {
     if (skillsError || !employeeSkills || employeeSkills.length === 0) {
       throw new Error('Skills data not found. Please complete skills analysis first.')
     }
+
+    console.log(`📊 Found ${employeeSkills.length} skills for analysis`)
 
     // Get position requirements for gap calculation
     const { data: currentPosition } = await supabase
@@ -269,192 +227,157 @@ serve(async (req) => {
     const severityOrder = { critical: 0, major: 1, moderate: 2, minor: 3 }
     skillGaps.sort((a, b) => severityOrder[a.gap_severity] - severityOrder[b.gap_severity])
 
-    // Phase 3: Create course plan
-    await updateJobProgress({
-      current_phase: 'Creating personalized course plan',
-      progress_percentage: 30
-    })
+    console.log(`🎯 Found ${skillGaps.length} skill gaps to address`)
+
+    // Validate Groq API key
+    if (!groqApiKey) {
+      throw new Error('GROQ_API_KEY is not configured')
+    }
+
+    console.log(`🎯 Processing generation mode: ${generation_mode}`)
+    console.log(`👤 Employee: ${employee.users?.full_name}`)
+    console.log(`🎯 Skill gaps count: ${skillGaps.length}`)
     
-    const priorityGaps = skillGaps
-      .filter(g => g.gap_severity !== 'minor')
-      .slice(0, 7)
-
-    // Prepare course metadata for the agent pipeline
-    // This data can be sent to the pipeline if needed
-    const courseMetadata = {
-      course_title: `${employee.position} Skills Development Program`,
-      employee_name: employee.users?.full_name || 'Employee',
-      current_role: employee.position,
-      career_goal: employee.career_goal || `Senior ${employee.position}`,
-      key_skills: priorityGaps.map(g => g.skill_name).slice(0, 5),
-      priority_level: skillGaps.some(g => g.gap_severity === 'critical') ? 'high' : 'medium',
-      skills_gaps: priorityGaps
-    }
-
-    // Phase 4: Handle Feedback Context (if regenerating)
-    let feedbackEnrichedMetadata = courseMetadata;
-    let previousCourseContent = null;
+    // Route to appropriate generation function based on mode
+    let result: any
     
-    if (generation_mode === 'regenerate_with_feedback' && feedback_context && course_id) {
-      await updateJobProgress({
-        current_phase: 'Processing feedback for regeneration',
-        progress_percentage: 30
-      })
-      
-      // Fetch previous course content for context
-      const { data: existingContent, error: contentError } = await supabase
-        .from('cm_module_content')
-        .select('*')
-        .eq('content_id', course_id)
-        .single()
-      
-      if (!contentError && existingContent) {
-        previousCourseContent = existingContent;
-      }
-      
-      // Enrich metadata with feedback context
-      feedbackEnrichedMetadata = {
-        ...courseMetadata,
-        regeneration_context: {
-          feedback_text: feedback_context,
-          previous_course_id: course_id,
-          previous_content: previousCourseContent,
-          iteration_type: 'feedback_revision',
-          improvement_focus: feedback_context // AI will parse this for specific improvements
-        }
-      }
-    }
-
-    // Phase 5: Call the Agent Pipeline
-    await updateJobProgress({
-      current_phase: generation_mode === 'regenerate_with_feedback' ? 'Regenerating course with feedback' : 'Initializing AI agents',
-      progress_percentage: 35
-    })
-
-    // Prepare request for agent pipeline
-    const pipelineRequest = {
-      employee_id,
-      company_id,
-      assigned_by_id,
-      job_id,
-      generation_mode,
-      plan_id,  // Pass plan_id for tracking and remaining_modules mode
-      enable_multimedia,  // Pass multimedia flag
-      course_metadata: feedbackEnrichedMetadata,
-      skills_gaps: priorityGaps,
-      feedback_context: feedback_context || null,
-      previous_course_content: previousCourseContent
-    }
-
-    // Call the agent pipeline API
-    const pipelineResponse = await fetch(agentPipelineUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(pipelineRequest)
-    })
-
-    if (!pipelineResponse.ok) {
-      const errorText = await pipelineResponse.text()
-      throw new Error(`Agent pipeline failed: ${errorText}`)
-    }
-
-    const pipelineResult = await pipelineResponse.json()
-
-    if (!pipelineResult.pipeline_success) {
-      throw new Error(pipelineResult.error || 'Agent pipeline execution failed')
-    }
-
-    // Extract results from pipeline
-    const content_id = pipelineResult.content_id
-    const assignment_id = pipelineResult.assignment_id
-
-    if (!content_id) {
-      throw new Error('No content_id returned from agent pipeline')
-    }
-
-    // Final progress update
-    await updateJobProgress({
-      current_phase: 'Course generation complete',
-      progress_percentage: 100,
-      successful_courses: 1
-    })
-
-    // Update cm_course_plans based on generation mode
-    if ((generation_mode === 'full' || generation_mode === 'remaining_modules') && plan_id) {
-      await supabase
-        .from('cm_course_plans')
-        .update({
-          full_course_generated_at: new Date().toISOString(),
-          metadata: {
-            content_id: content_id,
-            assignment_id: assignment_id,
-            generation_completed: true,
-            generation_mode: generation_mode
-          }
-        })
-        .eq('plan_id', plan_id)
+    switch (generation_mode) {
+      case 'outline_only':
+        console.log('📋 Generating course outline only')
+        result = await generateCourseOutline(
+          employee,
+          skillGaps,
+          groqApiKey,
+          groqModel
+        )
         
-      console.log(`Updated course plan ${plan_id} with full generation timestamp (mode: ${generation_mode})`)
-    }
-    
-    // Also check if there's a plan for this employee without plan_id
-    // (for backward compatibility with existing flows)
-    if (generation_mode === 'full' && !plan_id) {
-      const { data: existingPlan } = await supabase
-        .from('cm_course_plans')
-        .select('plan_id')
-        .eq('employee_id', employee_id)
-        .eq('status', 'completed')
-        .is('full_course_generated_at', null)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-      
-      if (existingPlan) {
-        await supabase
+        if (!result.success) {
+          throw new Error(result.error || 'Course outline generation failed')
+        }
+        
+        // Store outline in database
+        const plan_id = crypto.randomUUID()
+        const courseRecord = {
+          plan_id,
+          employee_id,
+          employee_name: employee.users?.full_name || 'Unknown',
+          session_id: job_id || crypto.randomUUID(),
+          company_id,
+          course_title: result.course_title,
+          course_structure: result.course_structure,
+          prioritized_gaps: { gaps: skillGaps },
+          research_strategy: { strategy: 'direct_groq_generation' },
+          learning_path: { path: 'personalized_modules' },
+          research_queries: { queries: [] },
+          total_modules: result.course_structure?.modules?.length || 4,
+          course_duration_weeks: result.course_structure?.total_duration_weeks || 4,
+          status: 'completed',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        
+        const { error: insertError } = await supabase
           .from('cm_course_plans')
-          .update({
-            full_course_generated_at: new Date().toISOString(),
-            metadata: {
-              content_id: content_id,
-              assignment_id: assignment_id,
-              generation_completed: true
-            }
-          })
-          .eq('plan_id', existingPlan.plan_id)
-          
-        console.log(`Updated course plan ${existingPlan.plan_id} with full generation timestamp (auto-detected)`)
-      }
+          .insert(courseRecord)
+
+        if (insertError) {
+          console.error('❌ Failed to store course plan:', insertError)
+          throw new Error(`Failed to store course plan: ${insertError.message}`)
+        }
+
+        console.log(`✅ Course outline generated and stored with plan_id: ${plan_id}`)
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            plan_id,
+            course_title: result.course_title,
+            employee_name: employee.users?.full_name || 'Unknown',
+            generation_mode: 'outline_only',
+            is_outline_only: true,
+            processing_time: result.processing_time || 0
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
+        )
+
+      case 'full':
+      case 'first_module':
+      case 'remaining_modules':
+      case 'regenerate_with_feedback':
+        console.log(`🤖 Routing ${generation_mode} to Render agent pipeline`)
+        
+        // Route advanced generation modes to Render LangGraph pipeline
+        const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'https://lxera-agent-pipeline.onrender.com/api/generate-course'
+        
+        await updateJobProgress({
+          current_phase: `Routing to agent pipeline for ${generation_mode}`,
+          progress_percentage: 10
+        })
+        
+        const pipelineRequest = {
+          employee_id,
+          company_id,
+          assigned_by_id,
+          job_id,
+          generation_mode,
+          plan_id,
+          enable_multimedia,
+          course_id,
+          feedback_context
+        }
+        
+        console.log(`📤 Calling agent pipeline: ${agentPipelineUrl}`)
+        console.log(`📋 Request payload:`, JSON.stringify(pipelineRequest, null, 2))
+        
+        const pipelineResponse = await fetch(agentPipelineUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(pipelineRequest)
+        })
+        
+        if (!pipelineResponse.ok) {
+          const errorText = await pipelineResponse.text()
+          console.error(`❌ Agent pipeline failed (${pipelineResponse.status}):`, errorText)
+          throw new Error(`Agent pipeline failed: ${pipelineResponse.status} - ${errorText}`)
+        }
+        
+        const pipelineResult = await pipelineResponse.json()
+        console.log(`📥 Agent pipeline response:`, pipelineResult)
+        
+        if (!pipelineResult.pipeline_success) {
+          throw new Error(pipelineResult.error || 'Agent pipeline execution failed')
+        }
+        
+        result = {
+          success: true,
+          plan_id: pipelineResult.plan_id,
+          course_title: pipelineResult.course_title,
+          processing_time: pipelineResult.processing_time,
+          source: 'agent_pipeline'
+        }
+        break
+
+      default:
+        throw new Error(`Unknown generation mode: ${generation_mode}`)
     }
 
-    // Check if multimedia was generated
-    const multimedia_info = pipelineResult.multimedia_session_id ? {
-      multimedia_generated: true,
-      multimedia_session_id: pipelineResult.multimedia_session_id,
-      multimedia_status: pipelineResult.multimedia_status,
-      videos_generated: pipelineResult.videos_generated || 0
-    } : {
-      multimedia_generated: false
+    if (!result.success) {
+      throw new Error(result.error || `${generation_mode} generation failed`)
     }
 
-    // Return success response with pipeline results
+    console.log(`✅ ${generation_mode} generation completed successfully!`)
+    
     return new Response(
       JSON.stringify({
         success: true,
-        content_id: content_id,
-        assignment_id: assignment_id,
-        module_name: pipelineResult.metadata?.module_name || 'Course Module',
-        employee_name: employee.users?.full_name || 'Employee',
-        module_count: generation_mode === 'first_module' ? 1 : (pipelineResult.total_modules || 1),
+        ...result,
         generation_mode,
-        is_partial_generation: generation_mode === 'first_module',
-        is_completion: generation_mode === 'remaining_modules',
-        is_regeneration: generation_mode === 'regenerate_with_feedback',
-        token_savings: pipelineResult.token_savings,
-        processing_time: pipelineResult.total_processing_time,
-        ...multimedia_info
+        employee_name: employee.users?.full_name || 'Unknown'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -477,3 +400,258 @@ serve(async (req) => {
   }
 })
 
+// Course generation functions using Groq API
+async function generateCourseOutline(
+  employee: any,
+  skillGaps: any[],
+  groqApiKey: string,
+  groqModel: string
+) {
+  const startTime = Date.now()
+  
+  try {
+    console.log(`🔗 Connecting to Groq API`)
+    
+    // Prepare employee context
+    const employeeContext = {
+      name: employee.users?.full_name || 'Employee',
+      position: employee.position || 'Professional',
+      department: employee.department || 'General',
+      career_goal: employee.career_goal || 'Professional development',
+      key_tools: employee.key_tools || []
+    }
+    
+    // Prepare skills gap context
+    const criticalGaps = skillGaps
+      .filter(gap => gap.gap_severity === 'critical')
+      .slice(0, 5)
+      .map(gap => `${gap.skill_name}: ${gap.current_level}/${gap.required_level}`)
+      .join(', ')
+    
+    const majorGaps = skillGaps
+      .filter(gap => gap.gap_severity === 'major')
+      .slice(0, 3)
+      .map(gap => `${gap.skill_name}: ${gap.current_level}/${gap.required_level}`)
+      .join(', ')
+
+    console.log(`🔍 Critical gaps: ${criticalGaps || 'None'}`)
+    console.log(`🔍 Major gaps: ${majorGaps || 'None'}`)
+
+    // Create the prompt for Ollama
+    const prompt = `Create a personalized course plan for ${employeeContext.name}, ${employeeContext.position} in ${employeeContext.department} department.
+
+CRITICAL SKILL GAPS: ${criticalGaps}
+MAJOR SKILL GAPS: ${majorGaps}
+CAREER GOAL: ${employeeContext.career_goal}
+KEY TOOLS: ${employeeContext.key_tools.join(', ')}
+
+Generate a comprehensive course structure with:
+- Appropriate course title
+- 4-6 practical modules
+- 4-8 weeks total duration
+- Focus on addressing critical gaps first
+
+Return ONLY valid JSON in this exact format:
+{
+  "course_title": "Specific course title",
+  "total_duration_weeks": 6,
+  "modules": [
+    {
+      "module_id": 1,
+      "module_name": "Module title",
+      "week": 1,
+      "priority": "critical",
+      "skill_gap_addressed": "specific skill",
+      "duration_weeks": 2,
+      "description": "Module description"
+    }
+  ]
+}`
+
+    // Call Groq API with detailed logging
+    console.log(`📤 Sending request to Groq API...`)
+    console.log(`🤖 Model: ${groqModel}`)
+    console.log(`📋 Request payload size: ${prompt.length} characters`)
+    console.log(`⏰ Request start time: ${new Date().toISOString()}`)
+    
+    const requestStart = Date.now()
+    
+    // Create AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      console.log(`⏰ Request timeout after 45 seconds, aborting...`)
+      controller.abort()
+    }, 45000)
+    
+    let response: any
+    try {
+      console.log('🚀 Executing fetch to Groq API...')
+      
+      const requestBody = {
+        model: groqModel,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert learning designer who creates personalized course structures. Always return valid JSON only, no additional text.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+        response_format: { type: 'json_object' }
+      }
+      
+      console.log(`📦 Request body size: ${JSON.stringify(requestBody).length} bytes`)
+      
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      })
+      
+      clearTimeout(timeoutId)
+      console.log(`📡 Groq API response received after ${Date.now() - requestStart}ms`)
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      console.error(`❌ Groq API request failed:`, error.message)
+      console.error(`❌ Error name: ${error.name}`)
+      console.error(`❌ Error stack: ${error.stack}`)
+      
+      if (error.name === 'AbortError') {
+        console.error(`❌ Groq request timed out after 45 seconds`)
+        throw new Error('Groq request timed out - model may be too slow or overloaded')
+      }
+      throw new Error(`Groq API request failed: ${error.message}`)
+    }
+    
+    const requestTime = Date.now() - requestStart
+    console.log(`⏱️ Groq API request completed in ${requestTime}ms`)
+    console.log(`📊 Response status: ${response.status} ${response.statusText}`)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`❌ Groq API error: ${response.status} - ${errorText}`)
+      throw new Error(`Groq API failed: ${response.status} - ${errorText}`)
+    }
+
+    console.log(`📥 Reading Groq response...`)
+    const result = await response.json()
+    console.log('🤖 Groq response received successfully')
+    console.log(`📝 Response has choices: ${!!result.choices}`)
+    console.log(`📝 Content length: ${result.choices?.[0]?.message?.content?.length || 0} characters`)
+
+    // Extract and parse the course structure
+    let courseStructure: any
+    let jsonStr = ''
+    try {
+      const content = result.choices?.[0]?.message?.content || ''
+      console.log(`🔍 Parsing response content (${content.length} chars)`)
+      console.log(`📄 Raw content preview: ${content.substring(0, 200)}...`)
+      
+      // Parse JSON directly (Groq returns clean JSON with response_format)
+      jsonStr = content
+      console.log(`🧪 Attempting to parse JSON...`)
+      courseStructure = JSON.parse(jsonStr)
+      console.log(`✅ Course structure parsed successfully: "${courseStructure.course_title}"`)
+      console.log(`📊 Structure info: ${courseStructure.modules?.length || 0} modules, ${courseStructure.total_duration_weeks || 0} weeks`)
+      
+    } catch (parseError: any) {
+      console.error('❌ Failed to parse Groq response:', parseError)
+      console.error(`💣 Parse error details:`, parseError.message)
+      console.error(`📄 Failed JSON string (first 500 chars):`, jsonStr?.substring(0, 500))
+      throw new Error(`Failed to parse course structure from Groq: ${parseError.message}`)
+    }
+
+    const processingTime = Date.now() - startTime
+    console.log(`⏱️ Groq processing completed in ${processingTime}ms`)
+
+    return {
+      success: true,
+      course_title: courseStructure.course_title,
+      course_structure: courseStructure,
+      processing_time: processingTime
+    }
+
+  } catch (error) {
+    console.error('❌ Groq integration error:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+// Helper function to generate detailed module content (used only for outline_only mode)
+async function generateModuleContent(
+  module: any,
+  courseTitle: string,
+  groqApiKey: string,
+  groqModel: string
+) {
+  const prompt = `Generate detailed content for this course module:
+
+Course: ${courseTitle}
+Module: ${module.module_name}
+Duration: ${module.duration_hours || 3} hours
+Learning Objectives: ${module.learning_objectives?.join(', ') || 'Professional development'}
+Key Topics: ${module.key_topics?.join(', ') || 'Core concepts'}
+
+Create comprehensive module content including:
+- Introduction
+- Learning objectives
+- Core content sections
+- Practical exercises
+- Key takeaways
+- Resources and next steps
+
+Return structured JSON with sections and content.`
+  
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: groqModel,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert instructional designer. Create detailed, engaging module content in structured JSON format.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+        response_format: { type: 'json_object' }
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error(`Groq API failed: ${response.status}`)
+    }
+    
+    const result = await response.json()
+    const content = result.choices?.[0]?.message?.content
+    
+    return JSON.parse(content || '{}')
+    
+  } catch (error) {
+    console.error(`❌ Error generating module content:`, error)
+    return {
+      error: 'Failed to generate module content',
+      module_name: module.module_name
+    }
+  }
+}

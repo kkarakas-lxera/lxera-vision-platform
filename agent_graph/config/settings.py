@@ -10,7 +10,7 @@ class AgentGraphSettings(BaseSettings):
 
 	use_langgraph: bool = Field(default=True, description="Feature-flag to enable LangGraph runner")
 	groq_api_key: str = Field(default="", description="Groq API key")
-	groq_primary_model: str = Field(default="llama-3.3-70b-versatile", description="Primary Groq model")
+	groq_primary_model: str = Field(default="openai/gpt-oss-20b", description="Primary Groq model")
 	groq_fallback_model: str = Field(default="llama-3.1-8b-instant", description="Fallback Groq model")
 
 	supabase_url: str = Field(default="", description="Supabase project URL")

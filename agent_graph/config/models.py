@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class ModelPolicy(BaseModel):
-	primary: str = Field(default="llama-3.3-70b-versatile")
+	primary: str = Field(default="openai/gpt-oss-20b")
 	fallback: str = Field(default="llama-3.1-8b-instant")
 
 

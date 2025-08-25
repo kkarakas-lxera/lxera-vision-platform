@@ -6,8 +6,18 @@ import re
 from ..services.sentry_service import start_span
 
 def _llm():
-	from ..services.ollama_service import get_chat_ollama
-	return get_chat_ollama("gpt-oss:20b")
+	from langchain_groq import ChatGroq
+	from ..config.settings import settings
+	
+	if not settings.groq_api_key:
+		raise ValueError("GROQ_API_KEY not configured")
+		
+	return ChatGroq(
+		model="openai/gpt-oss-20b",  # Exact model from Groq docs
+		api_key=settings.groq_api_key,
+		temperature=0.7,
+		max_tokens=4096
+	)
 
 def _tools():
 	from .research_tools_wrappers import (
