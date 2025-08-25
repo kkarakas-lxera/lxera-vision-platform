@@ -106,7 +106,7 @@ export const WaitingListFAQ: React.FC<WaitingListFAQProps> = ({ content, variant
         body: JSON.stringify({
           fullName: name,
           email: email,
-          source: 'faq-footer'
+          source: variant === 'personal' ? 'faq-footer-personal' : 'faq-footer-enterprise'
         }),
       });
 

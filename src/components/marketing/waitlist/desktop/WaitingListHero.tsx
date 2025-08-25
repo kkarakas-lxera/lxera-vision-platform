@@ -91,7 +91,7 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
               useCasesOther: form.useCasesOther,
               heardAbout: form.heardAbout,
               onboardingCompleted: true,
-              source: 'hero-waitlist-onboarding'
+              source: variant === 'personal' ? 'hero-waitlist-personal-onboarding' : 'hero-waitlist-enterprise-onboarding'
             }),
           });
           
@@ -215,7 +215,7 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
         body: JSON.stringify({
           fullName: name,
           email: email,
-          source: 'hero-waitlist'
+          source: variant === 'personal' ? 'hero-waitlist-personal' : 'hero-waitlist-enterprise'
         }),
       });
 

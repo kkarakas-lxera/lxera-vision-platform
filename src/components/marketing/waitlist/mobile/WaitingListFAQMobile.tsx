@@ -105,7 +105,7 @@ export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ cont
         body: JSON.stringify({
           fullName: name,
           email: email,
-          source: 'faq-footer-mobile'
+          source: variant === 'personal' ? 'faq-footer-personal-mobile' : 'faq-footer-enterprise-mobile'
         }),
       });
 

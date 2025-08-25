@@ -158,21 +158,52 @@ serve(async (req) => {
       contactId = newContact.id;
     }
 
+    // Detect variant based on source patterns
+    const detectVariant = (source: string): 'enterprise' | 'personal' => {
+      const personalIndicators = [
+        'personal',
+        'b2c',
+        'individual',
+        'career',
+        '-personal-',
+        '/personal/'
+      ];
+      
+      const sourceStr = (source || '').toLowerCase();
+      return personalIndicators.some(indicator => 
+        sourceStr.includes(indicator)
+      ) ? 'personal' : 'enterprise';
+    };
+
+    const variant = detectVariant(formData.source);
+    
+    // Get appropriate Brevo list ID
+    const getBrevoListId = (variant: string): number[] => {
+      switch (variant) {
+        case 'personal':
+          return [4]; // B2C Personal List
+        case 'enterprise':
+        default:
+          return [3]; // B2B Enterprise List
+      }
+    };
+
     // Sync to Brevo
     const brevoApiKey = Deno.env.get('BREVO_API_KEY');
     if (!brevoApiKey) {
       console.error('BREVO_API_KEY not configured');
     } else {
       try {
-        // Prepare Brevo contact data (basic info only)
+        // Prepare Brevo contact data with variant info
         const brevoContact: any = {
           email: formData.email,
           attributes: {
             FIRSTNAME: firstName || '',
             LASTNAME: lastName || '',
-            SOURCE: formData.source || 'website'
+            SOURCE: formData.source || 'website',
+            VARIANT: variant
           },
-          listIds: [3], // LXERA Waitlist - All
+          listIds: getBrevoListId(variant),
           updateEnabled: true // Handle duplicates
         };
 
