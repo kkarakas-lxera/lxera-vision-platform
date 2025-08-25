@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // Responses API is available from v5.0.0 upward
 import OpenAI from 'https://esm.sh/openai@5.11.0'
+import { encode as base64Encode } from 'https://deno.land/std@0.168.0/encoding/base64.ts'
 // Error handling utilities (inlined to avoid import issues)
 interface ErrorLogContext {
   requestId: string;
@@ -194,6 +195,31 @@ function safeJsonParse(raw: string): any {
     }
     throw err;
   }
+}
+
+/**
+ * Try to extract a JSON object from a possibly noisy string.
+ * Falls back to scanning for the first "{" and the last "}" and attempts parsing.
+ */
+function extractJsonObject(raw: string): any {
+  try {
+    return JSON.parse(raw)
+  } catch (_) {
+    const first = raw.indexOf('{')
+    const last = raw.lastIndexOf('}')
+    if (first !== -1 && last !== -1 && last > first) {
+      const candidate = raw.slice(first, last + 1)
+      try {
+        return JSON.parse(candidate)
+      } catch (_) {
+        // try to strip code fences if present
+        const withoutFences = candidate.replace(/^```[a-zA-Z]*\n?/g, '').replace(/```$/g, '')
+        return JSON.parse(withoutFences)
+      }
+    }
+  }
+  // As a last resort, return empty object
+  return {}
 }
 
 /**
@@ -557,13 +583,17 @@ serve(async (req) => {
       }
     }
     
-    // Initialize OpenAI
+    // Initialize OpenAI (Vision) for extraction and Groq for structuring
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY is not configured')
     }
-    
-    const openai = new OpenAI({ apiKey: openaiApiKey })
+    const groqApiKey = Deno.env.get('GROQ_API_KEY')
+    if (!groqApiKey) {
+      throw new Error('GROQ_API_KEY is not configured')
+    }
+    const openaiVision = new OpenAI({ apiKey: openaiApiKey })
+    const groq = new OpenAI({ apiKey: groqApiKey, baseURL: 'https://api.groq.com/openai/v1' })
     
     // Helper function to update analysis status
     const updateStatus = async (status: string, progress: number, message?: string, filePath?: string) => {
@@ -666,9 +696,9 @@ serve(async (req) => {
     // Update status: Processing CV
     await updateStatus('processing', 20, 'Processing CV file')
     
-    // Convert file to base64
+    // Convert file to base64 safely (avoid spread that can overflow the stack)
     const buffer = await fileData.arrayBuffer()
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    const base64 = base64Encode(new Uint8Array(buffer))
     
     // Extract text from CV using OpenAI Vision API
     await updateStatus('extracting', 30, 'Extracting text from CV')
@@ -679,13 +709,13 @@ serve(async (req) => {
     // For PDFs, use the new responses API; for images, use chat completions
     let extractedText = ''
     let apiResponse: any = null
-    let modelUsed = 'llama-3.1-8b-instant'
+    let modelUsed = 'gpt-4o-mini'
     
     if (isPdf) {
       try {
         // Use the new responses API for PDF processing
-        modelUsed = 'llama-3.3-70b-versatile'
-        apiResponse = await openai.responses.create({
+        modelUsed = 'gpt-4o-mini'
+        apiResponse = await openaiVision.responses.create({
           model: modelUsed,
           input: [
             {
@@ -719,7 +749,7 @@ serve(async (req) => {
       }
     } else {
       // Use chat completions for images
-      apiResponse = await openai.chat.completions.create({
+      apiResponse = await openaiVision.chat.completions.create({
         model: modelUsed,
         messages: [
           {
@@ -791,10 +821,13 @@ serve(async (req) => {
     await updateStatus('analyzing', 50, 'Analyzing CV content')
     
     // Analyze the CV content
+    // Cap the extracted text to reduce JSON validation failures
+    const MAX_CHARS = 12000
+    const truncatedText = extractedText.length > MAX_CHARS ? extractedText.slice(0, MAX_CHARS) + '\n...[truncated]' : extractedText
     const analysisPrompt = `Analyze this CV/resume and extract structured information.
 
-CV Text:
-${extractedText}
+CV Text (may be truncated):
+${truncatedText}
 
 Please extract and structure the following information:
 1. Personal Information (name, email, phone, location)
@@ -817,24 +850,36 @@ Return the information in a structured JSON format.
 
 Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
-    const analysisResponse = await openai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional CV analyzer. Extract and structure information from CVs accurately."
-        },
-        {
-          role: "user",
-          content: analysisPrompt
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0,
-      response_format: { type: "json_object" }
-    })
-    
-    const rawAnalysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
+    let analysisResponse: any
+    let rawAnalysisResult: any = {}
+    try {
+      analysisResponse = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-20b',
+        messages: [
+          { role: "system", content: "You are a professional CV analyzer. Extract and structure information from CVs accurately." },
+          { role: "user", content: analysisPrompt }
+        ],
+        max_tokens: 2000,
+        temperature: 0,
+        response_format: { type: "json_object" }
+      })
+      rawAnalysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
+    } catch (jsonModeError: any) {
+      // Fallback: ask for JSON but without enforced JSON mode
+      console.warn('Groq JSON mode failed, retrying without response_format:', getSafeErrorMessage(jsonModeError))
+      const fallback = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-20b',
+        messages: [
+          { role: "system", content: "You output strictly valid JSON with no markdown fences or commentary." },
+          { role: "user", content: analysisPrompt + "\n\nReturn only a JSON object." }
+        ],
+        max_tokens: 2000,
+        temperature: 0
+      })
+      const text = fallback.choices[0]?.message?.content || '{}'
+      rawAnalysisResult = extractJsonObject(text)
+      analysisResponse = fallback
+    }
     
     // Transform the keys to match frontend expectations
     const analysisResult = transformCVDataKeys(rawAnalysisResult)
@@ -845,10 +890,10 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
       await supabase.from('st_llm_usage_metrics').insert({
         company_id,
         service_type: 'cv_content_analysis',
-        model_used: 'gpt-4o-mini',
+        model_used: 'openai/gpt-oss-20b',
         input_tokens: analysisUsage.prompt_tokens || 0,
         output_tokens: analysisUsage.completion_tokens || 0,
-        cost_estimate: calculateCost('gpt-4o-mini', analysisUsage.prompt_tokens || 0, analysisUsage.completion_tokens || 0),
+        cost_estimate: calculateCost('openai/gpt-oss-20b', analysisUsage.prompt_tokens || 0, analysisUsage.completion_tokens || 0),
         duration_ms: Date.now() - startTime,
         success: true,
         metadata: {
@@ -859,6 +904,89 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
       })
     }
     
+    // Fallback: ensure work_experience and education arrays exist with expected item shapes
+    const needsExperienceFallback = !analysisResult.work_experience || !Array.isArray(analysisResult.work_experience) || analysisResult.work_experience.length === 0
+    const needsEducationFallback = !analysisResult.education || !Array.isArray(analysisResult.education) || analysisResult.education.length === 0
+    if (needsExperienceFallback || needsEducationFallback) {
+      try {
+        const fallbackPrompt = `From the CV text below, extract strictly the following keys as JSON:
+
+work_experience: array of objects with fields { title: string; company: string; duration: string; description?: string }
+education: array of objects with fields { degree: string; fieldOfStudy?: string; institution: string; year?: string }
+
+CV Text (may be truncated):\n${truncatedText}\n
+Return ONLY a valid JSON object with keys work_experience and education, no markdown or extra text.`
+
+        let fallbackResp: any
+        let fallbackJson: any = {}
+        try {
+          fallbackResp = await groq.chat.completions.create({
+            model: 'openai/gpt-oss-20b',
+            messages: [
+              { role: 'system', content: 'You output strictly valid JSON with keys work_experience and education only.' },
+              { role: 'user', content: fallbackPrompt }
+            ],
+            max_tokens: 1500,
+            temperature: 0,
+            response_format: { type: 'json_object' }
+          })
+          fallbackJson = safeJsonParse(fallbackResp.choices[0]?.message?.content || '{}')
+        } catch (fallbackJsonModeErr: any) {
+          console.warn('Groq fallback JSON mode failed, retrying without response_format:', getSafeErrorMessage(fallbackJsonModeErr))
+          const fb2 = await groq.chat.completions.create({
+            model: 'openai/gpt-oss-20b',
+            messages: [
+              { role: 'system', content: 'You output strictly valid JSON with keys work_experience and education only. No markdown fences or commentary.' },
+              { role: 'user', content: fallbackPrompt + '\n\nReturn only a JSON object.' }
+            ],
+            max_tokens: 1500,
+            temperature: 0
+          })
+          const text = fb2.choices[0]?.message?.content || '{}'
+          fallbackJson = extractJsonObject(text)
+          fallbackResp = fb2
+        }
+
+        // Normalize shapes to expected fields
+        const normalizeWork = (arr: any[]) => (Array.isArray(arr) ? arr.map(item => ({
+          title: item?.title || item?.role || '',
+          company: item?.company || item?.organization || '',
+          duration: item?.duration || item?.dates || '',
+          description: item?.description || (Array.isArray(item?.responsibilities) ? item?.responsibilities.join(' ') : item?.responsibilities || '')
+        })) : [])
+        const normalizeEdu = (arr: any[]) => (Array.isArray(arr) ? arr.map(item => ({
+          degree: item?.degree || '',
+          fieldOfStudy: item?.fieldOfStudy || item?.field || '',
+          institution: item?.institution || item?.school || '',
+          year: item?.year || item?.graduationYear || ''
+        })) : [])
+
+        if (needsExperienceFallback) {
+          analysisResult.work_experience = normalizeWork(fallbackJson.work_experience)
+        }
+        if (needsEducationFallback) {
+          analysisResult.education = normalizeEdu(fallbackJson.education)
+        }
+
+        // Optionally log usage
+        if (fallbackResp?.usage) {
+          await supabase.from('st_llm_usage_metrics').insert({
+            company_id,
+            service_type: 'cv_content_analysis_fallback',
+            model_used: 'openai/gpt-oss-20b',
+            input_tokens: fallbackResp.usage.prompt_tokens || 0,
+            output_tokens: fallbackResp.usage.completion_tokens || 0,
+            cost_estimate: calculateCost('openai/gpt-oss-20b', fallbackResp.usage.prompt_tokens || 0, fallbackResp.usage.completion_tokens || 0),
+            duration_ms: Date.now() - startTime,
+            success: true,
+            metadata: { request_id: requestId, employee_id, file_path }
+          })
+        }
+      } catch (fbErr) {
+        console.warn('Fallback extraction failed:', getSafeErrorMessage(fbErr))
+      }
+    }
+
     // Update status: Skills extraction
     await updateStatus('skills_extraction', 70, 'Extracting and analyzing skills')
     
@@ -890,24 +1018,38 @@ Return as JSON with a "skills" array.
 
 Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
-    const skillsResponse = await openai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "system",
-          content: "You are a skills assessment expert. Extract skills from CVs and estimate proficiency levels based on experience and context."
-        },
-        {
-          role: "user",
-          content: skillsPrompt
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0,
-      response_format: { type: "json_object" }
-    })
-    
-    const skillsData = safeJsonParse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
+    let skillsResponse: any
+    let skillsData: any = { skills: [] }
+    try {
+      skillsResponse = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-20b',
+        messages: [
+          { role: "system", content: "You are a skills assessment expert. Extract skills from CVs and estimate proficiency levels based on experience and context." },
+          { role: "user", content: skillsPrompt }
+        ],
+        max_tokens: 1500,
+        temperature: 0,
+        response_format: { type: "json_object" }
+      })
+      skillsData = safeJsonParse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
+    } catch (skillsJsonError: any) {
+      console.warn('Groq skills JSON mode failed, retrying without response_format:', getSafeErrorMessage(skillsJsonError))
+      const fallbackSkills = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-20b',
+        messages: [
+          { role: "system", content: "You output strictly valid JSON with a top-level key \"skills\" only. No markdown fences or commentary." },
+          { role: "user", content: skillsPrompt + "\n\nReturn only a JSON object with a top-level key \"skills\"." }
+        ],
+        max_tokens: 1500,
+        temperature: 0
+      })
+      const text = fallbackSkills.choices[0]?.message?.content || '{"skills":[]}'
+      skillsData = extractJsonObject(text)
+      skillsResponse = fallbackSkills
+      if (!skillsData.skills || !Array.isArray(skillsData.skills)) {
+        skillsData = { skills: [] }
+      }
+    }
     
     // Log token usage for skills extraction
     const skillsUsage = skillsResponse.usage
@@ -915,10 +1057,10 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
       await supabase.from('st_llm_usage_metrics').insert({
         company_id,
         service_type: 'cv_skills_extraction',
-        model_used: 'gpt-4o-mini',
+        model_used: 'openai/gpt-oss-20b',
         input_tokens: skillsUsage.prompt_tokens || 0,
         output_tokens: skillsUsage.completion_tokens || 0,
-        cost_estimate: calculateCost('gpt-4o-mini', skillsUsage.prompt_tokens || 0, skillsUsage.completion_tokens || 0),
+        cost_estimate: calculateCost('openai/gpt-oss-20b', skillsUsage.prompt_tokens || 0, skillsUsage.completion_tokens || 0),
         duration_ms: Date.now() - startTime,
         success: true,
         metadata: {
@@ -1147,7 +1289,10 @@ function calculateCost(model: string, inputTokens: number, outputTokens: number)
     'gpt-4o-mini': { input: 0.15 / 1_000_000, output: 0.60 / 1_000_000 },
     'gpt-4o': { input: 2.50 / 1_000_000, output: 10.00 / 1_000_000 },
     'gpt-4-turbo': { input: 10.00 / 1_000_000, output: 30.00 / 1_000_000 },
-    'gpt-3.5-turbo': { input: 0.50 / 1_000_000, output: 1.50 / 1_000_000 }
+    'gpt-3.5-turbo': { input: 0.50 / 1_000_000, output: 1.50 / 1_000_000 },
+    // Groq pricing for openai/gpt-oss-20b (provided):
+    // Input: $0.10 per 1M tokens, Output: $0.50 per 1M tokens
+    'openai/gpt-oss-20b': { input: 0.10 / 1_000_000, output: 0.50 / 1_000_000 }
   }
   
   const modelPricing = pricing[model] || pricing['gpt-4o-mini']

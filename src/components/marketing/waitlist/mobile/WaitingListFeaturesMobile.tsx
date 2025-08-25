@@ -58,7 +58,7 @@ interface WaitingListFeaturesMobileProps {
 
 export const WaitingListFeaturesMobile: React.FC<WaitingListFeaturesMobileProps> = ({ content, variant }) => {
   return (
-    <section className="relative py-16 text-white" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
+    <section className="relative py-16 text-white overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">

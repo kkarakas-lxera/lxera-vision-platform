@@ -45,6 +45,7 @@ const STEPS = [
 
 export default function FormProfileBuilder({ employeeId, onComplete }: FormProfileBuilderProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [furthestStep, setFurthestStep] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -147,6 +148,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       const savedState = await ProfileBuilderStateService.loadState(employeeId);
       if (savedState) {
         setCurrentStep(savedState.step || 0);
+        setFurthestStep(savedState.furthestStep || savedState.step || 0);
         setFormData(savedState.formData || {});
       }
 
@@ -245,7 +247,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
   // Create debounced save function outside of useCallback to prevent recreating
   const debouncedSave = React.useMemo(
-    () => debounce(async (employeeId: string, stepId: string, data: any, currentStep: number, formData: any) => {
+    () => debounce(async (employeeId: string, stepId: string, data: any, currentStep: number, formData: any, furthest: number) => {
       // Validate employeeId before saving
       if (!employeeId || employeeId === '') {
         console.error('Invalid employee ID - cannot save progress');
@@ -274,6 +276,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         // Save state
         await ProfileBuilderStateService.saveState(employeeId, {
           step: currentStep,
+          furthestStep: furthest,
           formData: { ...formData, [stepId]: data },
           lastActivity: new Date().toISOString()
         });
@@ -292,9 +295,11 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   // Auto-save functionality
   const saveProgress = useCallback(
     (stepId: string, data: any) => {
-      debouncedSave(employeeId, stepId, data, currentStep, formData);
+      const furthest = Math.max(furthestStep, currentStep);
+      setFurthestStep(furthest);
+      debouncedSave(employeeId, stepId, data, currentStep, formData, furthest);
     },
-    [employeeId, currentStep, formData, debouncedSave]
+    [employeeId, currentStep, formData, debouncedSave, furthestStep]
   );
 
   const updateStepData = (stepId: string, data: any) => {
@@ -332,6 +337,9 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         true
       );
 
+      const next = currentStep + 1;
+      if (next > furthestStep) setFurthestStep(next);
+
       if (currentStep < STEPS.length - 1) {
         // Save skills to validation table when moving from skills step or to verification step
         const isLeavingSkillsStep = STEPS[currentStep].id === 'skills' && formData.skills?.skills;
@@ -340,7 +348,13 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         if (isLeavingSkillsStep || isEnteringVerificationStep) {
           await saveUnverifiedSkills(formData.skills.skills);
         }
-        setCurrentStep(currentStep + 1);
+        setCurrentStep(next);
+        await ProfileBuilderStateService.saveState(employeeId, {
+          step: next,
+          furthestStep: Math.max(furthestStep, next),
+          formData,
+          lastActivity: new Date().toISOString()
+        });
       } else {
         // Complete profile
         await handleProfileComplete();
@@ -385,6 +399,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       // Save state to local storage as well
       await ProfileBuilderStateService.saveState(employeeId, {
         step: currentStep,
+        furthestStep: furthestStep,
         formData: formData,
         lastActivity: new Date().toISOString()
       });
@@ -403,6 +418,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         localStorage.setItem(`profile_draft_${employeeId}`, JSON.stringify({
           formData,
           currentStep,
+          furthestStep: furthestStep,
           timestamp: new Date().toISOString()
         }));
         toast.info('Draft saved locally. Will sync when connection is restored.');
@@ -773,6 +789,20 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     }
   };
 
+  const handleMarkCurrentPosition = async (item: { title: string; company: string }) => {
+    try {
+      if (!employee?.current_position_id) return;
+      await supabase
+        .from('st_company_positions')
+        .update({ position_title: item.title })
+        .eq('id', employee.current_position_id);
+      toast.success('Set as current position');
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to set current position');
+    }
+  };
+
   const renderStepContent = () => {
     const stepId = STEPS[currentStep].id;
 
@@ -954,6 +984,8 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           <WorkExperienceForm
             initialData={cvExtractedData?.work_experience || formData.work_experience || []}
             onComplete={(data) => updateStepData('work_experience', data)}
+            onSaveAll={(data) => updateStepData('work_experience', data)}
+            onMarkCurrent={(item) => handleMarkCurrentPosition(item)}
           />
         );
 
@@ -1132,13 +1164,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           id: index,
           name: step.id,
           title: step.title,
-          status: index < currentStep ? 'completed' : 
-                  index === currentStep ? 'current' : 'upcoming'
+          status: index < furthestStep ? 'completed' : index === currentStep ? 'current' : 'upcoming'
         }))}
         currentStep={currentStep}
         employeeName={employeeName || 'there'}
         onStepClick={(stepId) => {
-          if (stepId <= currentStep) {
+          if (stepId <= furthestStep) {
             setCurrentStep(stepId);
           }
         }}

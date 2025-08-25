@@ -1,13 +1,13 @@
 // B2C content constants for waitlist components
 export const HERO_CONTENT = {
-  title: "The First AI-Powered Learning Platform for Career Growth",
+  title: "AI-Powered Learning to Grow Your Career",
   subtitle: "Find the skills you need, learn them fast, and share your growth.",
-  ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots.",
+  ctaBadge: "Start Learning Free",
   formPlaceholders: {
     name: "Full Name",
     email: "Your email",
   },
-  socialProof: "Join 100+ people who have already signed up.",
+  socialProof: "Join 500+ learners from top companies",
 };
 
 export const FEATURES_CONTENT = {
@@ -16,33 +16,33 @@ export const FEATURES_CONTENT = {
   features: [
     {
       title: 'Find out what you\'re missing',
-      description: 'Discover the exact skills to unlock your next role.',
-      tags: ['Skill gap scan', 'Career benchmarking']
+      description: 'See what skills you need for your next step at work.',
+      tags: ['Skill check', 'Role match']
     },
     {
       title: 'Get personalized courses',
-      description: 'Let AI create courses designed just for your goals.',
-      tags: ['Adaptive learning', 'Fast setup']
+      description: 'Get career courses made for you with AI.',
+      tags: ['Personalized courses', 'Quick start']
     },
     {
       title: 'Apply your learning',
-      description: 'Turn new skills into real projects and challenges you can showcase.',
-      tags: ['Mini projects', 'Portfolio tasks', 'Real scenarios']
+      description: 'Practice with real projects you can add to your portfolio.',
+      tags: ['Practice projects', 'Portfolio work', 'Real cases']
     },
     {
       title: 'Track your wins',
-      description: 'Celebrate streaks, milestones, and progress in real time.',
-      tags: ['Gamification', 'AI nudges']
+      description: 'See your progress, celebrate milestones, and stay motivated.',
+      tags: ['Progress streaks', 'Learning reminders']
     },
     {
       title: 'Share your growth',
-      description: 'Show achievements to managers, mentors, or recruiters.',
-      tags: ['Certificates', 'Exportable reports']
+      description: 'Earn certificates and share them with managers or on LinkedIn.',
+      tags: ['Career certificates', 'Progress reports']
     },
     {
       title: 'Stay ahead',
-      description: 'See trending skills in your field and stay future-ready.',
-      tags: ['Real-time data', 'Role/industry insights']
+      description: 'Stay up to date with trending skills in your field.',
+      tags: ['Skill trends', 'Career insights']
     }
   ]
 };
@@ -51,29 +51,29 @@ export const DIFFERENTIATORS_CONTENT = {
   title: "Why LXERA Is Different",
   items: [
     {
-      title: 'From skills to business solutions',
-      description: 'Only platform to turn learning into innovation and impact.',
+      title: 'Turn skills into real results',
+      description: 'Use what you learn to make a real impact at work.',
       gradient: 'from-orange-500 to-red-500',
       iconBg: 'bg-orange-500/20',
       iconColor: 'text-orange-300'
     },
     {
-      title: 'Always future-ready',
-      description: 'Real-time market data keeps skills relevant.',
+      title: 'Learn the skills in demand today',
+      description: 'Stay relevant with courses built on real-time market needs.',
       gradient: 'from-teal-500 to-green-500',
       iconBg: 'bg-teal-500/20',
       iconColor: 'text-teal-300'
     },
     {
-      title: 'Personalized, not generic',
-      description: 'Every role gets exactly the skills it needs.',
+      title: 'Learning made just for you',
+      description: 'Get a path designed for your role and career goals.',
       gradient: 'from-blue-600 to-purple-600',
       iconBg: 'bg-blue-500/20',
       iconColor: 'text-blue-300'
     },
     {
-      title: 'Clarity at every step',
-      description: 'Dashboards show measurable progress you can act on.',
+      title: 'See your progress clearly',
+      description: 'Track your growth and always know your next step.',
       gradient: 'from-purple-600 to-pink-600',
       iconBg: 'bg-purple-500/20',
       iconColor: 'text-purple-300'

@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { LazyMotion, domAnimation, m, useReducedMotion, useInView } from 'framer-motion';
-import StaticBeamsBackground from '../StaticBeamsBackground';
 import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-react';
 import { WaitlistVariant } from '../shared/contentSelector';
 
@@ -28,10 +27,16 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
   const isInView = useInView(ref, { once: true, margin: "100px" });
   return (
     <LazyMotion features={domAnimation}>
-      <section ref={ref} className="relative py-16 text-white">
-      {/* Static SVG beams background */}
-      <StaticBeamsBackground className="pointer-events-none" />
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section ref={ref} className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
+      {/* Static gradient background matching ProcessFlow */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-slate-900 to-cyan-950/60">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-[#7AE5C6]/5" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(122,229,198,0.15),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.1),transparent_40%)]" />
+        </div>
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">

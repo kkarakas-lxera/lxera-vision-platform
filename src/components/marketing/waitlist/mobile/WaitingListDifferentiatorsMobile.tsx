@@ -4,10 +4,10 @@ import { GradientCardMobile } from './GradientCardMobile';
 import { WaitlistVariant } from '../shared/contentSelector';
 
 const iconMap = {
-  'From skills to business solutions': Lightbulb,
-  'Always future-ready': TrendingUp,
-  'Personalized, not generic': Diamond,
-  'Clarity at every step': Target
+  'Turn skills into real results': Lightbulb,
+  'Learn the skills in demand today': TrendingUp,
+  'Learning made just for you': Diamond,
+  'See your progress clearly': Target
 };
 
 interface WaitingListDifferentiatorsMobileProps {
@@ -17,7 +17,7 @@ interface WaitingListDifferentiatorsMobileProps {
 
 export const WaitingListDifferentiatorsMobile: React.FC<WaitingListDifferentiatorsMobileProps> = ({ content, variant }) => {
   return (
-    <section className="py-16 text-white relative overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(0 0 0), rgb(17 24 39))' }}>      
+    <section className="py-16 text-white relative overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>      
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Heading - Mobile optimized */}
         <div className="text-center mb-12">
