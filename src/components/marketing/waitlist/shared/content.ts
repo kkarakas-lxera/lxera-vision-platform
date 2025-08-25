@@ -1,7 +1,7 @@
 // Shared content constants for waitlist components
 export const HERO_CONTENT = {
-  title: "The First Platform for Learning Experience & Innovation",
-  subtitle: "Build role-based training, power innovation, and prove ROI — all in one platform.",
+  title: "All-in-One Learning and Skill Management Platform",
+  subtitle: "Identify skill gaps, create AI-powered training, and measure ROI in one platform. Perfect for HR leaders, L&D managers, and talent development teams.",
   ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots available.",
   formPlaceholders: {
     name: "Full Name",
@@ -17,32 +17,32 @@ export const FEATURES_CONTENT = {
     {
       title: 'Spot skill gaps',
       description: 'See exactly which skills your employees need most.',
-      tags: ['Market data comparison', 'Internal workforce analysis', 'Skills inventory', 'Multi-layered view', 'Customized skills verification']
+      tags: ['Market benchmark', 'Internal readiness', 'Skills inventory']
     },
     {
       title: 'Create training fast',
-      description: 'Use AI to build training from blueprints in minutes or ask your own content.',
-      tags: ['Knowledge hub integration', 'Industry agnostic', 'Multimedia support', 'Gamified journeys', 'End-to-end generation']
+      description: 'Use AI to build training from scratch in minutes or add your own content.',
+      tags: ['Knowledge hub integration', 'Industry sensitive']
+    },
+    {
+      title: 'Fuel innovation',
+      description: 'Empower employees to turn ideas into practical solutions.',
+      tags: ['Idea sandbox', 'AI feedback', 'Employee recognition']
     },
     {
       title: 'Track progress',
-      description: 'Monitor and evaluate training activity, and see growth in real time.',
+      description: 'Monitor participation, training activity, and skill growth in real time.',
       tags: ['Smart notifications', 'AI insights']
     },
     {
-      title: 'Role-based training',
-      description: 'Give each role the learning it actually needs.',
-      tags: ['Multiple verticals', 'Fully personalized', 'Focus on your skills', 'AI-assisted position management']
+      title: 'Report ROI',
+      description: 'Show measurable impact on skills, performance, and business results.',
+      tags: ['ROI dashboard', 'Impact cards', 'One-click export']
     },
     {
-      title: 'Report impact',
-      description: 'Share clear reports that show the value of training.',
-      tags: ['Objective ROI', 'Measure your training KPIs', 'One-click export', 'Observe business impact']
-    },
-    {
-      title: 'Market intelligence',
-      description: "Know what's growing in popularity to keep team's relevant.",
-      tags: ['Real-time data', 'Geo-specific', 'Target-specific data']
+      title: 'Stay future-ready',
+      description: "Know what's trending to keep training relevant.",
+      tags: ['Real-time data', 'Geo-specific', 'Target by role/department']
     }
   ]
 };
@@ -83,7 +83,7 @@ export const DIFFERENTIATORS_CONTENT = {
 
 export const PROCESS_FLOW_CONTENT = {
   title: "What's Next",
-  subtitle: "Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.",
+  subtitle: "",
   steps: [
     {
       title: 'Sign up free',

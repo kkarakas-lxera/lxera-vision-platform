@@ -200,7 +200,7 @@ export const WaitingListFAQMobile: React.FC = () => {
               <div>
                 <Input
                   type="email"
-                  placeholder="Company email"
+                  placeholder="Business email"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required

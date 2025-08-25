@@ -1,46 +1,22 @@
 import React, { useRef } from 'react';
 import { LazyMotion, domAnimation, m, useReducedMotion, useInView } from 'framer-motion';
 import StaticBeamsBackground from '../StaticBeamsBackground';
-import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
+import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-react';
+import { FEATURES_CONTENT } from '../shared/content';
 
-const features = [
-  {
-    icon: Target,
-    title: 'Spot skill gaps',
-    description: 'See exactly which skills your employees need most.',
-    tags: ['Market data comparison', 'Internal workforce analysis', 'Skills inventory', 'Multi-layered view', 'Customized skills verification']
-  },
-  {
-    icon: Zap,
-    title: 'Create training fast',
-    description: 'Use AI to build training from blueprints in minutes or ask your own content.',
-    tags: ['Knowledge hub integration', 'Industry agnostic', 'Multimedia support', 'Gamified journeys', 'End-to-end generation']
-  },
-  {
-    icon: TrendingUp,
-    title: 'Track progress',
-    description: 'Monitor and evaluate training activity, and see growth in real time.',
-    tags: ['Smart notifications', 'AI insights']
-  },
-  {
-    icon: Users,
-    title: 'Role-based training',
-    description: 'Give each role the learning it actually needs.',
-    tags: ['Multiple verticals', 'Fully personalized', 'Focus on your skills', 'AI-assisted position management']
-  },
-  {
-    icon: BarChart3,
-    title: 'Report impact',
-    description: 'Share clear reports that show the value of training.',
-    tags: ['Objective ROI', 'Measure your training KPIs', 'One-click export', 'Observe business impact']
-  },
-  {
-    icon: Brain,
-    title: 'Market intelligence',
-    description: "Know what's growing in popularity to keep team's relevant.",
-    tags: ['Real-time data', 'Geo-specific', 'Target-specific data', 'Skills demand analysis', 'Experience segmentation']
-  }
-];
+const iconMap = {
+  'Spot skill gaps': Target,
+  'Create training fast': Zap,
+  'Fuel innovation': Lightbulb,
+  'Track progress': TrendingUp,
+  'Report ROI': BarChart3,
+  'Stay future-ready': Brain
+};
+
+const featuresWithIcons = FEATURES_CONTENT.features.map(feature => ({
+  ...feature,
+  icon: iconMap[feature.title] || Target
+}));
 
 export const WaitingListFeatures: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -58,13 +34,13 @@ export const WaitingListFeatures: React.FC = () => {
             What You Can Do with Lxera
           </h2>
           <p className="text-white max-w-3xl mx-auto text-base">
-            Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.
+            {FEATURES_CONTENT.subtitle}
           </p>
         </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => {
+          {featuresWithIcons.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <m.div

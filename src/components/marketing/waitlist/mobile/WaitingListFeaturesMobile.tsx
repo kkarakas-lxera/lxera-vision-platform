@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Target, Zap, TrendingUp, Users, BarChart3, Brain } from 'lucide-react';
+import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-react';
 import { FEATURES_CONTENT } from '../shared/content';
 
-const featureIcons = [Target, Zap, TrendingUp, Users, BarChart3, Brain];
+const featureIcons = [Target, Zap, Lightbulb, TrendingUp, BarChart3, Brain];
 
 const FeatureCardMobile: React.FC<{
   feature: typeof FEATURES_CONTENT.features[0];

@@ -282,13 +282,13 @@ export const WaitingListHero: React.FC = memo(() => {
           {/* Main Headline */}
           <div className="mb-6">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-black leading-tight font-inter">
-              The First Platform for Learning Experience & Innovation
+              {HERO_CONTENT.title}
             </h1>
           </div>
           
           {/* Subheadline */}
           <p className="mx-auto max-w-3xl text-base text-gray-700 mb-4 font-inter">
-            Build role-based training, power innovation, and prove ROI — all in one platform.
+            {HERO_CONTENT.subtitle}
           </p>
           
           <div className="flex justify-center mb-12">
@@ -322,7 +322,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Company email"
+                  placeholder="Business email"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
