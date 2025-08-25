@@ -2,30 +2,14 @@ import React from 'react';
 import { Diamond, TrendingUp, Lightbulb, Target } from 'lucide-react';
 import { GradientCard } from './GradientCard';
 import { GradientBackground } from '../../../ui/GradientBackground';
-import { DIFFERENTIATORS_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 
-const differentiators = [
-  {
-    icon: Diamond,
-    title: 'AI, not generic',
-    description: 'Training isn\'t one-size-fits-all. LXERA adapts to real skills and actual needs.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Future-ready',
-    description: 'We use real-time market data so skills stay current, relevant, and future-proof.',
-  },
-  {
-    icon: Lightbulb,
-    title: 'Skills to solutions',
-    description: 'LXERA turns new skills into innovation, real outcomes, and measurable impact.',
-  },
-  {
-    icon: Target,
-    title: 'Clarity at every step',
-    description: 'Dashboards make progress visible, actionable, and easy to share with leaders.',
-  }
-];
+const iconMap = {
+  'From skills to business solutions': Lightbulb,
+  'Always future-ready': TrendingUp,
+  'Personalized, not generic': Diamond,
+  'Clarity at every step': Target
+};
 
 const softGradients = [
   "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)",
@@ -35,7 +19,12 @@ const softGradients = [
   "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)",
 ];
 
-export const WaitingListDifferentiators: React.FC = () => {
+interface WaitingListDifferentiatorsProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListDifferentiators: React.FC<WaitingListDifferentiatorsProps> = ({ content, variant }) => {
   return (
     <GradientBackground 
       className="py-24 min-h-fit"
@@ -49,16 +38,16 @@ export const WaitingListDifferentiators: React.FC = () => {
         {/* Heading */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold lg:text-5xl text-black">
-            Why LXERA Is Different
+            {content.DIFFERENTIATORS_CONTENT.title}
           </h2>
         </div>
 
         {/* Differentiators Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {differentiators.map((item, index) => (
+          {content.DIFFERENTIATORS_CONTENT.items.map((item: any, index: number) => (
             <GradientCard
               key={index}
-              icon={item.icon}
+              icon={iconMap[item.title as keyof typeof iconMap] || Diamond}
               title={item.title}
               description={item.description}
               variant="light"

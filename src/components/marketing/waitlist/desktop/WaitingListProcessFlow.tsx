@@ -2,41 +2,9 @@ import React from 'react';
 import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../../../ui/card';
 import WhatsNextBackground from '../WhatsNextBackground';
+import { WaitlistVariant } from '../shared/contentSelector';
 
-const steps = [
-  {
-    icon: ArrowRight,
-    title: 'Sign up free',
-    description: 'Join in minutes. No company setup. No credit card.',
-    bgColor: 'bg-white',
-    textColor: 'text-black',
-    iconColor: 'text-black'
-  },
-  {
-    icon: Unlock,
-    title: 'Unlock full access',
-    description: 'Get full access right away. Try skill insights, AI training, and dashboards.',
-    bgColor: 'bg-gray-800',
-    textColor: 'text-white',
-    iconColor: 'text-[#7AE5C6]'
-  },
-  {
-    icon: Wrench,
-    title: 'See the difference',
-    description: 'See how LXERA works and simplifies that you believe working your team.',
-    bgColor: 'bg-white',
-    textColor: 'text-black',
-    iconColor: 'text-black'
-  },
-  {
-    icon: Users,
-    title: 'Bring everyone in',
-    description: 'Coordinate with your company, invite and start training employees.',
-    bgColor: 'bg-gray-800',
-    textColor: 'text-white',
-    iconColor: 'text-[#7AE5C6]'
-  }
-];
+const stepIcons = [ArrowRight, Unlock, Wrench, Users];
 
 const CardDecorator = ({ children, isLight = false }: { children: React.ReactNode; isLight?: boolean }) => (
   <div aria-hidden className="relative mx-auto size-32 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
@@ -47,7 +15,12 @@ const CardDecorator = ({ children, isLight = false }: { children: React.ReactNod
   </div>
 );
 
-export const WaitingListProcessFlow: React.FC = () => {
+interface WaitingListProcessFlowProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListProcessFlow: React.FC<WaitingListProcessFlowProps> = ({ content, variant }) => {
   return (
     <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
       {/* Static gradient background instead of animated WhatsNextBackground */}
@@ -62,11 +35,8 @@ export const WaitingListProcessFlow: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
-            What's Next
+            {content.PROCESS_FLOW_CONTENT.title}
           </h2>
-          <p className="text-white max-w-3xl mx-auto text-base">
-            Stop juggling tools. LXERA gives you one platform to bridge skill gaps, build training, and prove business impact.
-          </p>
         </div>
 
         {/* Timeline flow with card-styled steps */}
@@ -76,8 +46,8 @@ export const WaitingListProcessFlow: React.FC = () => {
 
           {/* Steps */}
           <div className="space-y-12 lg:space-y-16">
-            {steps.map((step, index) => {
-              const IconComponent = step.icon;
+            {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => {
+              const IconComponent = stepIcons[index];
               const isEven = index % 2 === 0;
 
               return (

@@ -5,6 +5,7 @@ import { Input } from '../../../ui/input';
 import { useToast } from '../../../ui/use-toast';
 import ClassicLoader from '../../../ui/ClassicLoader';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
+import { WaitlistVariant } from '../shared/contentSelector';
 
 const faqs = [
   {
@@ -41,7 +42,12 @@ const faqs = [
   }
 ];
 
-export const WaitingListFAQMobile: React.FC = () => {
+interface WaitingListFAQMobileProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ content, variant }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const [name, setName] = useState('');
@@ -74,7 +80,7 @@ export const WaitingListFAQMobile: React.FC = () => {
     setEmailError('');
     
     // Validate form
-    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email, variant);
     
     if (!nameValidation.isValid) {
       setNameError(nameValidation.error || '');
@@ -141,7 +147,7 @@ export const WaitingListFAQMobile: React.FC = () => {
 
         {/* FAQ Items - More compact */}
         <div className="space-y-3">
-          {faqs.map((faq, index) => (
+          {content.FAQ_CONTENT.faqs.map((faq: any, index: number) => (
             <div
               key={index}
               className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden"

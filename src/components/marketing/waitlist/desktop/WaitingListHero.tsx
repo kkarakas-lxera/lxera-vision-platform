@@ -11,13 +11,18 @@ import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
 import { WavyBackground } from '../../../ui/wavy-background';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
-import { HERO_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 // Memoized colors array for WavyBackground
 const wavyColors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
 
-export const WaitingListHero: React.FC = memo(() => {
+interface WaitingListHeroProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, variant }) => {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
@@ -185,7 +190,7 @@ export const WaitingListHero: React.FC = memo(() => {
     setEmailError('');
     
     // Validate form
-    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email, variant);
     
     if (!nameValidation.isValid) {
       setNameError(nameValidation.error || '');
@@ -248,16 +253,29 @@ export const WaitingListHero: React.FC = memo(() => {
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
-            <img
-              src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
-              alt="LXERA logo"
-              className="h-10 sm:h-12 lg:h-14 object-contain"
-              draggable={false}
-              width={160}
-              height={48}
-              loading="eager"
-              decoding="sync"
-            />
+            <button
+              onClick={() => {
+                const targetPath = `/waiting-list/${variant}`;
+                if (window.location.pathname === targetPath) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  window.location.href = targetPath;
+                }
+              }}
+              className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[#7AE5C6] focus:ring-offset-2 rounded-lg"
+              aria-label={`Go to ${variant} homepage`}
+            >
+              <img
+                src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+                alt="LXERA logo"
+                className="h-10 sm:h-12 lg:h-14 object-contain"
+                draggable={false}
+                width={160}
+                height={48}
+                loading="eager"
+                decoding="sync"
+              />
+            </button>
           </div>
           
           {/* Login Button (top-right) */}
@@ -282,13 +300,13 @@ export const WaitingListHero: React.FC = memo(() => {
           {/* Main Headline */}
           <div className="mb-6">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-black leading-tight font-inter">
-              {HERO_CONTENT.title}
+              {content.HERO_CONTENT.title}
             </h1>
           </div>
           
           {/* Subheadline */}
           <p className="mx-auto max-w-3xl text-base text-gray-700 mb-4 font-inter">
-            {HERO_CONTENT.subtitle}
+            {content.HERO_CONTENT.subtitle}
           </p>
           
           <div className="flex justify-center mb-12">
@@ -309,7 +327,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <div className="flex-1">
                 <Input
                   type="text"
-                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  placeholder={content.HERO_CONTENT.formPlaceholders.name}
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
@@ -322,7 +340,7 @@ export const WaitingListHero: React.FC = memo(() => {
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Business email"
+                  placeholder={content.HERO_CONTENT.formPlaceholders.email}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
@@ -351,7 +369,7 @@ export const WaitingListHero: React.FC = memo(() => {
           <div className="flex items-center justify-center gap-3 mb-12">
             <AnimatedTooltip items={people} />
             <span className="text-sm text-gray-600 font-inter ml-2">
-              Join 100+ people who have already signed up.
+              {content.HERO_CONTENT.socialProof}
             </span>
           </div>
           

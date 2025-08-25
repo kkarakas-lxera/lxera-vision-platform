@@ -9,10 +9,15 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
-import { HERO_CONTENT, SOCIAL_PROOF_PEOPLE } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
-export const WaitingListHeroMobile: React.FC = () => {
+interface WaitingListHeroMobileProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListHeroMobile: React.FC<WaitingListHeroMobileProps> = ({ content, variant }) => {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -50,7 +55,7 @@ export const WaitingListHeroMobile: React.FC = () => {
     setEmailError('');
     
     // Validate form
-    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email, variant);
     
     if (!nameValidation.isValid) {
       setNameError(nameValidation.error || '');
@@ -104,14 +109,27 @@ export const WaitingListHeroMobile: React.FC = () => {
         <div className="relative z-10 px-4 py-6 flex flex-col min-h-screen">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img
-              src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
-              alt="LXERA logo"
-              className="h-8 object-contain"
-              draggable={false}
-              loading="eager"
-              decoding="sync"
-            />
+            <button
+              onClick={() => {
+                const targetPath = `/waiting-list/${variant}`;
+                if (window.location.pathname === targetPath) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  window.location.href = targetPath;
+                }
+              }}
+              className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[#7AE5C6] focus:ring-offset-2 rounded-lg"
+              aria-label={`Go to ${variant} homepage`}
+            >
+              <img
+                src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+                alt="LXERA logo"
+                className="h-8 object-contain"
+                draggable={false}
+                loading="eager"
+                decoding="sync"
+              />
+            </button>
           </div>
 
           {/* Main content centered */}
@@ -124,10 +142,10 @@ export const WaitingListHeroMobile: React.FC = () => {
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <h1 className="text-3xl font-medium text-black leading-tight mb-4 px-2">
-                {HERO_CONTENT.title}
+                {content.HERO_CONTENT.title}
               </h1>
               <p className="text-base text-gray-700 mb-6 px-4 leading-relaxed">
-                {HERO_CONTENT.subtitle}
+                {content.HERO_CONTENT.subtitle}
               </p>
               
               {/* CTA Badge - Mobile optimized with soft orange */}
@@ -152,7 +170,7 @@ export const WaitingListHeroMobile: React.FC = () => {
               <div>
                 <Input
                   type="text"
-                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  placeholder={content.HERO_CONTENT.formPlaceholders.name}
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
@@ -165,7 +183,7 @@ export const WaitingListHeroMobile: React.FC = () => {
               <div>
                 <Input
                   type="email"
-                  placeholder="Business email"
+                  placeholder={content.HERO_CONTENT.formPlaceholders.email}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
@@ -196,9 +214,9 @@ export const WaitingListHeroMobile: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <AnimatedTooltip items={SOCIAL_PROOF_PEOPLE} className="justify-center" />
+              <AnimatedTooltip items={content.SOCIAL_PROOF_PEOPLE} className="justify-center" />
               <span className="text-sm text-gray-600 font-inter text-center">
-                {HERO_CONTENT.socialProof}
+                {content.HERO_CONTENT.socialProof}
               </span>
             </motion.div>
           </div>

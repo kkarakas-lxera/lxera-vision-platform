@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { MapPin, Linkedin } from 'lucide-react';
 import { Footer as UIFooter } from '@/components/ui/footer';
 import { useDeviceType } from '../../components/marketing/waitlist/shared/useDeviceType';
+import { getContentForVariant, WaitlistVariant } from '../../components/marketing/waitlist/shared/contentSelector';
 
 // Desktop components (direct imports for immediate loading)
 import {
@@ -21,18 +22,23 @@ import {
   WaitingListFAQMobile
 } from '../../components/marketing/waitlist/mobile';
 
-const WaitingList: React.FC = memo(() => {
+interface WaitingListProps {
+  variant?: WaitlistVariant;
+}
+
+const WaitingList: React.FC<WaitingListProps> = memo(({ variant = 'enterprise' }) => {
   const deviceType = useDeviceType();
   const isMobile = deviceType === 'mobile';
+  const content = getContentForVariant(variant);
 
   return (
     <div className="min-h-screen bg-white">
       {/* All components load immediately without progressive loading */}
-      {isMobile ? <WaitingListHeroMobile /> : <WaitingListHero />}
-      {isMobile ? <WaitingListFeaturesMobile /> : <WaitingListFeatures />}
-      {isMobile ? <WaitingListProcessFlowMobile /> : <WaitingListProcessFlow />}
-      {isMobile ? <WaitingListDifferentiatorsMobile /> : <WaitingListDifferentiators />}
-      {isMobile ? <WaitingListFAQMobile /> : <WaitingListFAQ />}
+      {isMobile ? <WaitingListHeroMobile content={content} variant={variant} /> : <WaitingListHero content={content} variant={variant} />}
+      {isMobile ? <WaitingListFeaturesMobile content={content} variant={variant} /> : <WaitingListFeatures content={content} variant={variant} />}
+      {isMobile ? <WaitingListProcessFlowMobile content={content} variant={variant} /> : <WaitingListProcessFlow content={content} variant={variant} />}
+      {isMobile ? <WaitingListDifferentiatorsMobile content={content} variant={variant} /> : <WaitingListDifferentiators content={content} variant={variant} />}
+      {isMobile ? <WaitingListFAQMobile content={content} variant={variant} /> : <WaitingListFAQ content={content} variant={variant} />}
 
       <UIFooter
         className="border-t"

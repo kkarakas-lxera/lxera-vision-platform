@@ -91,15 +91,39 @@ export const validateWorkEmail = (email: string): ValidationResult => {
 };
 
 /**
- * Validates both full name and work email
+ * Validates email based on variant (work email for enterprise, any email for personal)
  */
-export const validateWaitlistForm = (fullName: string, email: string): {
+export const validateEmailByVariant = (email: string, variant: 'enterprise' | 'personal'): ValidationResult => {
+  if (variant === 'personal') {
+    // For personal variant, just validate email format
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    if (!trimmedEmail) {
+      return { isValid: false, error: 'Please enter your email address' };
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return { isValid: false, error: 'Please enter a valid email address' };
+    }
+    
+    return { isValid: true };
+  } else {
+    // For enterprise variant, validate work email
+    return validateWorkEmail(email);
+  }
+};
+
+/**
+ * Validates both full name and email based on variant
+ */
+export const validateWaitlistForm = (fullName: string, email: string, variant: 'enterprise' | 'personal' = 'enterprise'): {
   nameValidation: ValidationResult;
   emailValidation: ValidationResult;
   isFormValid: boolean;
 } => {
   const nameValidation = validateFullName(fullName);
-  const emailValidation = validateWorkEmail(email);
+  const emailValidation = validateEmailByVariant(email, variant);
   
   return {
     nameValidation,

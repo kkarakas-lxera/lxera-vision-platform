@@ -4,7 +4,7 @@ import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
 import { useToast } from '../../../ui/use-toast';
 import ClassicLoader from '../../../ui/ClassicLoader';
-import { HERO_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
 const faqs = [
@@ -43,7 +43,12 @@ const faqs = [
 ];
 
 
-export const WaitingListFAQ: React.FC = () => {
+interface WaitingListFAQProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListFAQ: React.FC<WaitingListFAQProps> = ({ content, variant }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const [name, setName] = useState('');
@@ -76,7 +81,7 @@ export const WaitingListFAQ: React.FC = () => {
     setEmailError('');
     
     // Validate form
-    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email);
+    const { nameValidation, emailValidation, isFormValid } = validateWaitlistForm(name, email, variant);
     
     if (!nameValidation.isValid) {
       setNameError(nameValidation.error || '');
@@ -143,7 +148,7 @@ export const WaitingListFAQ: React.FC = () => {
 
         {/* FAQ Items */}
         <div className="space-y-3">
-          {faqs.map((faq, index) => (
+          {content.FAQ_CONTENT.faqs.map((faq: any, index: number) => (
             <div
               key={index}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden"
@@ -189,7 +194,7 @@ export const WaitingListFAQ: React.FC = () => {
               <div className="flex-1">
                 <Input
                   type="text"
-                  placeholder={HERO_CONTENT.formPlaceholders.name}
+                  placeholder={content.HERO_CONTENT.formPlaceholders.name}
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   required
@@ -202,7 +207,7 @@ export const WaitingListFAQ: React.FC = () => {
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Business email"
+                  placeholder={content.HERO_CONTENT.formPlaceholders.email}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required

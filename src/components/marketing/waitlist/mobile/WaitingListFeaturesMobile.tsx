@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-react';
-import { FEATURES_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 
 const featureIcons = [Target, Zap, Lightbulb, TrendingUp, BarChart3, Brain];
 
 const FeatureCardMobile: React.FC<{
-  feature: typeof FEATURES_CONTENT.features[0];
+  feature: any;
   icon: React.ComponentType<{ className?: string }>;
 }> = ({ feature, icon: IconComponent }) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -51,23 +51,28 @@ const FeatureCardMobile: React.FC<{
   );
 };
 
-export const WaitingListFeaturesMobile: React.FC = () => {
+interface WaitingListFeaturesMobileProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListFeaturesMobile: React.FC<WaitingListFeaturesMobileProps> = ({ content, variant }) => {
   return (
     <section className="relative py-16 text-white" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
       <div className="relative mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
-            What You Can Do with Lxera
+            {content.FEATURES_CONTENT.title}
           </h2>
           <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
-            {FEATURES_CONTENT.subtitle}
+            {content.FEATURES_CONTENT.subtitle}
           </p>
         </div>
 
         {/* Features Grid - Mobile optimized single column */}
         <div className="grid grid-cols-1 gap-6">
-          {FEATURES_CONTENT.features.map((feature, index) => {
+          {content.FEATURES_CONTENT.features.map((feature: any, index: number) => {
             const IconComponent = featureIcons[index];
             return (
               <FeatureCardMobile

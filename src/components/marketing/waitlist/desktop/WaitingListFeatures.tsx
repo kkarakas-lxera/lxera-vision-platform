@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { LazyMotion, domAnimation, m, useReducedMotion, useInView } from 'framer-motion';
 import StaticBeamsBackground from '../StaticBeamsBackground';
 import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-react';
-import { FEATURES_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 
 const iconMap = {
   'Spot skill gaps': Target,
@@ -13,12 +13,16 @@ const iconMap = {
   'Stay future-ready': Brain
 };
 
-const featuresWithIcons = FEATURES_CONTENT.features.map(feature => ({
-  ...feature,
-  icon: iconMap[feature.title] || Target
-}));
+interface WaitingListFeaturesProps {
+  content: any;
+  variant: WaitlistVariant;
+}
 
-export const WaitingListFeatures: React.FC = () => {
+export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ content, variant }) => {
+  const featuresWithIcons = content.FEATURES_CONTENT.features.map((feature: any) => ({
+    ...feature,
+    icon: iconMap[feature.title as keyof typeof iconMap] || Target
+  }));
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "100px" });
@@ -31,10 +35,10 @@ export const WaitingListFeatures: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
-            What You Can Do with Lxera
+            {content.FEATURES_CONTENT.title}
           </h2>
           <p className="text-white max-w-3xl mx-auto text-base">
-            {FEATURES_CONTENT.subtitle}
+            {content.FEATURES_CONTENT.subtitle}
           </p>
         </div>
 

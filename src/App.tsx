@@ -864,7 +864,9 @@ const App = () => {
               <AuthProvider>
                   <Routes>
             {/* WAITING LIST LANDING PAGE - All public traffic redirected here */}
-            <Route path="/waiting-list" element={<PageSuspense><WaitingList /></PageSuspense>} />
+            <Route path="/waiting-list/enterprise" element={<PageSuspense><WaitingList variant="enterprise" /></PageSuspense>} />
+            <Route path="/waiting-list/personal" element={<PageSuspense><WaitingList variant="personal" /></PageSuspense>} />
+            <Route path="/waiting-list" element={<PageSuspense><WaitingList variant="enterprise" /></PageSuspense>} />
             
             {/* Essential admin auth routes - kept for backend access */}
             <Route path="/login" element={<UnifiedLogin />} />

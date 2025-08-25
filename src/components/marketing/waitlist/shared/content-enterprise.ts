@@ -5,7 +5,7 @@ export const HERO_CONTENT = {
   ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots available.",
   formPlaceholders: {
     name: "Full Name",
-    email: "Enter your email",
+    email: "Business email",
   },
   socialProof: "Join 100+ talent managers who have already signed up.",
 };
@@ -51,11 +51,11 @@ export const DIFFERENTIATORS_CONTENT = {
   title: "Why LXERA Is Different",
   items: [
     {
-      title: 'AI, not generic',
-      description: 'We use skills & needs.',
-      gradient: 'from-blue-600 to-purple-600',
-      iconBg: 'bg-blue-500/20',
-      iconColor: 'text-blue-300'
+      title: 'From skills to business solutions',
+      description: 'Only platform to turn learning into innovation and impact.',
+      gradient: 'from-orange-500 to-red-500',
+      iconBg: 'bg-orange-500/20',
+      iconColor: 'text-orange-300'
     },
     {
       title: 'Always future-ready',
@@ -65,11 +65,11 @@ export const DIFFERENTIATORS_CONTENT = {
       iconColor: 'text-teal-300'
     },
     {
-      title: 'From skills to business solutions',
-      description: 'Only platform to turn learning into innovation and impact.',
-      gradient: 'from-orange-500 to-red-500',
-      iconBg: 'bg-orange-500/20',
-      iconColor: 'text-orange-300'
+      title: 'Personalized, not generic',
+      description: 'Every role gets exactly the skills it needs.',
+      gradient: 'from-blue-600 to-purple-600',
+      iconBg: 'bg-blue-500/20',
+      iconColor: 'text-blue-300'
     },
     {
       title: 'Clarity at every step',

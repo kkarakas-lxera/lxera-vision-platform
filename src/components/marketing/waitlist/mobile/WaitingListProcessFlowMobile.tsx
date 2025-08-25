@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../../../ui/card';
-import { PROCESS_FLOW_CONTENT } from '../shared/content';
+import { WaitlistVariant } from '../shared/contentSelector';
 
 const stepIcons = [ArrowRight, Unlock, Wrench, Users];
 
@@ -15,7 +15,7 @@ const CardDecorator = ({ children, isLight = false }: { children: React.ReactNod
 );
 
 const ProcessStepCardMobile: React.FC<{
-  step: typeof PROCESS_FLOW_CONTENT.steps[0];
+  step: any;
   index: number;
   icon: React.ComponentType<{ className?: string }>;
 }> = ({ step, index, icon: IconComponent }) => {
@@ -60,17 +60,22 @@ const ProcessStepCardMobile: React.FC<{
   );
 };
 
-export const WaitingListProcessFlowMobile: React.FC = () => {
+interface WaitingListProcessFlowMobileProps {
+  content: any;
+  variant: WaitlistVariant;
+}
+
+export const WaitingListProcessFlowMobile: React.FC<WaitingListProcessFlowMobileProps> = ({ content, variant }) => {
   return (
     <section className="relative py-16 text-white overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
       <div className="relative z-10 mx-auto max-w-4xl px-4">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
-            {PROCESS_FLOW_CONTENT.title}
+            {content.PROCESS_FLOW_CONTENT.title}
           </h2>
           <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
-            {PROCESS_FLOW_CONTENT.subtitle}
+            {content.PROCESS_FLOW_CONTENT.subtitle}
           </p>
         </div>
 
@@ -81,7 +86,7 @@ export const WaitingListProcessFlowMobile: React.FC = () => {
 
           {/* Steps */}
           <div className="space-y-12">
-            {PROCESS_FLOW_CONTENT.steps.map((step, index) => {
+            {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => {
               const IconComponent = stepIcons[index];
 
               return (
