@@ -54,6 +54,23 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Detect variant based on source patterns
+  const detectVariant = (source: string): 'enterprise' | 'personal' => {
+    const personalIndicators = [
+      'personal',
+      'b2c',
+      'individual',
+      'career',
+      '-personal-',
+      '/personal/'
+    ];
+    
+    const sourceStr = (source || '').toLowerCase();
+    return personalIndicators.some(indicator => 
+      sourceStr.includes(indicator)
+    ) ? 'personal' : 'enterprise';
+  };
+
   const requestId = crypto.randomUUID();
   
   try {
@@ -95,6 +112,9 @@ serve(async (req) => {
 
     let contactId;
     let brevoContactId = null;
+    
+    // Determine variant once for the entire request
+    const variant = formData.variant || detectVariant(formData.source);
 
     if (existingContact) {
       contactId = existingContact.id;
@@ -106,7 +126,7 @@ serve(async (req) => {
         utm_source: formData.utm_source,
         utm_medium: formData.utm_medium,
         utm_campaign: formData.utm_campaign,
-        variant: formData.variant || detectVariant(formData.source),
+        variant: variant,
       };
 
       // Only update name fields if we have better data
@@ -147,8 +167,6 @@ serve(async (req) => {
       }
     } else {
       // Create new contact
-      const variant = formData.variant || detectVariant(formData.source);
-      
       const { data: newContact, error: contactError } = await supabase
         .from('waitlist_contacts')
         .insert({
@@ -182,25 +200,6 @@ serve(async (req) => {
       contactId = newContact.id;
     }
 
-    // Detect variant based on source patterns
-    const detectVariant = (source: string): 'enterprise' | 'personal' => {
-      const personalIndicators = [
-        'personal',
-        'b2c',
-        'individual',
-        'career',
-        '-personal-',
-        '/personal/'
-      ];
-      
-      const sourceStr = (source || '').toLowerCase();
-      return personalIndicators.some(indicator => 
-        sourceStr.includes(indicator)
-      ) ? 'personal' : 'enterprise';
-    };
-
-    // Use provided variant or detect from source
-    const variant = formData.variant || detectVariant(formData.source);
     
     // Get appropriate Brevo list ID
     const getBrevoListId = (variant: string): number[] => {
@@ -329,6 +328,138 @@ serve(async (req) => {
             brevo_sync_status: 'failed'
           })
           .eq('id', contactId);
+      }
+    }
+
+    // Send confirmation email
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY not configured - confirmation email not sent');
+    } else {
+      try {
+        // Create variant-specific email content
+        const getEmailContent = (variant: string, name: string, email: string) => {
+          const isPersonal = variant === 'personal';
+          
+          const subject = isPersonal 
+            ? "You're on the list! LXERA early access confirmed" 
+            : "Your LXERA early access request has been received";
+          
+          const greeting = `Hi ${name || 'there'},`;
+          
+          const mainMessage = isPersonal
+            ? "Thank you for submitting your request for early access to LXERA. We've successfully received your information and you're now on our priority list for personal learning transformation."
+            : "Thank you for submitting your request for early access to LXERA. We've successfully received your information and you're now on our priority list for enterprise learning solutions.";
+            
+          const anticipationMessage = isPersonal
+            ? "Our team has been preparing something monumental - a learning platform that will transform how individuals approach skill development and personal growth. We're putting the finishing touches on an experience that we believe will revolutionize your learning journey."
+            : "Our team has been preparing something monumental - a learning platform that will transform how organizations approach skill development and team growth. We're putting the finishing touches on an enterprise-grade experience that we believe will revolutionize learning.";
+
+          const htmlContent = `
+            <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%); padding: 40px 20px;">
+                <div style="background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                  <!-- Header -->
+                  <div style="text-align: center; padding: 40px 40px 30px; border-bottom: 1px solid #f0f0f0;">
+                    <a href="https://www.lxera.ai" style="display: inline-block; text-decoration: none;">
+                      <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" style="height: 60px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                    </a>
+                    <div style="color: #666; font-size: 14px; font-weight: 500; letter-spacing: 0.5px;">Beyond Learning</div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div style="padding: 40px;">
+                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Welcome to LXERA Early Access!</h1>
+                    <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
+                      ${greeting}
+                    </p>
+                    
+                    <div style="background: #EFEFE3; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                      <p style="color: #191919; font-size: 15px; margin: 0 0 15px; line-height: 1.6; font-weight: 600;">
+                        ✅ Your request has been confirmed
+                      </p>
+                      <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">
+                        ${mainMessage}
+                      </p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                      <h3 style="color: #191919; font-size: 18px; margin: 0 0 15px; text-align: center;">🚀 Something Monumental is Coming</h3>
+                      <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6; text-align: center;">
+                        ${anticipationMessage}
+                      </p>
+                    </div>
+                    
+                    <div style="background: #7AE5C6; color: #191919; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+                      <h4 style="margin: 0 0 10px; font-size: 16px; font-weight: 600;">📬 What's Next?</h4>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+                        We'll be in touch with you shortly about granting you access as an early-stage user. Please stay tuned for updates on your exclusive early access.
+                      </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                      <p style="color: #666; font-size: 15px; margin: 0 0 20px;">
+                        Meanwhile, if you have any questions or want to learn more about what we're building, please don't hesitate to get in touch - we'd love to hear from you.
+                      </p>
+                      <a href="mailto:hello@lxera.ai" style="display: inline-block; background: #191919; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                        Contact Us
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="padding: 30px 40px; border-top: 1px solid #f0f0f0; text-align: center;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Follow us for updates and insights:</p>
+                    <div style="margin: 20px 0;">
+                      <a href="https://www.linkedin.com/company/lxera" style="display: inline-block; background: #0077B5; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px;">
+                        🔗 Follow on LinkedIn
+                      </a>
+                    </div>
+                    <p style="color: #666; font-size: 13px; margin: 20px 0 10px;">
+                      Beyond Learning | <a href="https://www.lxera.ai" style="color: #666; text-decoration: none;">www.lxera.ai</a>
+                    </p>
+                    <p style="color: #999; font-size: 13px; margin: 0;">© 2025 LXERA. All rights reserved.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          return { subject, htmlContent };
+        };
+
+        const { subject, htmlContent } = getEmailContent(variant, fullName, formData.email);
+
+        // Send confirmation email via Resend
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'LXERA Team <hello@lxera.ai>',
+            to: formData.email,
+            subject: subject,
+            html: htmlContent,
+            tags: [
+              { name: 'category', value: 'waitlist_confirmation' },
+              { name: 'variant', value: variant }
+            ]
+          }),
+        });
+
+        if (emailResponse.ok) {
+          console.log(`Confirmation email sent successfully to ${formData.email}`);
+        } else {
+          const errorData = await emailResponse.text();
+          console.error('Failed to send confirmation email:', errorData);
+          // Don't fail the whole request if email fails
+        }
+
+      } catch (emailError) {
+        console.error('Confirmation email error:', emailError);
+        // Don't fail the whole request if email fails
       }
     }
 

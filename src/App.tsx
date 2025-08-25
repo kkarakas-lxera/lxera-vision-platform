@@ -868,9 +868,10 @@ const App = () => {
             <Route path="/waiting-list/personal" element={<PageSuspense><WaitingList variant="personal" /></PageSuspense>} />
             <Route path="/waiting-list" element={<PageSuspense><WaitingList variant="enterprise" /></PageSuspense>} />
             
-            {/* Essential admin auth routes - kept for backend access */}
+            {/* Essential auth routes - kept for backend access and invitations */}
             <Route path="/login" element={<UnifiedLogin />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/signup/invitation" element={<PageSuspense><InvitationSignup /></PageSuspense>} />
 
             {/* Protected admin routes - kept for admin access */}
             <Route

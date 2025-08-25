@@ -529,7 +529,7 @@ const EmployeesPage = () => {
         title: "No Employees Imported",
         description: "Import your first employees to start building your team directory.",
         ctaText: "Import Employees",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: false // Don't blur when we're already on the employees page
       };
     }

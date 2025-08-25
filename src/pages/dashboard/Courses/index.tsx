@@ -138,15 +138,7 @@ const CoursesPage = () => {
 
       {/* Tab Navigation */}
       <div className="border-b">
-        <nav className="-mb-px flex space-x-8">
-          <TabButton
-            active={activeTab === 'assignments'}
-            onClick={() => setActiveTab('assignments')}
-            count={activeAssignmentsCount}
-          >
-            Active Training
-          </TabButton>
-          
+        <nav className="-mb-px flex space-x-8">          
           <TabButton
             active={activeTab === 'generate'}
             onClick={() => setActiveTab('generate')}
@@ -161,6 +153,14 @@ const CoursesPage = () => {
             count={pendingApprovalsCount}
           >
             Course Approvals
+          </TabButton>
+
+          <TabButton
+            active={activeTab === 'assignments'}
+            onClick={() => setActiveTab('assignments')}
+            count={activeAssignmentsCount}
+          >
+            Active Training
           </TabButton>
           
           <TabButton

@@ -16,14 +16,14 @@ from supabase import create_client, Client
 # Configure logger first before any usage
 logger = logging.getLogger(__name__)
 
-# Import pure LangGraph runner for Llama 3.3-based generation
+# Import pure LangGraph runner for GPT-OSS 20B-based generation
 from agent_graph.graph.runner import start_job, get_status, resume_job
 import uuid
 
 class LXERADatabasePipeline:
     """
     Pure LangGraph pipeline orchestrator that integrates with LXERA's Supabase database
-    to retrieve employee data and skills gap analysis using Llama 3.3 via Groq API.
+    to retrieve employee data and skills gap analysis using GPT-OSS 20B via Groq API.
     """
     
     def __init__(self):
@@ -102,7 +102,7 @@ class LXERADatabasePipeline:
                     job_id
                 )
             else:
-                # Run the complete LangGraph pipeline with Llama 3.3
+                # Run the complete LangGraph pipeline with GPT-OSS 20B
                 pipeline_result = await self._run_langgraph_pipeline(
                     employee_data,
                     skills_gaps,
@@ -174,11 +174,11 @@ class LXERADatabasePipeline:
         previous_course_content: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Run the course generation pipeline using pure LangGraph with Llama 3.3 via Groq API.
+        Run the course generation pipeline using pure LangGraph with GPT-OSS 20B via Groq API.
         """
         try:
             logger.info("🚀 Starting LangGraph course generation pipeline")
-            logger.info("🦙 Using Llama 3.3 70B via Groq API for AI inference")
+            logger.info("🤖 Using GPT-OSS 20B via Groq API for AI inference")
             logger.info("🔥 Web research powered by Firecrawl API")
             
             # **LANGGRAPH PIPELINE: Planning → Research → Content**
@@ -252,7 +252,7 @@ class LXERADatabasePipeline:
                 'modules_generated': 1,  # LangGraph generates one complete course
                 'total_processing_time': '0m 0s',
                 'generation_mode': generation_mode,
-                'llm_used': 'Llama 3.3 70B (via Groq API)',
+                'llm_used': 'GPT-OSS 20B (via Groq API)',
                 'architecture': 'Pure LangGraph (3 nodes: Planning → Research → Content)'
             }
             
@@ -451,7 +451,7 @@ class LXERADatabasePipeline:
             
             # Determine how many modules to generate based on mode  
             logger.info(f"🎯 Generation mode: '{generation_mode}' - Total modules planned: {total_modules}")
-            logger.info("🤖 LLM Model: llama-3.3-70b-versatile (Groq)")
+            logger.info("🤖 Using GPT-OSS 20B via Groq API for AI inference")
             logger.info("📊 Model Provider: Groq API")
             
             if generation_mode == 'first_module':
@@ -673,7 +673,7 @@ class LXERADatabasePipeline:
         """
         try:
             logger.info("🎯 Starting Planning-Only Pipeline (Outline Generation)")
-            logger.info("🤖 LLM Model: llama-3.3-70b-versatile (Groq)")
+            logger.info("🤖 Using GPT-OSS 20B via Groq API for AI inference")
             logger.info("📊 Model Provider: Groq API")
             logger.info("🔧 Model Type: Planning & Content Generation")
             

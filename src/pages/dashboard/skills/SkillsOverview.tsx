@@ -522,7 +522,7 @@ export default function SkillsOverview() {
         title: "No Employees Imported",
         description: "Import employees to start analyzing their skills and identifying gaps.",
         ctaText: "Import Employees",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }
@@ -533,7 +533,7 @@ export default function SkillsOverview() {
         title: "No Skills Analyzed",
         description: "Upload CVs and run skills analysis to see your team's skill gaps.",
         ctaText: "Analyze Skills",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }

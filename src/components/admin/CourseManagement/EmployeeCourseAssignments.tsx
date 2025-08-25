@@ -513,7 +513,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         title: "No Employees Imported",
         description: "Import employees to start assigning courses and tracking their progress.",
         ctaText: "Import Employees",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }
@@ -524,7 +524,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         title: "No Skills Analyzed",
         description: "Analyze employee skills first to generate personalized course recommendations.",
         ctaText: "Analyze Skills",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }

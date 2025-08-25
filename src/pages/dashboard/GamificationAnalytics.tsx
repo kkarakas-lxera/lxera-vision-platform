@@ -92,7 +92,7 @@ export default function GamificationAnalytics() {
         title: "No Employees Imported",
         description: "Import employees to start tracking their learning progress and engagement.",
         ctaText: "Import Employees",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }
@@ -103,7 +103,7 @@ export default function GamificationAnalytics() {
         title: "No Skills Analyzed",
         description: "Analyze employee skills to unlock gamification features and track progress.",
         ctaText: "Analyze Skills",
-        ctaLink: "/dashboard/employees",
+        ctaLink: "/dashboard/employees?tab=import",
         shouldBlur: true
       };
     }

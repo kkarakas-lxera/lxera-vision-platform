@@ -297,6 +297,28 @@ serve(async (req) => {
 
         console.log(`✅ Course outline generated and stored with plan_id: ${generated_plan_id}`)
         
+        // Create course assignment for approval workflow
+        const { error: assignmentError } = await supabase
+          .from('course_assignments')
+          .insert({
+            employee_id,
+            company_id, 
+            course_id: generated_plan_id,  // Use plan_id as course_id for outline
+            plan_id: generated_plan_id,    // Store plan_id so CourseDetails can fetch course plan
+            assigned_by: assigned_by_id,
+            status: 'not_started',
+            is_preview: true,              // Key field for approval workflow
+            approval_status: 'pending_review',
+            assigned_at: new Date().toISOString()
+          })
+
+        if (assignmentError) {
+          console.error('❌ Failed to create course assignment:', assignmentError)
+          throw new Error(`Failed to create course assignment: ${assignmentError.message}`)
+        }
+
+        console.log(`✅ Course assignment created for approval workflow`)
+        
         return new Response(
           JSON.stringify({
             success: true,

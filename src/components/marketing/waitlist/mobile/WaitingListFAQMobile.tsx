@@ -40,6 +40,10 @@ const enterpriseFaqs = [
   {
     question: 'How do you check content quality?',
     answer: 'We have a human verification layer where subject matter experts check content on top of our quality specialist agents.'
+  },
+  {
+    question: 'Does LXERA support multiple languages?',
+    answer: 'Yes! LXERA supports content creation and learning in multiple languages including English, Spanish, French, German, Portuguese, Arabic, Turkish, and more. Our AI can generate training materials in your preferred language and adapt to different regional learning styles and cultural contexts.'
   }
 ];
 
@@ -76,6 +80,10 @@ const personalFaqs = [
   {
     question: 'How do you check content quality?',
     answer: 'We have a human verification layer where subject matter experts check content on top of our quality specialist agents.'
+  },
+  {
+    question: 'Does LXERA support multiple languages?',
+    answer: 'Yes! LXERA supports content creation and learning in multiple languages including English, Spanish, French, German, Portuguese, Arabic, Turkish, and more. Our AI can generate training materials in your preferred language and adapt to different regional learning styles and cultural contexts.'
   }
 ];
 

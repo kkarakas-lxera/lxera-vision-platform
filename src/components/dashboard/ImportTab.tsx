@@ -399,6 +399,11 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const employeesWithContent = spreadsheetEmployees.filter(e => e.name?.trim() || e.email?.trim());
   const readyCount = employeesWithContent.filter(e => e.status === 'ready').length;
   const errorCount = employeesWithContent.filter(e => e.status === 'error').length;
+  
+  // Check if there are unsaved employees (with temp/new IDs)
+  const hasUnsavedEmployees = employeesWithContent.some(e => 
+    e.id.startsWith('temp-') || e.id.startsWith('new-')
+  );
 
   // Show loading if userProfile not ready
   if (!userProfile?.company_id) {
@@ -538,13 +543,18 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
               <Alert className="flex-1 mr-4">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  Employees are saved automatically as you type. Click "Activate Employees" when ready to finalize.
+                  {saveStatus === 'saving' 
+                    ? 'Saving changes... Please wait before activating.' 
+                    : hasUnsavedEmployees 
+                      ? 'Some employees have unsaved changes. Please wait for auto-save to complete.'
+                      : 'Employees are saved automatically as you type. Click "Activate Employees" when ready to finalize.'
+                  }
                 </AlertDescription>
               </Alert>
               
               <Button
                 onClick={handleActivateEmployees}
-                disabled={readyCount === 0 || isSubmitting}
+                disabled={readyCount === 0 || isSubmitting || saveStatus === 'saving' || hasUnsavedEmployees}
                 size="lg"
               >
                 <Upload className="h-4 w-4 mr-2" />
