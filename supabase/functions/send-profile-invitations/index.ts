@@ -56,12 +56,12 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai'
     console.log('Using site URL:', siteUrl)
 
-    // Get employee details with user information
+    // Get employee details with optional user information (imported employees may not have users yet)
     const { data: employeeData, error: employeesError } = await supabaseAdmin
       .from('employees')
       .select(`
         id,
-        users!inner(
+        users(
           id,
           email,
           full_name
@@ -73,13 +73,34 @@ serve(async (req) => {
 
     console.log(`Found ${employeeData?.length || 0} employees to invite`)
 
-    // Transform data to match expected format
-    const employees = employeeData?.map(emp => ({
-      id: emp.id,
-      email: emp.users.email,
-      full_name: emp.users.full_name,
-      user_id: emp.users.id
-    })) || []
+    // Transform data with fallback to import items when users is null
+    const employees = [] as { id: string, email: string, full_name: string, user_id: string | null }[]
+    for (const emp of employeeData || []) {
+      let email = emp.users?.email as string | null
+      let full_name = emp.users?.full_name as string | null
+      let user_id = emp.users?.id as string | null
+
+      if (!email) {
+        const { data: importItem } = await supabaseAdmin
+          .from('st_import_session_items')
+          .select('employee_email, employee_name')
+          .eq('employee_id', emp.id)
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        email = importItem?.employee_email ?? null
+        full_name = importItem?.employee_name ?? null
+      }
+
+      if (email) {
+        employees.push({
+          id: emp.id,
+          email,
+          full_name: full_name ?? email,
+          user_id
+        })
+      }
+    }
 
     const results = []
     const errors = []

@@ -86,27 +86,9 @@ serve(async (req) => {
     // Process each employee
     for (const item of readyItems) {
       try {
-        // Check if user exists
-        const { data: existingUser } = await supabaseClient
-          .rpc('check_user_exists_by_email', { 
-            p_email: item.employee_email 
-          })
-
-        let userId = existingUser?.[0]?.user_exists ? existingUser[0].user_id : null
-
-        if (!userId) {
-          // Create new user
-          const { data: newUserId, error: userError } = await supabaseClient
-            .rpc('create_company_user', {
-              p_email: item.employee_email,
-              p_password_hash: '$2b$12$LQv3c1yqBwWFcZPMtS.4K.6P8vU6OxZdHJ5QKG8vY.7JZu9Z1QY6m',
-              p_full_name: item.employee_name || item.employee_email.split('@')[0],
-              p_role: 'learner'
-            })
-
-          if (userError) throw userError
-          userId = newUserId
-        }
+        // Do NOT pre-create public.users anymore. Keep identity creation in Auth flow only.
+        // We intentionally avoid linking to a user_id here; it will be set after signup.
+        let userId: string | null = null
 
         // Get position details - first try active_position_id, then match by position title
         let positionId = session.active_position_id
@@ -140,52 +122,29 @@ serve(async (req) => {
           }
         }
 
-        // Check if employee already exists
-        const { data: existingEmployee } = await supabaseClient
+        // Always create a new employee record (without user_id) for imported entries
+        const { data: createdEmployee, error: employeeError } = await supabaseClient
           .from('employees')
+          .insert({
+            user_id: userId,
+            company_id: userData.company_id,
+            department: item.field_values?.department || 'General',
+            position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
+            current_position_id: positionId || null,
+            target_position_id: positionId || null,
+            is_active: true,
+            import_session_id: sessionId
+          })
           .select('id')
-          .eq('user_id', userId)
-          .eq('company_id', userData.company_id)
           .single()
 
-        if (existingEmployee) {
-          // Update existing employee
-          const { error: employeeError } = await supabaseClient
-            .from('employees')
-            .update({
-              department: item.field_values?.department || 'General',
-              position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
-              current_position_id: positionId || null,
-              target_position_id: positionId || null,
-              is_active: true,
-              import_session_id: sessionId
-            })
-            .eq('id', existingEmployee.id)
+        if (employeeError) throw employeeError
 
-          if (employeeError) throw employeeError
-        } else {
-          // Create new employee record
-          const { error: employeeError } = await supabaseClient
-            .from('employees')
-            .insert({
-              user_id: userId,
-              company_id: userData.company_id,
-              department: item.field_values?.department || 'General',
-              position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
-              current_position_id: positionId || null,
-              target_position_id: positionId || null,
-              is_active: true,
-              import_session_id: sessionId
-            })
-
-          if (employeeError) throw employeeError
-        }
-
-        // Update the item status
+        // Update the item status and persist created employee_id for later use (invitation fallback)
         await supabaseClient
           .from('st_import_session_items')
           .update({
-            employee_id: userId
+            employee_id: createdEmployee?.id
           })
           .eq('id', item.id)
 

@@ -36,7 +36,7 @@ interface SpreadsheetGridProps {
   employees: Employee[];
   onEmployeesChange: (employees: Employee[]) => void;
   onRowDelete: (id: string) => void;
-  onCellSave?: (rowId: string, field: string, value: string) => Promise<void>;
+  onCellSave?: (rowId: string, field: string, value: string) => void;
   isLoading?: boolean;
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
   lastSaved?: Date | null;
@@ -162,14 +162,9 @@ export default function SpreadsheetGrid({
 
     onEmployeesChange(updatedEmployees);
     
-    // Trigger immediate save for this cell if ID exists (not a new row)
-    if (!editingCell.rowId.startsWith('new-') && !editingCell.rowId.startsWith('temp-') && onCellSave) {
-      try {
-        await onCellSave(editingCell.rowId, editingCell.column, editValue);
-      } catch (error) {
-        console.error('Failed to save cell:', error);
-        // The auto-save hook will handle retry logic
-      }
+    // Trigger cell save callback for change tracking
+    if (onCellSave) {
+      onCellSave(editingCell.rowId, editingCell.column, editValue);
     }
     
     setEditingCell(null);

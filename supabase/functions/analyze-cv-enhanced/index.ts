@@ -374,6 +374,7 @@ serve(async (req) => {
   const sessionId = crypto.randomUUID() // For tracking this specific analysis session
   let employee_id: string | undefined // Declare at function scope
   let company_id: string | undefined // Declare at function scope for error logging
+  let statusUpdateCallCount = 0 // Circuit breaker for status updates
   
   // Initialize Supabase client at function scope for error handlers
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -565,11 +566,34 @@ serve(async (req) => {
     const openai = new OpenAI({ apiKey: openaiApiKey })
     
     // Helper function to update analysis status
-    const updateStatus = async (status: string, progress: number, message?: string) => {
+    const updateStatus = async (status: string, progress: number, message?: string, filePath?: string) => {
+      // Circuit breaker to prevent infinite recursion
+      statusUpdateCallCount++;
+      if (statusUpdateCallCount > 10) {
+        console.error('Status update circuit breaker triggered - too many calls')
+        return
+      }
+
       try {
-        console.log(`Updating status: ${status} (${progress}%) - ${message || ''}`)
+        console.log(`Updating status: ${status} (${progress}%) - ${message || ''} [Call #${statusUpdateCallCount}]`)
         
-        const { data, error } = await supabase
+        // Validate required data before attempting database operation
+        if (!employee_id) {
+          console.error('Cannot update status: employee_id is undefined')
+          return
+        }
+        
+        if (!sessionId) {
+          console.error('Cannot update status: sessionId is undefined')
+          return
+        }
+        
+        // Add timeout to prevent hanging operations
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Status update timeout')), 5000)
+        )
+        
+        const updatePromise = supabase
           .from('cv_analysis_status')
           .upsert({
             employee_id,
@@ -579,7 +603,7 @@ serve(async (req) => {
             message,
             metadata: { 
               source,
-              file_path,
+              file_path: filePath || file_path || '',
               request_id: requestId 
             },
             updated_at: new Date().toISOString()
@@ -588,27 +612,11 @@ serve(async (req) => {
           })
           .select()
         
+        const { data, error } = await Promise.race([updatePromise, timeoutPromise])
+
         if (error) {
-          console.error('Failed to update status:', JSON.stringify(error))
-          // Log to metrics for visibility
-          await supabase
-            .from('st_llm_usage_metrics')
-            .insert({
-              company_id: company_id || 'unknown',
-              service_type: 'cv_analysis_status_error',
-              model_used: 'none',
-              input_tokens: 0,
-              output_tokens: 0,
-              cost_estimate: 0,
-              duration_ms: 0,
-              success: false,
-              error_code: error.code,
-              metadata: {
-                request_id: requestId,
-                status,
-                error: error.message
-              }
-            })
+          // Avoid JSON.stringify on potential circular structures
+          console.error('Failed to update status:', getSafeErrorMessage(error))
         } else {
           console.log('Status update successful:', data)
         }
@@ -627,7 +635,7 @@ serve(async (req) => {
     }
     
     // Initial status update
-    await updateStatus('started', 0, 'Starting CV analysis')
+    await updateStatus('started', 0, 'Starting CV analysis', file_path)
     
     // Fetch employee data to get company_id
     const { data: employee, error: empError } = await supabase
@@ -1074,7 +1082,7 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
     )
     
   } catch (error: any) {
-    console.error('CV analysis error:', error)
+    console.error('CV analysis error:', getSafeErrorMessage(error))
     
     // Try to update status to failed
     if (employee_id) {
@@ -1097,7 +1105,7 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
             onConflict: 'employee_id,session_id'
           })
       } catch (statusError) {
-        console.error('Failed to update error status:', statusError)
+        console.error('Failed to update error status:', getSafeErrorMessage(statusError))
       }
     }
     
@@ -1123,7 +1131,7 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
             }
           })
       } catch (metricsError) {
-        console.error('Failed to log error metrics:', metricsError)
+        console.error('Failed to log error metrics:', getSafeErrorMessage(metricsError))
       }
     }
     

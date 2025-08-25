@@ -104,19 +104,6 @@ export class EmployeeProfileService {
     }
   }
 
-  static async createProfileInvitation(employeeId: string): Promise<string> {
-    const { data, error } = await supabase
-      .from('profile_invitations')
-      .insert({
-        employee_id: employeeId
-      })
-      .select('invitation_token')
-      .single();
-
-    if (error) throw error;
-    return data.invitation_token;
-  }
-
   static async getInvitation(token: string): Promise<ProfileInvitation | null> {
     const { data, error } = await supabase
       .from('profile_invitations')

@@ -242,7 +242,7 @@ export const CourseGenerationSection = () => {
         const requiredSkillsMap = new Map();
         if (positionReqs?.required_skills) {
           positionReqs.required_skills.forEach((skill: any) => {
-            requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+            requiredSkillsMap.set(skill.skill_name ? skill.skill_name.toLowerCase() : '', {
               required_level: skill.proficiency_level || 3,
               is_mandatory: skill.is_mandatory || false
             });
@@ -250,8 +250,8 @@ export const CourseGenerationSection = () => {
         }
         if (positionReqs?.nice_to_have_skills) {
           positionReqs.nice_to_have_skills.forEach((skill: any) => {
-            if (!requiredSkillsMap.has(skill.skill_name.toLowerCase())) {
-              requiredSkillsMap.set(skill.skill_name.toLowerCase(), {
+            if (!requiredSkillsMap.has(skill.skill_name ? skill.skill_name.toLowerCase() : '')) {
+              requiredSkillsMap.set(skill.skill_name ? skill.skill_name.toLowerCase() : '', {
                 required_level: skill.proficiency_level || 2,
                 is_mandatory: false
               });
@@ -261,7 +261,7 @@ export const CourseGenerationSection = () => {
         
         // Calculate gaps by comparing employee skills with requirements
         employeeSkills.forEach((skill: any) => {
-          const requirement = requiredSkillsMap.get(skill.skill_name.toLowerCase());
+          const requirement = requiredSkillsMap.get(skill.skill_name ? skill.skill_name.toLowerCase() : '');
           if (requirement) {
             totalSkills++;
             const currentLevel = skill.proficiency || 0;
@@ -284,7 +284,7 @@ export const CourseGenerationSection = () => {
         requiredSkillsMap.forEach((requirement, skillName) => {
           if (requirement.is_mandatory) {
             const hasSkill = employeeSkills.some((s: any) => 
-              s.skill_name.toLowerCase() === skillName
+              (s.skill_name ? s.skill_name.toLowerCase() : '') === skillName
             );
             if (!hasSkill) {
               criticalGaps++;

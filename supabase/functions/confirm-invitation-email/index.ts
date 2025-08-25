@@ -85,36 +85,36 @@ serve(async (req) => {
     if (!invitation.employees.user_id || invitation.employees.user_id !== userId) {
       console.log(`Linking employee ${invitation.employee_id} to user ${userId}`)
       
-      // First, ensure the public.users record exists
+      // Verify the auth user exists
       const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId)
       if (!authUser.user) {
         throw new Error('Auth user not found')
       }
       
-      // Check if public.users record exists
-      const { data: existingPublicUser } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .eq('id', userId)
-        .single()
+      // Wait for the auth trigger to create the public.users record
+      // The handle_new_user trigger should have created this automatically
+      let retries = 5;
+      let publicUser = null;
       
-      // Create public.users record if it doesn't exist
-      if (!existingPublicUser) {
-        console.log('Creating missing public.users record')
-        const { error: createUserError } = await supabaseAdmin
+      while (retries > 0 && !publicUser) {
+        const { data: existingPublicUser } = await supabaseAdmin
           .from('users')
-          .insert({
-            id: userId,
-            email: authUser.user.email,
-            full_name: authUser.user.user_metadata?.full_name || authUser.user.email?.split('@')[0] || 'User',
-            role: 'learner',
-            company_id: null // Will be set when employee is linked
-          })
+          .select('id, company_id')
+          .eq('id', userId)
+          .single()
         
-        if (createUserError) {
-          console.error('Error creating public user:', createUserError)
-          throw new Error('Failed to create user profile')
+        if (existingPublicUser) {
+          publicUser = existingPublicUser;
+          break;
         }
+        
+        console.log(`Public user record not found yet, waiting... (${retries} retries left)`)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        retries--;
+      }
+      
+      if (!publicUser) {
+        throw new Error('Public user record not created by auth trigger. Check trigger function.')
       }
       
       // Get employee's company_id for user profile

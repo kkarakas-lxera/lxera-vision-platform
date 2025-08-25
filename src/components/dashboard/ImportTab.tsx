@@ -8,7 +8,6 @@ import { Building2, Upload, FileSpreadsheet, AlertTriangle, Info, CheckCircle, A
 import SpreadsheetGrid, { Employee as SpreadsheetEmployee } from '@/components/TeamSetup/SpreadsheetGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAutoSaveEmployees } from '@/hooks/useAutoSaveEmployees';
 import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
 
 interface ImportTabProps {
@@ -27,12 +26,156 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const [showSuccessState, setShowSuccessState] = useState(false);
   const [activatedCount, setActivatedCount] = useState(0);
 
-  // Auto-save hook
-  const { saveStatus, lastSaved, handleCellSave } = useAutoSaveEmployees(
-    currentSessionId,
-    spreadsheetEmployees,
-    setSpreadsheetEmployees
-  );
+  // Manual save state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Manual save function
+  const handleManualSave = async () => {
+    if (!currentSessionId) {
+      // Create session if none exists
+      const employeesWithContent = spreadsheetEmployees.filter(e => e.name?.trim() || e.email?.trim());
+      if (employeesWithContent.length > 0) {
+        try {
+          const sessionId = await createImportSession();
+          console.log('Created new session for save:', sessionId);
+        } catch (error) {
+          toast.error('Failed to create import session. Please try again.');
+          return;
+        }
+      } else {
+        toast.error('No employee data to save.');
+        return;
+      }
+    }
+
+    setSaveStatus('saving');
+    
+    try {
+      // Separate items with existing IDs from new items
+      const existingItems = spreadsheetEmployees.filter(emp => 
+        !emp.id.startsWith('temp-') && !emp.id.startsWith('new-')
+      );
+      
+      const newItems = spreadsheetEmployees.filter(emp => 
+        (emp.id.startsWith('temp-') || emp.id.startsWith('new-')) &&
+        (emp.name?.trim() || emp.email?.trim()) // Only save items with content
+      );
+
+      // For existing items, prepare update data
+      const itemsToUpdate = existingItems.map(emp => ({
+        id: emp.id,
+        import_session_id: currentSessionId,
+        employee_name: emp.name || null,
+        employee_email: emp.email || '',
+        current_position_code: emp.position_code || null,
+        status: emp.status === 'ready' ? 'completed' : 
+                emp.status === 'error' ? 'failed' : 
+                emp.status || 'pending',
+        error_message: emp.errorMessage || null,
+        field_values: {
+          department: emp.department || null,
+          position: emp.position || null,
+          manager_email: emp.manager_email || null
+        }
+      }));
+
+      // For new items, only insert if they have at least an email
+      const itemsToInsert = newItems
+        .filter(emp => emp.email && emp.email.trim() !== '')
+        .map(emp => ({
+          import_session_id: currentSessionId,
+          employee_name: emp.name || null,
+          employee_email: emp.email,
+          current_position_code: emp.position_code || null,
+          status: emp.status === 'ready' ? 'completed' : 
+                  emp.status === 'error' ? 'failed' : 
+                  emp.status || 'pending',
+          error_message: emp.errorMessage || null,
+          field_values: {
+            department: emp.department || null,
+            position: emp.position || null,
+            manager_email: emp.manager_email || null
+          }
+        }));
+
+      // Handle updates and inserts separately
+      let updatedData: any[] = [];
+      let insertedData: any[] = [];
+
+      // Update existing items
+      if (itemsToUpdate.length > 0) {
+        const { data, error } = await supabase
+          .from('st_import_session_items')
+          .upsert(itemsToUpdate, {
+            onConflict: 'id',
+            ignoreDuplicates: false
+          })
+          .select();
+
+        if (error) throw error;
+        updatedData = data || [];
+      }
+
+      // Insert new items (without ID field)
+      if (itemsToInsert.length > 0) {
+        const { data, error } = await supabase
+          .from('st_import_session_items')
+          .insert(itemsToInsert)
+          .select();
+
+        if (error) throw error;
+        insertedData = data || [];
+      }
+
+      // Update local state with new IDs
+      if (insertedData.length > 0) {
+        const updatedEmployees = spreadsheetEmployees.map((emp) => {
+          if (emp.id.startsWith('temp-') || emp.id.startsWith('new-')) {
+            // Find the inserted item by email
+            const newItem = insertedData.find(item => item.employee_email === emp.email);
+            if (newItem) {
+              return { ...emp, id: newItem.id };
+            }
+          }
+          return emp;
+        });
+        setSpreadsheetEmployees(updatedEmployees);
+      }
+
+      // Update session stats
+      const allItems = [...itemsToUpdate, ...itemsToInsert];
+      const readyCount = allItems.filter(item => item.status === 'completed').length;
+      const errorCount = allItems.filter(item => item.status === 'failed').length;
+        
+      await supabase
+        .from('st_import_sessions')
+        .update({
+          total_employees: allItems.length,
+          successful: readyCount,
+          failed: errorCount,
+          last_active: new Date().toISOString()
+        })
+        .eq('id', currentSessionId);
+
+      setSaveStatus('saved');
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      
+      toast.success(`Saved ${allItems.length} employees`);
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Save error:', error);
+      setSaveStatus('error');
+      toast.error('Failed to save changes');
+      
+      // Reset status after 5 seconds
+      setTimeout(() => setSaveStatus('idle'), 5000);
+    }
+  };
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -272,6 +415,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     };
     
     setSpreadsheetEmployees([...spreadsheetEmployees, newEmployee]);
+    setHasUnsavedChanges(true);
   };
 
   const handleRowDelete = async (rowId: string) => {
@@ -287,6 +431,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     }
     
     setSpreadsheetEmployees(spreadsheetEmployees.filter(e => e.id !== rowId));
+    setHasUnsavedChanges(true);
   };
 
   const handleActivateEmployees = async () => {
@@ -400,8 +545,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const readyCount = employeesWithContent.filter(e => e.status === 'ready').length;
   const errorCount = employeesWithContent.filter(e => e.status === 'error').length;
   
-  // Check if there are unsaved employees (with temp/new IDs)
-  const hasUnsavedEmployees = employeesWithContent.some(e => 
+  // Check if there are unsaved employees (with temp/new IDs) or unsaved changes
+  const hasUnsavedEmployees = hasUnsavedChanges || employeesWithContent.some(e => 
     e.id.startsWith('temp-') || e.id.startsWith('new-')
   );
 
@@ -529,7 +674,9 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
             employees={spreadsheetEmployees}
             onEmployeesChange={setSpreadsheetEmployees}
             onRowDelete={handleRowDelete}
-            onCellSave={handleCellSave}
+            onCellSave={(rowId: string, field: string, value: string) => {
+              setHasUnsavedChanges(true);
+            }}
             isLoading={isSubmitting}
             saveStatus={saveStatus}
             lastSaved={lastSaved}
@@ -540,26 +687,39 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           {/* Actions */}
           <div className="mt-6">
             <div className="flex items-center justify-between">
-              <Alert className="flex-1 mr-4">
-                <Info className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  {saveStatus === 'saving' 
-                    ? 'Saving changes... Please wait before activating.' 
-                    : hasUnsavedEmployees 
-                      ? 'Some employees have unsaved changes. Please wait for auto-save to complete.'
-                      : 'Employees are saved automatically as you type. Click "Activate Employees" when ready to finalize.'
-                  }
-                </AlertDescription>
-              </Alert>
-              
-              <Button
-                onClick={handleActivateEmployees}
-                disabled={readyCount === 0 || isSubmitting || saveStatus === 'saving' || hasUnsavedEmployees}
-                size="lg"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Activate {readyCount} Employee{readyCount !== 1 ? 's' : ''}
-              </Button>
+              <div className="flex items-center gap-4">
+                <Alert className="flex-1">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {saveStatus === 'saving' 
+                      ? 'Saving changes... Please wait.' 
+                      : hasUnsavedEmployees 
+                        ? 'You have unsaved changes. Please save before activating employees.'
+                        : saveStatus === 'saved'
+                          ? `Last saved: ${lastSaved?.toLocaleTimeString()}`
+                          : 'Make changes and click "Save Changes" to persist your data.'
+                    }
+                  </AlertDescription>
+                </Alert>
+                
+                <Button
+                  onClick={handleManualSave}
+                  disabled={!hasUnsavedEmployees || saveStatus === 'saving'}
+                  variant="outline"
+                  size="lg"
+                >
+                  {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
+                </Button>
+                
+                <Button
+                  onClick={handleActivateEmployees}
+                  disabled={readyCount === 0 || isSubmitting || saveStatus === 'saving' || hasUnsavedEmployees}
+                  size="lg"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Activate {readyCount} Employee{readyCount !== 1 ? 's' : ''}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>

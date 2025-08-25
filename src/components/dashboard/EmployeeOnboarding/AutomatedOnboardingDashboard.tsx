@@ -51,7 +51,7 @@ export function AutomatedOnboardingDashboard({
       const { data: invitations } = await supabase
         .from('profile_invitations')
         .select('completed_at')
-        .eq('employee_id', employeeStatuses.map(e => e.id));
+        .in('employee_id', employeeStatuses.map((e: any) => e.id));
 
       if (invitations) {
         setInvitationsSent(invitations.length);
@@ -91,32 +91,17 @@ export function AutomatedOnboardingDashboard({
         return;
       }
 
-      let sent = 0;
-      for (const emp of employees) {
-        try {
-          // Check if invitation already exists
-          const { data: existing } = await supabase
-            .from('profile_invitations')
-            .select('id')
-            .eq('employee_id', emp.id)
-            .single();
-
-          if (!existing) {
-            const token = await EmployeeProfileService.createProfileInvitation(emp.id);
-            
-            // Send invitation email
-            await supabase.functions.invoke('send-profile-invitation', {
-              body: { employeeId: emp.id, invitationToken: token }
-            });
-            
-            sent++;
-          }
-        } catch (err) {
-          console.error('Failed to create invitation for', emp.id);
+      // Bulk send invitations via edge function
+      const employeeIds = employees.map((e: any) => e.id);
+      const { data, error } = await supabase.functions.invoke('send-profile-invitations', {
+        body: {
+          employee_ids: employeeIds,
+          company_id: companyId
         }
-      }
+      });
 
-      toast.success(`Sent ${sent} profile invitations`);
+      if (error) throw error;
+      toast.success(`Sent ${data?.sent ?? employeeIds.length} profile invitations`);
       fetchDashboardData();
     } catch (error) {
       toast.error('Failed to send invitations');

@@ -471,8 +471,8 @@ const EmployeesPage = () => {
   const filteredEmployees = employees.filter(employee => {
     // Search filter
     const matchesSearch = 
-      employee.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (employee.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (employee.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (employee.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (employee.position?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     

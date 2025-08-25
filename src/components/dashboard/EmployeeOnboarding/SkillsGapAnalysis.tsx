@@ -192,8 +192,8 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
               totalEmployeesWithProfiles++;
               
               const hasSkill = profile.extracted_skills.some((skill: ExtractedSkill) => {
-                const skillName = skill.skill_name?.toLowerCase() || '';
-                const reqSkillName = reqSkill.skill_name?.toLowerCase() || '';
+                const skillName = skill.skill_name ? skill.skill_name.toLowerCase() : '';
+                const reqSkillName = reqSkill.skill_name ? reqSkill.skill_name.toLowerCase() : '';
                 
                 // More precise matching
                 return skillName === reqSkillName || 
@@ -208,8 +208,8 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
               
               if (hasSkill) {
                 const matchingSkill = profile.extracted_skills.find((skill: any) => {
-                  const skillName = skill.skill_name?.toLowerCase() || '';
-                  const reqSkillName = reqSkill.skill_name?.toLowerCase() || '';
+                  const skillName = skill.skill_name ? skill.skill_name.toLowerCase() : '';
+                  const reqSkillName = reqSkill.skill_name ? reqSkill.skill_name.toLowerCase() : '';
                   return skillName === reqSkillName || 
                          skillName.includes(reqSkillName) ||
                          reqSkillName.includes(skillName);
