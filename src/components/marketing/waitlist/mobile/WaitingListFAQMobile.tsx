@@ -7,7 +7,8 @@ import ClassicLoader from '../../../ui/ClassicLoader';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 import { WaitlistVariant } from '../shared/contentSelector';
 
-const faqs = [
+// B2B Enterprise FAQs
+const enterpriseFaqs = [
   {
     question: 'Are you using ChatGPT?',
     answer: 'No. We have our own fine-tuned models trained specifically for this purpose. We are using Multi-Agent Orchestration.'
@@ -42,6 +43,42 @@ const faqs = [
   }
 ];
 
+// B2C Personal FAQs
+const personalFaqs = [
+  {
+    question: 'Are you using ChatGPT?',
+    answer: 'No. We have our own fine-tuned models trained specifically for this purpose. We are using Multi-Agent Orchestration.'
+  },
+  {
+    question: 'What makes LXERA different from other learning platforms?',
+    answer: 'LXERA is the only platform that combines AI-powered skill gap analysis, personalized training creation, and real-time market intelligence in one solution. Unlike generic learning platforms, we focus on your specific business needs and industry requirements.'
+  },
+  {
+    question: 'How quickly can we get started with LXERA?',
+    answer: 'You can sign up and start exploring LXERA in minutes. Our AI-powered onboarding helps you identify skill gaps and create your first training program within the first week.'
+  },
+  {
+    question: 'Can I track my learning progress and achievements?',
+    answer: 'Yes! LXERA provides a personalized dashboard where you can monitor your skill development, track completed courses, and celebrate your learning milestones. You\'ll see your progress visualized and get insights into your growth journey.'
+  },
+  {
+    question: 'What kind of training content can LXERA create?',
+    answer: 'LXERA can create various types of training content including interactive courses, assessments, video tutorials, and hands-on exercises. Our AI adapts content to different learning styles and skill levels.'
+  },
+  {
+    question: 'How do I know if I\'m actually improving my skills?',
+    answer: 'LXERA uses AI-powered assessments and real-world project simulations to measure your skill improvement. You\'ll receive detailed feedback, skill level updates, and personalized recommendations for areas to focus on next.'
+  },
+  {
+    question: 'Can I learn at my own pace, or do I need to follow a fixed schedule?',
+    answer: 'Learn completely at your own pace! LXERA is designed for busy professionals who need flexibility. Access courses 24/7, pause and resume anytime, and set your own learning goals that fit around your work and life schedule.'
+  },
+  {
+    question: 'How do you check content quality?',
+    answer: 'We have a human verification layer where subject matter experts check content on top of our quality specialist agents.'
+  }
+];
+
 interface WaitingListFAQMobileProps {
   content: any;
   variant: WaitlistVariant;
@@ -55,6 +92,9 @@ export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ cont
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Select FAQs based on variant
+  const faqs = variant === 'personal' ? personalFaqs : enterpriseFaqs;
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -147,7 +187,7 @@ export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ cont
 
         {/* FAQ Items - More compact */}
         <div className="space-y-3">
-          {content.FAQ_CONTENT.faqs.map((faq: any, index: number) => (
+          {faqs.map((faq: any, index: number) => (
             <div
               key={index}
               className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden"
