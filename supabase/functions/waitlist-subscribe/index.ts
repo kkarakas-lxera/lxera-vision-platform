@@ -27,6 +27,20 @@ interface WaitlistFormData {
   heardAbout?: string;
   onboardingCompleted?: boolean;
   
+  // B2C Questionnaire data
+  variant?: 'enterprise' | 'personal';
+  questionnaireData?: {
+    career_stage?: string;
+    industry?: string;
+    industry_other?: string;
+    current_company?: string;
+    location_country?: string;
+    skills_interested?: string[];
+    skills_other?: string;
+    motivation?: string;
+    motivation_other?: string;
+  };
+  
   // Common fields
   source?: string;
   utm_source?: string;
@@ -92,6 +106,7 @@ serve(async (req) => {
         utm_source: formData.utm_source,
         utm_medium: formData.utm_medium,
         utm_campaign: formData.utm_campaign,
+        variant: formData.variant || detectVariant(formData.source),
       };
 
       // Only update name fields if we have better data
@@ -115,6 +130,11 @@ serve(async (req) => {
           updateData.onboarding_completed_at = new Date().toISOString();
         }
       }
+      
+      // Update questionnaire data if provided
+      if (formData.questionnaireData) {
+        updateData.questionnaire_data = formData.questionnaireData;
+      }
 
       const { error: updateError } = await supabase
         .from('waitlist_contacts')
@@ -127,6 +147,8 @@ serve(async (req) => {
       }
     } else {
       // Create new contact
+      const variant = formData.variant || detectVariant(formData.source);
+      
       const { data: newContact, error: contactError } = await supabase
         .from('waitlist_contacts')
         .insert({
@@ -142,6 +164,8 @@ serve(async (req) => {
           utm_source: formData.utm_source,
           utm_medium: formData.utm_medium,
           utm_campaign: formData.utm_campaign,
+          variant: variant,
+          questionnaire_data: formData.questionnaireData || {},
           brevo_sync_status: 'pending',
           // New onboarding fields
           role_other: formData.roleOther,
@@ -175,7 +199,8 @@ serve(async (req) => {
       ) ? 'personal' : 'enterprise';
     };
 
-    const variant = detectVariant(formData.source);
+    // Use provided variant or detect from source
+    const variant = formData.variant || detectVariant(formData.source);
     
     // Get appropriate Brevo list ID
     const getBrevoListId = (variant: string): number[] => {
@@ -194,15 +219,28 @@ serve(async (req) => {
       console.error('BREVO_API_KEY not configured');
     } else {
       try {
-        // Prepare Brevo contact data with variant info
+        // Prepare Brevo contact data with variant info and questionnaire data
+        const brevoAttributes: any = {
+          FIRSTNAME: firstName || '',
+          LASTNAME: lastName || '',
+          SOURCE: formData.source || 'website',
+          VARIANT: variant
+        };
+        
+        // Add questionnaire data to Brevo attributes if available
+        if (formData.questionnaireData) {
+          const q = formData.questionnaireData;
+          if (q.career_stage) brevoAttributes.CAREER_STAGE = q.career_stage;
+          if (q.industry) brevoAttributes.INDUSTRY = q.industry;
+          if (q.current_company) brevoAttributes.COMPANY = q.current_company;
+          if (q.location_country) brevoAttributes.COUNTRY = q.location_country;
+          if (q.skills_interested) brevoAttributes.SKILLS_INTERESTED = q.skills_interested.join(', ');
+          if (q.motivation) brevoAttributes.MOTIVATION = q.motivation;
+        }
+        
         const brevoContact: any = {
           email: formData.email,
-          attributes: {
-            FIRSTNAME: firstName || '',
-            LASTNAME: lastName || '',
-            SOURCE: formData.source || 'website',
-            VARIANT: variant
-          },
+          attributes: brevoAttributes,
           listIds: getBrevoListId(variant),
           updateEnabled: true // Handle duplicates
         };

@@ -44,6 +44,19 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
     useCasesOther: '',
     heardAbout: '',
   });
+  
+  // B2C Questionnaire state
+  const [b2cForm, setB2cForm] = useState({
+    career_stage: '',
+    industry: '',
+    industry_other: '',
+    current_company: '',
+    location_country: '',
+    skills_interested: [] as string[],
+    skills_other: '',
+    motivation: '',
+    motivation_other: '',
+  });
   const finishedRef = useRef(false);
 
   // Auto-advance logic without extra clicks
@@ -68,11 +81,11 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
 
     // Step 3 → 4: removed auto-advance to allow multiple selections
 
-    // Step 4 → finish: heard about selected
-    if (onboardingStep === 4 && form.heardAbout && !finishedRef.current) {
+    // B2B: Step 4 → finish: heard about selected
+    if (variant === 'enterprise' && onboardingStep === 4 && form.heardAbout && !finishedRef.current) {
       finishedRef.current = true;
       
-      // Submit detailed onboarding data to waitlist-subscribe
+      // Submit detailed B2B onboarding data
       const submitOnboardingData = async () => {
         try {
           const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
@@ -91,18 +104,19 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
               useCasesOther: form.useCasesOther,
               heardAbout: form.heardAbout,
               onboardingCompleted: true,
-              source: variant === 'personal' ? 'hero-waitlist-personal-onboarding' : 'hero-waitlist-enterprise-onboarding'
+              variant: 'enterprise',
+              source: 'hero-waitlist-enterprise-onboarding'
             }),
           });
           
           const data = await response.json();
           if (data.success) {
-            console.log('Onboarding data saved successfully');
+            console.log('B2B onboarding data saved successfully');
           } else {
-            console.error('Failed to save onboarding data:', data.error);
+            console.error('Failed to save B2B onboarding data:', data.error);
           }
         } catch (error) {
-          console.error('Error saving onboarding data:', error);
+          console.error('Error saving B2B onboarding data:', error);
         }
       };
       
@@ -111,7 +125,46 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
       setIsDialogOpen(false);
       toast({ title: 'Thanks!', description: 'Your preferences have been saved successfully!' });
     }
-  }, [showOnboarding, onboardingStep, form.role, form.roleOther, form.teamSize, form.useCases.length, form.heardAbout]);
+    
+    // B2C: Step 6 → finish: motivation selected
+    if (variant === 'personal' && onboardingStep === 6 && b2cForm.motivation && !finishedRef.current) {
+      finishedRef.current = true;
+      
+      // Submit detailed B2C questionnaire data
+      const submitQuestionnaireData = async () => {
+        try {
+          const response = await fetch('https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/waitlist-subscribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NjM0NDAsImV4cCI6MjA2NjMzOTQ0MH0.aDpFDImHTr13UhRHqQZHZ92e8I-tvcuUcDCtfRvfbzw',
+            },
+            body: JSON.stringify({
+              email: captured.email,
+              fullName: captured.name,
+              variant: 'personal',
+              questionnaireData: b2cForm,
+              source: 'hero-waitlist-personal-onboarding'
+            }),
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            console.log('B2C questionnaire data saved successfully');
+          } else {
+            console.error('Failed to save B2C questionnaire data:', data.error);
+          }
+        } catch (error) {
+          console.error('Error saving B2C questionnaire data:', error);
+        }
+      };
+      
+      submitQuestionnaireData();
+      setShowOnboarding(false);
+      setIsDialogOpen(false);
+      toast({ title: 'Thanks!', description: 'Your preferences have been saved successfully!' });
+    }
+  }, [showOnboarding, onboardingStep, form.role, form.roleOther, form.teamSize, form.useCases.length, form.heardAbout, b2cForm.motivation, variant]);
 
   // Memoized constants to prevent array recreation
   const ROLE_OPTIONS = useMemo(() => [
@@ -135,6 +188,111 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
     'Other',
   ], []);
   const HEARD_ABOUT_OPTIONS = useMemo(() => ['LinkedIn', 'Google Search', 'Colleague or Friend', 'Conference or Event', 'Blog or Article', 'Social Media', 'Other'], []);
+  
+  // B2C Options
+  const B2C_CAREER_STAGES = useMemo(() => [
+    'Junior professional (0-2 years experience)',
+    'Mid-level professional (3-7 years)',
+    'Senior professional (8+ years)',
+    'Career changer/transitioning',
+    'Looking to re-enter workforce'
+  ], []);
+  
+  const B2C_INDUSTRIES = useMemo(() => [
+    'Technology & Software',
+    'Healthcare & Life Sciences',
+    'Financial Services & Banking',
+    'Marketing & Advertising',
+    'Education & Training',
+    'Manufacturing & Engineering',
+    'Retail & E-commerce',
+    'Consulting & Professional Services',
+    'Government & Non-profit',
+    'Other'
+  ], []);
+  
+  const B2C_COUNTRIES = useMemo(() => [
+    'Afghanistan',
+    'Albania',
+    'Algeria',
+    'Argentina',
+    'Australia',
+    'Austria',
+    'Bangladesh',
+    'Belgium',
+    'Brazil',
+    'Bulgaria',
+    'Canada',
+    'Chile',
+    'China',
+    'Colombia',
+    'Croatia',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Greece',
+    'Hungary',
+    'India',
+    'Indonesia',
+    'Iran',
+    'Ireland',
+    'Israel',
+    'Italy',
+    'Japan',
+    'Jordan',
+    'Kenya',
+    'Malaysia',
+    'Mexico',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Pakistan',
+    'Philippines',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Russia',
+    'Saudi Arabia',
+    'Singapore',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Thailand',
+    'Turkey',
+    'Ukraine',
+    'United Arab Emirates',
+    'United Kingdom',
+    'United States',
+    'Vietnam',
+    'Other'
+  ], []);
+  
+  const B2C_SKILLS = useMemo(() => [
+    'Technical skills (coding, data analysis, etc.)',
+    'Leadership and management',
+    'Communication and presentation',
+    'Creative skills (design, writing, etc.)',
+    'Digital marketing and social media',
+    'Financial literacy and business skills',
+    'Other'
+  ], []);
+  
+  const B2C_MOTIVATIONS = useMemo(() => [
+    'Want to advance in my current role',
+    'Looking to change careers completely',
+    'Preparing for job interviews',
+    'Want to start a side business/freelancing',
+    'Personal growth and curiosity',
+    'Other'
+  ], []);
 
   // Memoized static data to prevent recreation on every render
   const people = useMemo(() => [
@@ -442,63 +600,201 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-[#7AE5C6] h-2 rounded-full transition-all duration-300 ease-out"
-                        style={{ width: `${(onboardingStep / 4) * 100}%` }}
+                        style={{ width: `${(onboardingStep / (variant === 'personal' ? 6 : 4)) * 100}%` }}
                       />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2 text-center">
+                      Step {onboardingStep} of {variant === 'personal' ? 6 : 4}
                     </div>
                   </div>
 
-                  {onboardingStep === 1 && (
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-700 font-medium">What's your current role?</div>
-                      <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select your current role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLE_OPTIONS.map((r) => (
-                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {form.role === 'Other' && (
-                        <Input
-                          type="text"
-                          placeholder="Please specify your role"
-                          value={form.roleOther}
-                          onChange={(e) => setForm({ ...form, roleOther: e.target.value })}
-                          className="h-10"
-                        />
+                  {/* B2C Questions for Personal Variant */}
+                  {variant === 'personal' && (
+                    <>
+                      {onboardingStep === 1 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">What's your current career stage?</div>
+                          <Select value={b2cForm.career_stage} onValueChange={(v) => setB2cForm({ ...b2cForm, career_stage: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your career stage" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {B2C_CAREER_STAGES.map((stage) => (
+                                <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       )}
-                      <Button
-                        className="w-full bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black"
-                        disabled={!form.role || (form.role === 'Other' && !form.roleOther)}
-                        onClick={() => setOnboardingStep(2)}
-                      >
-                        Continue
-                      </Button>
-                    </div>
+
+                      {onboardingStep === 2 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">Which industry do you work in?</div>
+                          <Select value={b2cForm.industry} onValueChange={(v) => setB2cForm({ ...b2cForm, industry: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your industry" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              {B2C_INDUSTRIES.map((industry) => (
+                                <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {b2cForm.industry === 'Other' && (
+                            <Input
+                              type="text"
+                              placeholder="Please specify your industry"
+                              value={b2cForm.industry_other}
+                              onChange={(e) => setB2cForm({ ...b2cForm, industry_other: e.target.value })}
+                              className="h-10"
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      {onboardingStep === 3 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">What company do you work for?</div>
+                          <Input
+                            type="text"
+                            placeholder="Enter your company name"
+                            value={b2cForm.current_company}
+                            onChange={(e) => setB2cForm({ ...b2cForm, current_company: e.target.value })}
+                            className="h-10"
+                          />
+                        </div>
+                      )}
+
+                      {onboardingStep === 4 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">Where are you located?</div>
+                          <Select value={b2cForm.location_country} onValueChange={(v) => setB2cForm({ ...b2cForm, location_country: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your country" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              {B2C_COUNTRIES.map((country) => (
+                                <SelectItem key={country} value={country}>{country}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {onboardingStep === 5 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">Which skills are you most interested in developing? <span className="text-gray-500">(Select up to 3)</span></div>
+                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                            {B2C_SKILLS.map((skill) => {
+                              const checked = b2cForm.skills_interested.includes(skill);
+                              const disabled = !checked && b2cForm.skills_interested.length >= 3;
+                              return (
+                                <label key={skill} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={checked}
+                                    disabled={disabled}
+                                    onCheckedChange={(v) => {
+                                      const isChecked = Boolean(v);
+                                      setB2cForm((prev) => ({
+                                        ...prev,
+                                        skills_interested: isChecked
+                                          ? [...prev.skills_interested, skill]
+                                          : prev.skills_interested.filter((x) => x !== skill),
+                                      }));
+                                    }}
+                                  />
+                                  <span className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-800'}`}>{skill}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          {b2cForm.skills_interested.includes('Other') && (
+                            <Input
+                              type="text"
+                              placeholder="Please specify other skills"
+                              value={b2cForm.skills_other}
+                              onChange={(e) => setB2cForm({ ...b2cForm, skills_other: e.target.value })}
+                              className="h-10"
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      {onboardingStep === 6 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">What's driving your interest in skill development right now?</div>
+                          <Select value={b2cForm.motivation} onValueChange={(v) => setB2cForm({ ...b2cForm, motivation: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your primary motivation" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {B2C_MOTIVATIONS.map((motivation) => (
+                                <SelectItem key={motivation} value={motivation}>{motivation}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {b2cForm.motivation === 'Other' && (
+                            <Input
+                              type="text"
+                              placeholder="Please specify your motivation"
+                              value={b2cForm.motivation_other}
+                              onChange={(e) => setB2cForm({ ...b2cForm, motivation_other: e.target.value })}
+                              className="h-10"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
 
-                  {onboardingStep === 2 && (
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-700 font-medium">How big is your team?</div>
-                      <Select value={form.teamSize} onValueChange={(v) => setForm({ ...form, teamSize: v })}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select team size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TEAM_SIZE_OPTIONS.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {/* Auto-advance handled by useEffect */}
-                    </div>
-                  )}
+                  {/* B2B Questions for Enterprise Variant */}
+                  {variant === 'enterprise' && (
+                    <>
+                      {onboardingStep === 1 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">What's your current role?</div>
+                          <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your current role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ROLE_OPTIONS.map((r) => (
+                                <SelectItem key={r} value={r}>{r}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {form.role === 'Other' && (
+                            <Input
+                              type="text"
+                              placeholder="Please specify your role"
+                              value={form.roleOther}
+                              onChange={(e) => setForm({ ...form, roleOther: e.target.value })}
+                              className="h-10"
+                            />
+                          )}
+                        </div>
+                      )}
 
-                  {onboardingStep === 3 && (
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-700 font-medium">What are you hoping to achieve with LXERA? <span className="text-gray-500">(Select all that apply)</span></div>
+                      {onboardingStep === 2 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">How big is your team?</div>
+                          <Select value={form.teamSize} onValueChange={(v) => setForm({ ...form, teamSize: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select team size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TEAM_SIZE_OPTIONS.map((s) => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {/* Auto-advance handled by useEffect */}
+                        </div>
+                      )}
+
+                      {onboardingStep === 3 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">What are you hoping to achieve with LXERA? <span className="text-gray-500">(Select all that apply)</span></div>
                       <div className="grid grid-cols-1 gap-2">
                         {USE_CASE_OPTIONS.map((option) => {
                           const checked = form.useCases.includes(option);
@@ -531,33 +827,79 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
                           />
                         </div>
                       )}
-                      {form.useCases.length > 0 && (
-                        <div className="flex justify-end mt-4">
-                          <Button 
-                            onClick={() => setOnboardingStep(4)}
-                            className="bg-business-black text-white hover:bg-business-black/90 px-6 py-2"
-                          >
-                            Continue
-                          </Button>
+                          {form.useCases.length > 0 && (
+                            <div className="flex justify-end mt-4">
+                              <Button 
+                                onClick={() => setOnboardingStep(4)}
+                                className="bg-business-black text-white hover:bg-business-black/90 px-6 py-2"
+                              >
+                                Continue
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {onboardingStep === 4 && (
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-700 font-medium">How did you discover us?</div>
-                      <Select value={form.heardAbout} onValueChange={(v) => setForm({ ...form, heardAbout: v })}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a source" />
+                      {onboardingStep === 4 && (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-700 font-medium">How did you discover us?</div>
+                          <Select value={form.heardAbout} onValueChange={(v) => setForm({ ...form, heardAbout: v })}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a source" />
                         </SelectTrigger>
                         <SelectContent>
                           {HEARD_ABOUT_OPTIONS.map((h) => (
                             <SelectItem key={h} value={h}>{h}</SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
-                      {/* Auto-finish handled by useEffect */}
+                            </SelectContent>
+                          </Select>
+                          {/* Auto-finish handled by useEffect */}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Manual Navigation for B2C */}
+                  {variant === 'personal' && (
+                    <div className="flex justify-between mt-6">
+                      {onboardingStep > 1 && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setOnboardingStep(onboardingStep - 1)}
+                          className="px-6"
+                        >
+                          Back
+                        </Button>
+                      )}
+                      
+                      <div className="flex-1" />
+                      
+                      {onboardingStep < 6 ? (
+                        <Button
+                          onClick={() => setOnboardingStep(onboardingStep + 1)}
+                          className="bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black px-6"
+                          disabled={
+                            (onboardingStep === 1 && !b2cForm.career_stage) ||
+                            (onboardingStep === 2 && !b2cForm.industry) ||
+                            (onboardingStep === 3 && !b2cForm.current_company) ||
+                            (onboardingStep === 4 && !b2cForm.location_country) ||
+                            (onboardingStep === 5 && b2cForm.skills_interested.length === 0)
+                          }
+                        >
+                          Continue
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => {
+                            finishedRef.current = false;
+                            setOnboardingStep(6);
+                          }}
+                          className="bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black px-6"
+                          disabled={!b2cForm.motivation}
+                        >
+                          Complete
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
