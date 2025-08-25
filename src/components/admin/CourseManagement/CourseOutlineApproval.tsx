@@ -27,6 +27,7 @@ interface CourseStructure {
   title: string;
   duration_weeks: number;
   learning_objectives: string[];
+  ld_specialist_explanation?: string;
   prerequisites?: string[];
   success_metrics?: string[];
   assessment_strategy?: {
@@ -296,115 +297,222 @@ export const CourseOutlineApproval = () => {
 
       <div className="grid gap-3">
         {pendingOutlines.map((outline) => (
-          <Card key={outline.plan_id} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-base leading-tight">{outline.course_title}</CardTitle>
-                  <CardDescription className="flex items-center gap-3 text-xs">
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {outline.employee_name}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {outline.course_structure?.duration_weeks || 'N/A'} weeks
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="h-3 w-3" />
-                      {outline.total_modules} modules
-                    </span>
-                  </CardDescription>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  <Clock className="h-2 w-2 mr-1" />
-                  Pending Review
-                </Badge>
-              </div>
-            </CardHeader>
+          <Card key={outline.plan_id} className="overflow-hidden bg-gray-50/50 border-gray-200">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value={outline.plan_id} className="border-none">
+                <AccordionTrigger className="hover:no-underline p-4 pb-2 hover:bg-gray-100/50 transition-colors">
+                  <div className="flex items-start justify-between w-full pr-2">
+                    <div className="space-y-1.5 text-left">
+                      <div className="text-sm font-medium leading-tight text-gray-900">{outline.course_title}</div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {outline.employee_name}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {outline.course_structure?.duration_weeks || 'N/A'} weeks
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" />
+                          {outline.total_modules} modules
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Created {new Date(outline.created_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs bg-yellow-50 border-yellow-200 text-yellow-700">
+                      <Clock className="h-2 w-2 mr-1" />
+                      Pending Review
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                
+                <AccordionContent className="px-4 pb-4 pt-0 bg-white/80">
+              {/* Compact Action Buttons */}
+              <div className="flex items-center justify-end gap-1.5 py-2 px-1 bg-gray-50/30 rounded-md mb-3">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setSelectedOutline(outline)}
+                      className="h-7 px-2 text-xs text-red-600 hover:bg-red-50/80 hover:text-red-700"
+                    >
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Suggest AI Changes
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Reject Course Outline</DialogTitle>
+                      <DialogDescription>
+                        Provide feedback for re-planning the course outline for {outline.employee_name}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="feedback">Feedback for Re-planning</Label>
+                        <Textarea
+                          id="feedback"
+                          placeholder="Explain what needs to be changed or improved in the course outline..."
+                          value={feedback}
+                          onChange={(e) => setFeedback(e.target.value)}
+                          className="mt-1"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => {
+                            if (feedback.trim()) {
+                              handleApproval(outline.plan_id, false, feedback);
+                            } else {
+                              toast({
+                                title: 'Feedback Required',
+                                description: 'Please provide feedback for re-planning',
+                                variant: 'destructive',
+                              });
+                            }
+                          }}
+                          disabled={actionLoading === outline.plan_id || !feedback.trim()}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {actionLoading === outline.plan_id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          ) : (
+                            <XCircle className="h-4 w-4 mr-2" />
+                          )}
+                          Submit Rejection
+                        </Button>
+                        <Button variant="outline" onClick={() => setFeedback('')}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
-            <CardContent className="space-y-3 pt-0">
-              {/* Learning Objectives & Enterprise Elements */}
-              <div className="space-y-3">
-                {/* Learning Objectives */}
-                <div>
-                  <h4 className="text-sm font-medium mb-1.5">Learning Objectives</h4>
-                  {outline.course_structure?.learning_objectives && outline.course_structure.learning_objectives.length > 0 ? (
-                    <ul className="text-xs text-muted-foreground space-y-0.5">
-                      {outline.course_structure.learning_objectives.map((objective, index) => (
-                        <li key={index} className="flex items-start gap-1.5">
-                          <span className="text-blue-500 mt-0.5 text-xs">•</span>
-                          <span className="leading-relaxed">{objective}</span>
-                        </li>
-                      ))}
-                    </ul>
+                <Button
+                  onClick={() => handleApproval(outline.plan_id, true)}
+                  disabled={actionLoading === outline.plan_id}
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-green-600 hover:bg-green-50/80 hover:text-green-700"
+                >
+                  {actionLoading === outline.plan_id ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600 mr-1"></div>
                   ) : (
-                    <div className="flex items-center justify-center p-4 border border-dashed rounded border-muted-foreground/20">
-                      <div className="text-center">
-                        <FileText className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-                        <p className="text-xs font-medium text-muted-foreground">No Learning Objectives</p>
-                        <p className="text-xs text-muted-foreground opacity-70">This course outline is missing learning objectives</p>
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                  )}
+                  Approve
+                </Button>
+              </div>
+
+              {/* L&D Specialist Explanation */}
+              {outline.course_structure?.ld_specialist_explanation && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
+                  <h4 className="text-sm font-medium mb-2 text-blue-900 flex items-center gap-1.5">
+                    <BookOpen className="h-3 w-3" />
+                    Learning Design Rationale
+                  </h4>
+                  <p className="text-xs text-blue-800 leading-relaxed">
+                    {outline.course_structure.ld_specialist_explanation}
+                  </p>
+                </div>
+              )}
+
+              {/* Side-by-Side Layout: Course Overview & Structure */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Left Column: Course Overview */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Course Overview</h3>
+                  
+                  {/* Learning Objectives */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-1.5">Learning Objectives</h4>
+                    {outline.course_structure?.learning_objectives && outline.course_structure.learning_objectives.length > 0 ? (
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {outline.course_structure.learning_objectives.map((objective, index) => (
+                          <li key={index} className="flex items-start gap-1.5">
+                            <span className="text-blue-500 mt-0.5 text-xs">•</span>
+                            <span className="leading-relaxed">{objective}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="flex items-center justify-center p-3 border border-dashed rounded border-muted-foreground/20">
+                        <div className="text-center">
+                          <FileText className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
+                          <p className="text-xs font-medium text-muted-foreground">No Learning Objectives</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prerequisites */}
+                  {outline.course_structure?.prerequisites && outline.course_structure.prerequisites.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-1.5">Prerequisites</h4>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {outline.course_structure.prerequisites.map((prereq, index) => (
+                          <li key={index} className="flex items-start gap-1.5">
+                            <span className="text-orange-500 mt-0.5 text-xs">✓</span>
+                            <span className="leading-relaxed">{prereq}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Success Metrics */}
+                  {outline.course_structure?.success_metrics && outline.course_structure.success_metrics.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-1.5">Success Metrics</h4>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {outline.course_structure.success_metrics.map((metric, index) => (
+                          <li key={index} className="flex items-start gap-1.5">
+                            <span className="text-green-500 mt-0.5 text-xs">📊</span>
+                            <span className="leading-relaxed">{metric}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Assessment Strategy */}
+                  {outline.course_structure?.assessment_strategy && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-1.5">Assessment Strategy</h4>
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Formative: </span>
+                          {outline.course_structure.assessment_strategy.formative_assessments}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Summative: </span>
+                          {outline.course_structure.assessment_strategy.summative_assessment}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Validation: </span>
+                          {outline.course_structure.assessment_strategy.competency_validation}
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Prerequisites */}
-                {outline.course_structure?.prerequisites && outline.course_structure.prerequisites.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-1.5">Prerequisites</h4>
-                    <ul className="text-xs text-muted-foreground space-y-0.5">
-                      {outline.course_structure.prerequisites.map((prereq, index) => (
-                        <li key={index} className="flex items-start gap-1.5">
-                          <span className="text-orange-500 mt-0.5 text-xs">✓</span>
-                          <span className="leading-relaxed">{prereq}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Success Metrics */}
-                {outline.course_structure?.success_metrics && outline.course_structure.success_metrics.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-1.5">Success Metrics</h4>
-                    <ul className="text-xs text-muted-foreground space-y-0.5">
-                      {outline.course_structure.success_metrics.map((metric, index) => (
-                        <li key={index} className="flex items-start gap-1.5">
-                          <span className="text-green-500 mt-0.5 text-xs">📊</span>
-                          <span className="leading-relaxed">{metric}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Assessment Strategy */}
-                {outline.course_structure?.assessment_strategy && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-1.5">Assessment Strategy</h4>
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Formative: </span>
-                        {outline.course_structure.assessment_strategy.formative_assessments}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Summative: </span>
-                        {outline.course_structure.assessment_strategy.summative_assessment}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Validation: </span>
-                        {outline.course_structure.assessment_strategy.competency_validation}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Course Modules */}
-              <div>
-                <h4 className="text-sm font-medium mb-1.5">Course Structure</h4>
-                {outline.course_structure?.modules && outline.course_structure.modules.length > 0 ? (
+                {/* Right Column: Course Structure */}
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Course Structure</h3>
+                  {outline.course_structure?.modules && outline.course_structure.modules.length > 0 ? (
                   <Accordion type="single" collapsible className="w-full">
                     {outline.course_structure.modules.map((module, index) => (
                       <AccordionItem key={index} value={`module-${index}`} className="border-b border-border/50">
@@ -519,87 +627,12 @@ export const CourseOutlineApproval = () => {
                       <p className="text-xs text-muted-foreground opacity-70">This course outline is missing module definitions</p>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-border/50">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedOutline(outline)}
-                    >
-                      <XCircle className="h-3 w-3 mr-1.5" />
-                      Reject & Request Changes
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Reject Course Outline</DialogTitle>
-                      <DialogDescription>
-                        Provide feedback for re-planning the course outline for {outline.employee_name}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="feedback">Feedback for Re-planning</Label>
-                        <Textarea
-                          id="feedback"
-                          placeholder="Explain what needs to be changed or improved in the course outline..."
-                          value={feedback}
-                          onChange={(e) => setFeedback(e.target.value)}
-                          className="mt-1"
-                          rows={4}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={() => {
-                            if (feedback.trim()) {
-                              handleApproval(outline.plan_id, false, feedback);
-                            } else {
-                              toast({
-                                title: 'Feedback Required',
-                                description: 'Please provide feedback for re-planning',
-                                variant: 'destructive',
-                              });
-                            }
-                          }}
-                          disabled={actionLoading === outline.plan_id || !feedback.trim()}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          {actionLoading === outline.plan_id ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          ) : (
-                            <XCircle className="h-4 w-4 mr-2" />
-                          )}
-                          Submit Rejection
-                        </Button>
-                        <Button variant="outline" onClick={() => setFeedback('')}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <Button
-                  onClick={() => handleApproval(outline.plan_id, true)}
-                  disabled={actionLoading === outline.plan_id}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {actionLoading === outline.plan_id ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1.5"></div>
-                  ) : (
-                    <CheckCircle className="h-3 w-3 mr-1.5" />
                   )}
-                  Approve & Generate Module 1
-                </Button>
+                </div>
               </div>
-            </CardContent>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </Card>
         ))}
       </div>

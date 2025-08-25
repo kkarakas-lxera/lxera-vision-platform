@@ -460,97 +460,144 @@ LEARNER PROFILE:
 ENTERPRISE LEARNING DESIGN REQUIREMENTS:
 Design a competency-based course following 2025 corporate learning standards with measurable outcomes, practical application, and clear progression pathways.
 
-Return ONLY valid JSON that matches the frontend interface exactly:
+Create a 6-week personalized course outline with complete enterprise-standard details. Generate EXACTLY 6 modules that directly address their specific skill gaps and role requirements.
+
+Return ONLY valid JSON in this exact structure:
 {
-  "course_title": "Professional [Skill Area] Mastery for [Role] Excellence",
-  "title": "Professional [Skill Area] Mastery for [Role] Excellence", 
+  "course_title": "Specific course title based on their role and critical gaps",
+  "title": "Specific course title based on their role and critical gaps",
   "duration_weeks": 6,
+  "ld_specialist_explanation": "A comprehensive paragraph for L&D specialists and educational designers explaining why this course design is optimal for this specific employee, detailing how it addresses their identified skill gaps, leverages their existing strengths, follows adult learning principles, and aligns with enterprise learning standards. Include specific references to their role requirements and how the progression addresses their career development needs.",
   "prerequisites": [
     "Basic understanding of ${employeeContext.key_tools.length > 0 ? employeeContext.key_tools[0] : 'relevant tools'}",
-    "Current role experience in ${employeeContext.department} department",
+    "Current role experience in ${employeeContext.department} department", 
     "Access to work environment for practical application"
   ],
   "learning_objectives": [
-    "Analyze and evaluate current ${criticalGaps ? criticalGaps.split(',')[0] : 'skill gaps'} to create improvement strategies (Bloom: Analyze)",
-    "Apply advanced techniques to resolve ${majorGaps ? majorGaps.split(',')[0] : 'workflow challenges'} in daily operations (Bloom: Apply)",
+    "Analyze current ${criticalGaps ? criticalGaps.split(',')[0] : 'skill gaps'} to create improvement strategies (Bloom: Analyze)",
+    "Apply advanced techniques to resolve ${majorGaps ? majorGaps.split(',')[0] : 'workflow challenges'} (Bloom: Apply)",
     "Create systematic processes that improve ${employeeContext.position} performance by 20% (Bloom: Create)",
     "Synthesize learning into a professional development plan for continued growth (Bloom: Evaluate)"
   ],
   "success_metrics": [
     "Complete practical assessments with 85% proficiency",
-    "Demonstrate skill application in real work scenarios",
+    "Demonstrate skill application in real work scenarios", 
     "Create action plan for continued skill development",
     "Achieve measurable performance improvement in target areas"
   ],
   "assessment_strategy": {
     "formative_assessments": "Weekly reflection exercises and peer feedback sessions",
-    "summative_assessment": "Capstone project applying learned skills to real work challenge", 
+    "summative_assessment": "Capstone project applying learned skills to real work challenge",
     "competency_validation": "Manager assessment of on-the-job skill demonstration"
   },
   "engagement_methods": [
     "Interactive workshops with real-world scenarios",
-    "Peer learning circles and knowledge sharing",
+    "Peer learning circles and knowledge sharing", 
     "Manager check-ins for progress validation",
     "Reflective journaling and progress tracking"
   ],
   "performance_indicators": [
     "Skill assessment scores improve by minimum 25%",
-    "Successful completion of practical application exercises", 
-    "Positive feedback from manager on skill demonstration",
+    "Successful completion of practical application exercises",
+    "Positive feedback from manager on skill demonstration", 
     "Self-reported confidence increase in target competency areas"
   ],
   "modules": [
     {
-      "title": "Foundational Analysis: Understanding Your ${criticalGaps ? criticalGaps.split(',')[0] : 'Skill'} Gap",
+      "title": "PERSONALIZED module title addressing their #1 critical gap",
       "week": 1,
       "priority": "critical",
       "duration": "1 week",
       "learning_outcomes": [
-        "Identify specific skill deficiencies using self-assessment tools",
-        "Map current capabilities against role requirements", 
-        "Establish baseline performance metrics for improvement tracking"
+        "Specific outcome related to their critical gap",
+        "Measurable skill improvement for their role",
+        "Practical capability they will gain"
       ],
       "activities": [
-        "Skills audit workshop with interactive assessment",
-        "Gap analysis using company-specific competency framework",
-        "Goal setting session with SMART objectives"
+        "Activity directly related to their skill gap",
+        "Hands-on practice in their work context",
+        "Real scenario from their industry/role"
       ],
-      "practical_application": "Complete skills inventory for your current role and identify top 3 improvement areas",
-      "time_commitment": "3-4 hours total: 1 hour guided learning + 2-3 hours practical work",
-      "deliverable": "Personal Skills Development Plan with 90-day improvement targets",
+      "practical_application": "Specific task they will complete in their actual job",
+      "time_commitment": "Realistic time estimate for their level",
+      "deliverable": "Concrete output they will create",
       "topics": [
-        "Professional competency frameworks and self-assessment",
-        "Gap analysis methodologies for ${employeeContext.position} roles",
-        "Setting measurable learning objectives",
-        "Creating accountability systems for skill development"
+        "Topic 1 specific to their gap",
+        "Topic 2 relevant to their role",
+        "Topic 3 addressing their challenge"
       ]
     },
     {
-      "title": "Applied Learning: ${majorGaps ? majorGaps.split(',')[0] : 'Core Skill'} Development",
-      "week": 2, 
-      "priority": "high",
+      "title": "PERSONALIZED module title addressing their #2 skill gap",
+      "week": 2,
+      "priority": "high", 
       "duration": "1 week",
-      "learning_outcomes": [
-        "Execute improved processes using newly acquired techniques",
-        "Demonstrate proficiency in core skill application",
-        "Troubleshoot common challenges in skill implementation"
-      ],
-      "activities": [
-        "Hands-on practice with real work scenarios",
-        "Case study analysis from your industry",
-        "Peer collaboration and best practice sharing"
-      ],
-      "practical_application": "Apply learned techniques to current project or daily tasks",
-      "time_commitment": "4-5 hours total: 2 hours structured learning + 2-3 hours practice",
-      "deliverable": "Completed practice exercises with performance documentation",
-      "topics": [
-        "Advanced techniques for ${majorGaps ? majorGaps.split(',')[0] : 'skill development'}",
-        "Industry best practices and benchmarking",
-        "Common pitfalls and troubleshooting strategies",
-        "Integration with existing workflows and systems"
-      ]
+      "learning_outcomes": ["Specific to their needs"],
+      "activities": ["Relevant to their role"],
+      "practical_application": "Applied in their work context",
+      "time_commitment": "Appropriate for their level",
+      "deliverable": "Concrete output",
+      "topics": ["Specific to their gap areas"]
+    },
+    {
+      "title": "PERSONALIZED module title for week 3",
+      "week": 3,
+      "priority": "medium",
+      "duration": "1 week",
+      "learning_outcomes": ["Build on previous modules"],
+      "activities": ["Progressive difficulty"],
+      "practical_application": "Real work application",
+      "time_commitment": "Realistic estimate",
+      "deliverable": "Measurable output", 
+      "topics": ["Relevant content areas"]
+    },
+    {
+      "title": "PERSONALIZED module title for week 4",
+      "week": 4,
+      "priority": "medium",
+      "duration": "1 week",
+      "learning_outcomes": ["Advanced application"],
+      "activities": ["Complex scenarios"],
+      "practical_application": "Leadership/mentoring aspects",
+      "time_commitment": "Increased responsibility",
+      "deliverable": "Strategic output",
+      "topics": ["Advanced concepts"]
+    },
+    {
+      "title": "PERSONALIZED module title for week 5",
+      "week": 5,
+      "priority": "low",
+      "duration": "1 week", 
+      "learning_outcomes": ["Mastery level skills"],
+      "activities": ["Innovation/improvement focused"],
+      "practical_application": "Leading initiatives",
+      "time_commitment": "Self-directed work",
+      "deliverable": "Innovation/improvement result",
+      "topics": ["Expert-level content"]
+    },
+    {
+      "title": "PERSONALIZED module title for week 6",
+      "week": 6,
+      "priority": "low",
+      "duration": "1 week",
+      "learning_outcomes": ["Sustainability and growth"],
+      "activities": ["Planning and reflection"],
+      "practical_application": "Long-term development",
+      "time_commitment": "Strategic planning time", 
+      "deliverable": "Future development plan",
+      "topics": ["Continuous improvement"]
     }
   ]
+}
+
+CRITICAL REQUIREMENTS:
+1. Generate EXACTLY 6 modules with all fields filled (NOT 1 module, NOT 2 modules - EXACTLY 6 MODULES)
+2. Each module must have: title, week (1-6), priority, duration, learning_outcomes (array), activities (array), practical_application, time_commitment, deliverable, topics (array)
+3. Make every module title, activity, and outcome SPECIFIC to their skill gaps and role
+4. Ensure progressive difficulty from week 1 (foundation) to week 6 (mastery)
+5. Each module must directly address their actual skill gaps: ${criticalGaps} and ${majorGaps}
+6. All content must be relevant to a ${employeeContext.position} in ${employeeContext.department}
+7. Do NOT truncate - provide the complete structure with all 6 modules fully detailed
 }`
 
     // Call Groq API with detailed logging
@@ -585,7 +632,7 @@ Return ONLY valid JSON that matches the frontend interface exactly:
           }
         ],
         temperature: 0.0,
-        max_tokens: 2048,
+        max_tokens: 4096,
         response_format: { type: 'json_object' }
       }
       
