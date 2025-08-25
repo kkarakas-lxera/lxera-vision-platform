@@ -3,6 +3,7 @@ export const HERO_CONTENT = {
   title: "AI-Powered Learning to Grow Your Career",
   subtitle: "Find the skills you need, learn them fast, and share your growth.",
   ctaBadge: "Start Learning Free",
+  ctaButtonText: "Start Learning Free",
   formPlaceholders: {
     name: "Full Name",
     email: "Your email",
@@ -180,11 +181,5 @@ export const SOCIAL_PROOF_PEOPLE = [
     name: "David Park",
     designation: "VP Operations",
     image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Screenshot%202025-08-22%20at%2013.43.19.png",
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    designation: "CHRO",
-    image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Screenshot%202025-08-22%20at%2013.41.31.png",
   },
 ];

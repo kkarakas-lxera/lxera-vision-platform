@@ -283,7 +283,7 @@ export const WaitingListHeroMobile: React.FC<WaitingListHeroMobileProps> = ({ co
                         <ClassicLoader />
                         Getting access...
                       </span>
-                    ) : 'Get Early Access'}
+                    ) : content.HERO_CONTENT.ctaButtonText}
                   </Button>
                 </motion.form>
 

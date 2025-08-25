@@ -294,39 +294,8 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
     'Other'
   ], []);
 
-  // Memoized static data to prevent recreation on every render
-  const people = useMemo(() => [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      designation: "Learning Director",
-      image: "/avatars/avatar1.svg",
-    },
-    {
-      id: 2,
-      name: "Michael Rodriguez",
-      designation: "HR Manager",
-      image: "/avatars/avatar2.svg",
-    },
-    {
-      id: 3,
-      name: "Emily Johnson",
-      designation: "Innovation Lead",
-      image: "/avatars/avatar3.svg",
-    },
-    {
-      id: 4,
-      name: "David Park",
-      designation: "VP Operations",
-      image: "/avatars/avatar1.svg",
-    },
-    {
-      id: 5,
-      name: "Lisa Thompson",
-      designation: "CHRO",
-      image: "/avatars/avatar2.svg",
-    },
-  ], []);
+  // Memoized social proof people from content
+  const people = useMemo(() => content.SOCIAL_PROOF_PEOPLE, [content.SOCIAL_PROOF_PEOPLE]);
 
   // Memoized input handlers to prevent unnecessary re-renders
   const handleNameChange = useCallback((value: string) => {
@@ -518,7 +487,7 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
                     <ClassicLoader />
                     Getting access…
                   </span>
-                ) : 'Get Early Access'}
+                ) : content.HERO_CONTENT.ctaButtonText}
               </Button>
             </div>
           </form>

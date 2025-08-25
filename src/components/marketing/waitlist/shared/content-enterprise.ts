@@ -3,6 +3,7 @@ export const HERO_CONTENT = {
   title: "All-in-One Learning and Skill Management Platform",
   subtitle: "Identify skill gaps, create AI-powered training, and measure ROI in one platform.",
   ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots available.",
+  ctaButtonText: "Get Early Access",
   formPlaceholders: {
     name: "Full Name",
     email: "Business email",
@@ -180,11 +181,5 @@ export const SOCIAL_PROOF_PEOPLE = [
     name: "David Park",
     designation: "VP Operations",
     image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Screenshot%202025-08-22%20at%2013.43.19.png",
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    designation: "CHRO",
-    image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Screenshot%202025-08-22%20at%2013.41.31.png",
   },
 ];
