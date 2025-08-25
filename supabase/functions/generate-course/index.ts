@@ -256,9 +256,9 @@ serve(async (req) => {
         }
         
         // Store outline in database
-        const plan_id = crypto.randomUUID()
+        const generated_plan_id = crypto.randomUUID()
         const courseRecord = {
-          plan_id,
+          plan_id: generated_plan_id,
           employee_id,
           employee_name: employee.users?.full_name || 'Unknown',
           session_id: job_id || crypto.randomUUID(),
@@ -268,10 +268,20 @@ serve(async (req) => {
           prioritized_gaps: { gaps: skillGaps },
           research_strategy: { strategy: 'direct_groq_generation' },
           learning_path: { path: 'personalized_modules' },
+          employee_profile: {
+            name: employee.users?.full_name || 'Unknown',
+            position: employee.position || 'Professional',
+            department: employee.department || 'General',
+            career_goal: employee.career_goal || 'Professional development',
+            key_tools: employee.key_tools || [],
+            skills_gaps: skillGaps.slice(0, 10) // Top 10 gaps for profile context
+          },
           research_queries: { queries: [] },
           total_modules: result.course_structure?.modules?.length || 4,
-          course_duration_weeks: result.course_structure?.total_duration_weeks || 4,
+          course_duration_weeks: result.course_structure?.duration_weeks || 4,
           status: 'completed',
+          is_preview_mode: true, // Set to true for outline_only mode so it appears in approval queue
+          approval_status: 'pending_review', // Set pending review status for admin approval
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
@@ -285,12 +295,12 @@ serve(async (req) => {
           throw new Error(`Failed to store course plan: ${insertError.message}`)
         }
 
-        console.log(`✅ Course outline generated and stored with plan_id: ${plan_id}`)
+        console.log(`✅ Course outline generated and stored with plan_id: ${generated_plan_id}`)
         
         return new Response(
           JSON.stringify({
             success: true,
-            plan_id,
+            plan_id: generated_plan_id,
             course_title: result.course_title,
             employee_name: employee.users?.full_name || 'Unknown',
             generation_mode: 'outline_only',
@@ -323,7 +333,7 @@ serve(async (req) => {
           assigned_by_id,
           job_id,
           generation_mode,
-          plan_id,
+          plan_id,  // Use the plan_id parameter from request, not plan_id1 from outline case
           enable_multimedia,
           course_id,
           feedback_context
@@ -437,33 +447,108 @@ async function generateCourseOutline(
     console.log(`🔍 Critical gaps: ${criticalGaps || 'None'}`)
     console.log(`🔍 Major gaps: ${majorGaps || 'None'}`)
 
-    // Create the prompt for Ollama
-    const prompt = `Create a personalized course plan for ${employeeContext.name}, ${employeeContext.position} in ${employeeContext.department} department.
+    // Create the enhanced enterprise-standard prompt for Groq
+    const prompt = `Create an enterprise-standard course plan for ${employeeContext.name}, ${employeeContext.position} in ${employeeContext.department} department.
 
-CRITICAL SKILL GAPS: ${criticalGaps}
-MAJOR SKILL GAPS: ${majorGaps}
-CAREER GOAL: ${employeeContext.career_goal}
-KEY TOOLS: ${employeeContext.key_tools.join(', ')}
+LEARNER PROFILE:
+- Critical Skill Gaps: ${criticalGaps}
+- Major Skill Gaps: ${majorGaps}
+- Career Goal: ${employeeContext.career_goal}
+- Current Tools: ${employeeContext.key_tools.join(', ')}
+- Experience Level: Professional
 
-Generate a comprehensive course structure with:
-- Appropriate course title
-- 4-6 practical modules
-- 4-8 weeks total duration
-- Focus on addressing critical gaps first
+ENTERPRISE LEARNING DESIGN REQUIREMENTS:
+Design a competency-based course following 2025 corporate learning standards with measurable outcomes, practical application, and clear progression pathways.
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON that matches the frontend interface exactly:
 {
-  "course_title": "Specific course title",
-  "total_duration_weeks": 6,
+  "course_title": "Professional [Skill Area] Mastery for [Role] Excellence",
+  "title": "Professional [Skill Area] Mastery for [Role] Excellence", 
+  "duration_weeks": 6,
+  "prerequisites": [
+    "Basic understanding of ${employeeContext.key_tools.length > 0 ? employeeContext.key_tools[0] : 'relevant tools'}",
+    "Current role experience in ${employeeContext.department} department",
+    "Access to work environment for practical application"
+  ],
+  "learning_objectives": [
+    "Analyze and evaluate current ${criticalGaps ? criticalGaps.split(',')[0] : 'skill gaps'} to create improvement strategies (Bloom: Analyze)",
+    "Apply advanced techniques to resolve ${majorGaps ? majorGaps.split(',')[0] : 'workflow challenges'} in daily operations (Bloom: Apply)",
+    "Create systematic processes that improve ${employeeContext.position} performance by 20% (Bloom: Create)",
+    "Synthesize learning into a professional development plan for continued growth (Bloom: Evaluate)"
+  ],
+  "success_metrics": [
+    "Complete practical assessments with 85% proficiency",
+    "Demonstrate skill application in real work scenarios",
+    "Create action plan for continued skill development",
+    "Achieve measurable performance improvement in target areas"
+  ],
+  "assessment_strategy": {
+    "formative_assessments": "Weekly reflection exercises and peer feedback sessions",
+    "summative_assessment": "Capstone project applying learned skills to real work challenge", 
+    "competency_validation": "Manager assessment of on-the-job skill demonstration"
+  },
+  "engagement_methods": [
+    "Interactive workshops with real-world scenarios",
+    "Peer learning circles and knowledge sharing",
+    "Manager check-ins for progress validation",
+    "Reflective journaling and progress tracking"
+  ],
+  "performance_indicators": [
+    "Skill assessment scores improve by minimum 25%",
+    "Successful completion of practical application exercises", 
+    "Positive feedback from manager on skill demonstration",
+    "Self-reported confidence increase in target competency areas"
+  ],
   "modules": [
     {
-      "module_id": 1,
-      "module_name": "Module title",
+      "title": "Foundational Analysis: Understanding Your ${criticalGaps ? criticalGaps.split(',')[0] : 'Skill'} Gap",
       "week": 1,
       "priority": "critical",
-      "skill_gap_addressed": "specific skill",
-      "duration_weeks": 2,
-      "description": "Module description"
+      "duration": "1 week",
+      "learning_outcomes": [
+        "Identify specific skill deficiencies using self-assessment tools",
+        "Map current capabilities against role requirements", 
+        "Establish baseline performance metrics for improvement tracking"
+      ],
+      "activities": [
+        "Skills audit workshop with interactive assessment",
+        "Gap analysis using company-specific competency framework",
+        "Goal setting session with SMART objectives"
+      ],
+      "practical_application": "Complete skills inventory for your current role and identify top 3 improvement areas",
+      "time_commitment": "3-4 hours total: 1 hour guided learning + 2-3 hours practical work",
+      "deliverable": "Personal Skills Development Plan with 90-day improvement targets",
+      "topics": [
+        "Professional competency frameworks and self-assessment",
+        "Gap analysis methodologies for ${employeeContext.position} roles",
+        "Setting measurable learning objectives",
+        "Creating accountability systems for skill development"
+      ]
+    },
+    {
+      "title": "Applied Learning: ${majorGaps ? majorGaps.split(',')[0] : 'Core Skill'} Development",
+      "week": 2, 
+      "priority": "high",
+      "duration": "1 week",
+      "learning_outcomes": [
+        "Execute improved processes using newly acquired techniques",
+        "Demonstrate proficiency in core skill application",
+        "Troubleshoot common challenges in skill implementation"
+      ],
+      "activities": [
+        "Hands-on practice with real work scenarios",
+        "Case study analysis from your industry",
+        "Peer collaboration and best practice sharing"
+      ],
+      "practical_application": "Apply learned techniques to current project or daily tasks",
+      "time_commitment": "4-5 hours total: 2 hours structured learning + 2-3 hours practice",
+      "deliverable": "Completed practice exercises with performance documentation",
+      "topics": [
+        "Advanced techniques for ${majorGaps ? majorGaps.split(',')[0] : 'skill development'}",
+        "Industry best practices and benchmarking",
+        "Common pitfalls and troubleshooting strategies",
+        "Integration with existing workflows and systems"
+      ]
     }
   ]
 }`
@@ -499,7 +584,7 @@ Return ONLY valid JSON in this exact format:
             content: prompt
           }
         ],
-        temperature: 0.7,
+        temperature: 0.0,
         max_tokens: 2048,
         response_format: { type: 'json_object' }
       }
@@ -588,70 +673,3 @@ Return ONLY valid JSON in this exact format:
   }
 }
 
-// Helper function to generate detailed module content (used only for outline_only mode)
-async function generateModuleContent(
-  module: any,
-  courseTitle: string,
-  groqApiKey: string,
-  groqModel: string
-) {
-  const prompt = `Generate detailed content for this course module:
-
-Course: ${courseTitle}
-Module: ${module.module_name}
-Duration: ${module.duration_hours || 3} hours
-Learning Objectives: ${module.learning_objectives?.join(', ') || 'Professional development'}
-Key Topics: ${module.key_topics?.join(', ') || 'Core concepts'}
-
-Create comprehensive module content including:
-- Introduction
-- Learning objectives
-- Core content sections
-- Practical exercises
-- Key takeaways
-- Resources and next steps
-
-Return structured JSON with sections and content.`
-  
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: groqModel,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert instructional designer. Create detailed, engaging module content in structured JSON format.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 3000,
-        response_format: { type: 'json_object' }
-      })
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Groq API failed: ${response.status}`)
-    }
-    
-    const result = await response.json()
-    const content = result.choices?.[0]?.message?.content
-    
-    return JSON.parse(content || '{}')
-    
-  } catch (error) {
-    console.error(`❌ Error generating module content:`, error)
-    return {
-      error: 'Failed to generate module content',
-      module_name: module.module_name
-    }
-  }
-}

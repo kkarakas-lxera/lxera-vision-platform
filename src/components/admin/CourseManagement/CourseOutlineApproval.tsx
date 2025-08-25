@@ -27,12 +27,26 @@ interface CourseStructure {
   title: string;
   duration_weeks: number;
   learning_objectives: string[];
+  prerequisites?: string[];
+  success_metrics?: string[];
+  assessment_strategy?: {
+    formative_assessments: string;
+    summative_assessment: string;
+    competency_validation: string;
+  };
+  engagement_methods?: string[];
+  performance_indicators?: string[];
   modules: Array<{
     title: string;
     duration: string;
     topics: string[];
     priority: string;
     week: number;
+    learning_outcomes?: string[];
+    activities?: string[];
+    practical_application?: string;
+    time_commitment?: string;
+    deliverable?: string;
   }>;
 }
 
@@ -267,67 +281,121 @@ export const CourseOutlineApproval = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Course Outline Approvals</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-lg font-semibold">Course Outline Approvals</h2>
+          <p className="text-sm text-muted-foreground">
             Review and approve course outlines before Module 1 generation
           </p>
         </div>
-        <Badge variant="secondary">
+        <Badge variant="secondary" className="text-xs">
           {pendingOutlines.length} pending
         </Badge>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {pendingOutlines.map((outline) => (
           <Card key={outline.plan_id} className="overflow-hidden">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">{outline.course_title}</CardTitle>
-                  <CardDescription className="flex items-center gap-4">
+                  <CardTitle className="text-base leading-tight">{outline.course_title}</CardTitle>
+                  <CardDescription className="flex items-center gap-3 text-xs">
                     <span className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
+                      <Users className="h-3 w-3" />
                       {outline.employee_name}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
+                      <Calendar className="h-3 w-3" />
                       {outline.course_structure?.duration_weeks || 'N/A'} weeks
                     </span>
                     <span className="flex items-center gap-1">
-                      <BookOpen className="h-4 w-4" />
+                      <BookOpen className="h-3 w-3" />
                       {outline.total_modules} modules
                     </span>
                   </CardDescription>
                 </div>
-                <Badge variant="outline">
-                  <Clock className="h-3 w-3 mr-1" />
+                <Badge variant="outline" className="text-xs">
+                  <Clock className="h-2 w-2 mr-1" />
                   Pending Review
                 </Badge>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
-              {/* Learning Objectives */}
-              <div>
-                <h4 className="font-medium mb-2">Learning Objectives</h4>
-                {outline.course_structure?.learning_objectives && outline.course_structure.learning_objectives.length > 0 ? (
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    {outline.course_structure.learning_objectives.map((objective, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-blue-500 mt-1">•</span>
-                        {objective}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="flex items-center justify-center p-6 border border-dashed rounded-lg">
-                    <div className="text-center">
-                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm font-medium text-muted-foreground">No Learning Objectives</p>
-                      <p className="text-xs text-muted-foreground">This course outline is missing learning objectives</p>
+            <CardContent className="space-y-3 pt-0">
+              {/* Learning Objectives & Enterprise Elements */}
+              <div className="space-y-3">
+                {/* Learning Objectives */}
+                <div>
+                  <h4 className="text-sm font-medium mb-1.5">Learning Objectives</h4>
+                  {outline.course_structure?.learning_objectives && outline.course_structure.learning_objectives.length > 0 ? (
+                    <ul className="text-xs text-muted-foreground space-y-0.5">
+                      {outline.course_structure.learning_objectives.map((objective, index) => (
+                        <li key={index} className="flex items-start gap-1.5">
+                          <span className="text-blue-500 mt-0.5 text-xs">•</span>
+                          <span className="leading-relaxed">{objective}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="flex items-center justify-center p-4 border border-dashed rounded border-muted-foreground/20">
+                      <div className="text-center">
+                        <FileText className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                        <p className="text-xs font-medium text-muted-foreground">No Learning Objectives</p>
+                        <p className="text-xs text-muted-foreground opacity-70">This course outline is missing learning objectives</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Prerequisites */}
+                {outline.course_structure?.prerequisites && outline.course_structure.prerequisites.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-1.5">Prerequisites</h4>
+                    <ul className="text-xs text-muted-foreground space-y-0.5">
+                      {outline.course_structure.prerequisites.map((prereq, index) => (
+                        <li key={index} className="flex items-start gap-1.5">
+                          <span className="text-orange-500 mt-0.5 text-xs">✓</span>
+                          <span className="leading-relaxed">{prereq}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Success Metrics */}
+                {outline.course_structure?.success_metrics && outline.course_structure.success_metrics.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-1.5">Success Metrics</h4>
+                    <ul className="text-xs text-muted-foreground space-y-0.5">
+                      {outline.course_structure.success_metrics.map((metric, index) => (
+                        <li key={index} className="flex items-start gap-1.5">
+                          <span className="text-green-500 mt-0.5 text-xs">📊</span>
+                          <span className="leading-relaxed">{metric}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Assessment Strategy */}
+                {outline.course_structure?.assessment_strategy && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-1.5">Assessment Strategy</h4>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Formative: </span>
+                        {outline.course_structure.assessment_strategy.formative_assessments}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Summative: </span>
+                        {outline.course_structure.assessment_strategy.summative_assessment}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Validation: </span>
+                        {outline.course_structure.assessment_strategy.competency_validation}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -335,47 +403,104 @@ export const CourseOutlineApproval = () => {
 
               {/* Course Modules */}
               <div>
-                <h4 className="font-medium mb-2">Course Structure</h4>
+                <h4 className="text-sm font-medium mb-1.5">Course Structure</h4>
                 {outline.course_structure?.modules && outline.course_structure.modules.length > 0 ? (
                   <Accordion type="single" collapsible className="w-full">
                     {outline.course_structure.modules.map((module, index) => (
-                      <AccordionItem key={index} value={`module-${index}`}>
-                        <AccordionTrigger className="text-sm">
-                          <div className="flex items-center justify-between w-full pr-4">
-                            <span>Module {index + 1}: {module.title}</span>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-xs">
+                      <AccordionItem key={index} value={`module-${index}`} className="border-b border-border/50">
+                        <AccordionTrigger className="text-xs py-2 hover:no-underline">
+                          <div className="flex items-center justify-between w-full pr-2">
+                            <span className="font-medium">Module {index + 1}: {module.title}</span>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
                                 Week {module.week}
                               </Badge>
-                              <span>{module.duration}</span>
+                              <span className="text-xs">{module.duration}</span>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-2 pt-2">
-                            <div className="flex items-center gap-2">
+                        <AccordionContent className="pb-2">
+                          <div className="space-y-2 pt-1">
+                            <div className="flex items-center gap-1.5">
                               <Badge variant={
-                                module.priority === 'Critical' ? 'destructive' :
-                                module.priority === 'High' ? 'default' : 'secondary'
-                              }>
+                                module.priority === 'critical' || module.priority === 'Critical' ? 'destructive' :
+                                module.priority === 'High' || module.priority === 'high' ? 'default' : 'secondary'
+                              } className="text-xs px-1.5 py-0.5 h-auto">
                                 {module.priority} Priority
                               </Badge>
+                              {module.time_commitment && (
+                                <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
+                                  {module.time_commitment}
+                                </Badge>
+                              )}
                             </div>
+                            
+                            {/* Learning Outcomes */}
+                            {module.learning_outcomes && module.learning_outcomes.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium mb-1">Learning Outcomes:</p>
+                                <ul className="text-xs text-muted-foreground space-y-0.5">
+                                  {module.learning_outcomes.map((outcome, outcomeIndex) => (
+                                    <li key={outcomeIndex} className="flex items-start gap-1.5">
+                                      <span className="text-green-500 mt-0.5 text-xs">✓</span>
+                                      <span className="leading-relaxed">{outcome}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Activities */}
+                            {module.activities && module.activities.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium mb-1">Learning Activities:</p>
+                                <ul className="text-xs text-muted-foreground space-y-0.5">
+                                  {module.activities.map((activity, activityIndex) => (
+                                    <li key={activityIndex} className="flex items-start gap-1.5">
+                                      <span className="text-purple-500 mt-0.5 text-xs">⚡</span>
+                                      <span className="leading-relaxed">{activity}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Practical Application */}
+                            {module.practical_application && (
+                              <div>
+                                <p className="text-xs font-medium mb-1">Practical Application:</p>
+                                <p className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border-l-2 border-blue-200">
+                                  {module.practical_application}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Deliverable */}
+                            {module.deliverable && (
+                              <div>
+                                <p className="text-xs font-medium mb-1">Module Deliverable:</p>
+                                <p className="text-xs text-muted-foreground bg-green-50 p-2 rounded border-l-2 border-green-200">
+                                  📋 {module.deliverable}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {/* Topics */}
                             <div>
-                              <p className="text-sm font-medium mb-2">Topics Covered:</p>
+                              <p className="text-xs font-medium mb-1">Topics Covered:</p>
                               {module.topics && module.topics.length > 0 ? (
-                                <ul className="text-sm text-muted-foreground space-y-1">
+                                <ul className="text-xs text-muted-foreground space-y-0.5">
                                   {module.topics.map((topic, topicIndex) => (
-                                    <li key={topicIndex} className="flex items-start gap-2">
-                                      <span className="text-blue-500 mt-1">•</span>
-                                      {topic}
+                                    <li key={topicIndex} className="flex items-start gap-1.5">
+                                      <span className="text-blue-500 mt-0.5 text-xs">•</span>
+                                      <span className="leading-relaxed">{topic}</span>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <div className="flex items-center justify-center p-4 border border-dashed rounded border-muted-foreground/20">
+                                <div className="flex items-center justify-center p-3 border border-dashed rounded border-muted-foreground/20">
                                   <div className="text-center">
-                                    <FileText className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                                    <FileText className="h-4 w-4 text-muted-foreground mx-auto mb-0.5" />
                                     <p className="text-xs text-muted-foreground">No topics defined for this module</p>
                                   </div>
                                 </div>
@@ -387,25 +512,26 @@ export const CourseOutlineApproval = () => {
                     ))}
                   </Accordion>
                 ) : (
-                  <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
+                  <div className="flex items-center justify-center p-6 border border-dashed rounded border-muted-foreground/20">
                     <div className="text-center">
-                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-base font-medium text-muted-foreground mb-1">No Course Modules</p>
-                      <p className="text-sm text-muted-foreground">This course outline is missing module definitions</p>
+                      <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground mb-0.5">No Course Modules</p>
+                      <p className="text-xs text-muted-foreground opacity-70">This course outline is missing module definitions</p>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-4 border-t">
+              <div className="flex items-center gap-2 pt-3 border-t border-border/50">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button 
                       variant="outline" 
+                      size="sm"
                       onClick={() => setSelectedOutline(outline)}
                     >
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <XCircle className="h-3 w-3 mr-1.5" />
                       Reject & Request Changes
                     </Button>
                   </DialogTrigger>
@@ -462,12 +588,13 @@ export const CourseOutlineApproval = () => {
                 <Button
                   onClick={() => handleApproval(outline.plan_id, true)}
                   disabled={actionLoading === outline.plan_id}
+                  size="sm"
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {actionLoading === outline.plan_id ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1.5"></div>
                   ) : (
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-3 w-3 mr-1.5" />
                   )}
                   Approve & Generate Module 1
                 </Button>
