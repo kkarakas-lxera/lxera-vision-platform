@@ -27,7 +27,7 @@ interface WaitingListDifferentiatorsProps {
 export const WaitingListDifferentiators: React.FC<WaitingListDifferentiatorsProps> = ({ content, variant }) => {
   return (
     <GradientBackground 
-      className="py-24 min-h-fit"
+      className="py-16 min-h-fit"
       gradients={softGradients}
       animationDuration={12}
       animationDelay={1}
@@ -37,7 +37,7 @@ export const WaitingListDifferentiators: React.FC<WaitingListDifferentiatorsProp
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold lg:text-5xl text-black">
+          <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-black">
             {content.DIFFERENTIATORS_CONTENT.title}
           </h2>
         </div>
