@@ -18,9 +18,11 @@ import PrimaryKPIs from '@/components/dashboard/company/PrimaryKPIs';
 import SkillsHealthSnapshot from '@/components/dashboard/company/SkillsHealthSnapshot';
 import MarketStrip from '@/components/dashboard/company/MarketStrip';
 import TopRisks from '@/components/dashboard/company/TopRisks';
-import NextBestActions from '@/components/dashboard/company/NextBestActions';
 import SkillsTrendsView from '@/components/dashboard/skills/SkillsTrendsView';
 import { mockHistoricalData, mockSkillsMomentum } from '@/data/mockSkillsData';
+import { TrendingSkill } from '@/components/ui/RadarChart';
+import MarketIntelligenceSection from '@/components/dashboard/company/MarketIntelligenceSection';
+import CompactAnalyticsTabs from '@/components/dashboard/company/CompactAnalyticsTabs';
 // Removed: import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 
 interface DashboardMetrics {
@@ -89,6 +91,104 @@ export default function CompanyDashboard() {
   }
   const [marketOrg, setMarketOrg] = useState<MarketOrgCurrent | null>(null);
   const [latestReport, setLatestReport] = useState<{ id: string; generated_at: string; pdf_url?: string } | null>(null);
+  
+  // Comprehensive mock data for Market Intelligence - More realistic radar distribution
+  const [trendingSkills] = useState<TrendingSkill[]>([
+    { skill: "Generative AI", trendingScore: 95 },
+    { skill: "Machine Learning", trendingScore: 73 },
+    { skill: "Cloud Architecture", trendingScore: 82 },
+    { skill: "Data Science", trendingScore: 58 },
+    { skill: "Cybersecurity", trendingScore: 91 },
+    { skill: "DevOps", trendingScore: 67 },
+    { skill: "Product Management", trendingScore: 45 },
+    { skill: "UX Design", trendingScore: 39 }
+  ]);
+
+  // Market Intelligence comprehensive data
+  const [marketData] = useState({
+    keyMetrics: {
+      jobsAnalyzed: 156,
+      skillsIdentified: 34,
+      experienceLevels: 5,
+      timeRange: '30d',
+      regions: ['North America', 'Europe', 'Asia-Pacific']
+    },
+    skillDemand: [
+      { skill: 'Technical Skills', percentage: 68, jobs: 106, color: '#3b82f6' },
+      { skill: 'Leadership', percentage: 45, jobs: 70, color: '#8b5cf6' },
+      { skill: 'Communication', percentage: 38, jobs: 59, color: '#10b981' },
+      { skill: 'Project Management', percentage: 32, jobs: 50, color: '#f59e0b' },
+      { skill: 'Data Analysis', percentage: 28, jobs: 44, color: '#ef4444' },
+      { skill: 'Strategy', percentage: 22, jobs: 34, color: '#06b6d4' },
+    ],
+    topCombinations: [
+      { combination: 'Leadership + Technical', jobs: 45, percentage: 29 },
+      { combination: 'Communication + Project Management', jobs: 38, percentage: 24 },
+      { combination: 'Data Analysis + Strategy', jobs: 32, percentage: 21 },
+      { combination: 'Technical + Communication', jobs: 28, percentage: 18 },
+      { combination: 'Leadership + Strategy', jobs: 24, percentage: 15 },
+    ],
+    experienceBreakdown: [
+      { level: 'Entry', percentage: 42, jobs: 65 },
+      { level: 'Mid', percentage: 31, jobs: 48 },
+      { level: 'Senior', percentage: 19, jobs: 30 },
+      { level: 'Executive', percentage: 8, jobs: 13 },
+    ],
+    recentReports: [
+      {
+        position: 'Software Engineer',
+        region: 'North America',
+        date: '2d ago',
+        jobs: 89,
+        skills: 28,
+        status: 'completed'
+      },
+      {
+        position: 'Product Manager', 
+        region: 'Europe',
+        date: '5d ago',
+        jobs: 67,
+        skills: 31,
+        status: 'completed'
+      },
+      {
+        position: 'Data Scientist',
+        region: 'Asia-Pacific',
+        date: '1w ago',
+        jobs: 54,
+        skills: 24,
+        status: 'completed'
+      },
+      {
+        position: 'UX Designer',
+        region: 'North America',
+        date: '1w ago',
+        jobs: 43,
+        skills: 19,
+        status: 'processing'
+      }
+    ],
+    insights: [
+      {
+        type: 'opportunity',
+        title: 'High Demand for AI Skills',
+        description: 'Generative AI and Machine Learning skills show 95% and 88% trending scores respectively.',
+        impact: 'critical'
+      },
+      {
+        type: 'trend',
+        title: 'Leadership-Technical Combination',
+        description: 'The combination of leadership and technical skills appears in 29% of analyzed positions.',
+        impact: 'high'
+      },
+      {
+        type: 'gap',
+        title: 'Senior Talent Shortage',
+        description: 'Only 19% of positions target senior-level candidates, indicating potential talent gaps.',
+        impact: 'medium'
+      }
+    ]
+  });
   
   // Mobile pull-to-refresh state
   const touchStartY = useRef(0);
@@ -264,7 +364,9 @@ export default function CompanyDashboard() {
           id,
           cv_file_path,
           skills_last_analyzed,
-          current_position_id
+          current_position_id,
+          profile_complete,
+          completed_sections
         `, { count: 'exact' })
         .eq('company_id', userProfile.company_id);
 
@@ -301,8 +403,8 @@ export default function CompanyDashboard() {
         : 0;
       
       // Count profile completion status
-      const profilesComplete = employees?.filter((e: any) => e.profile_complete).length || 0;
-      const profilesInProgress = employees?.filter((e: any) => 
+      const profilesComplete = employees?.filter((e) => e.profile_complete).length || 0;
+      const profilesInProgress = employees?.filter((e) => 
         !e.profile_complete && e.completed_sections && e.completed_sections > 0
       ).length || 0;
 
@@ -658,61 +760,67 @@ export default function CompanyDashboard() {
           onNavigate={(p) => navigate(p)}
         />
 
-        <PrimaryKPIs
-          totalEmployees={metrics.totalEmployees}
-          analysisCoveragePct={metrics.totalEmployees > 0 ? Math.round((metrics.analyzedCVs / metrics.totalEmployees) * 100) : 0}
-          skillsReadinessPct={Math.round(metrics.avgReadinessScore)}
-          positionsWithGaps={metrics.positionsWithGaps}
-          criticalGaps={metrics.criticalGaps}
-          activeLearners={assignmentsSummary.active}
-          courseCompletionPct={assignmentsSummary.completionRate}
-          onNavigate={(p) => navigate(p)}
-          isTrial={isFreeTrialUser}
-        />
+        {/* Compact Overview Stats Row with Mock Data */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="bg-gradient-to-br from-slate-50 to-white dark:from-gray-800 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Employees</div>
+            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">47</div>
+            <div className="text-xs text-gray-500">89% analyzed</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Skills Health</div>
+            <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+              B+
+              <span className="text-sm ml-1">(78%)</span>
+            </div>
+            <div className="text-xs text-gray-500">42/47 profiles</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-green-50 to-white dark:from-green-900/20 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Skills Readiness</div>
+            <div className="text-lg font-bold text-green-700 dark:text-green-300">82%</div>
+            <div className="text-xs text-green-600">Ready to work</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Positions at Risk</div>
+            <div className="text-lg font-bold text-red-600 dark:text-red-400">3</div>
+            <div className="text-xs text-red-500">7 critical gaps</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Active Learning</div>
+            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">23</div>
+            <div className="text-xs text-purple-500">67% completion</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-gray-750 p-3 rounded-lg border shadow-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400">Top Risk</div>
+            <div className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+              Data Scientist
+            </div>
+            <div className="text-xs text-orange-600">34% match</div>
+          </div>
+        </div>
 
-        {skillsHealth && (
-          <SkillsHealthSnapshot
-            grade={skillsHealth.grade}
-            overallScore={skillsHealth.overallScore}
-            trend={skillsHealth.trend}
-            analyzedCount={skillsHealth.analyzedCount}
-            totalCount={skillsHealth.totalCount}
-            onViewDetails={() => navigate('/dashboard/skills')}
-            isTrial={isFreeTrialUser}
-          />
-        )}
-
-        {marketOrg && (
-          <MarketStrip
-            marketCoveragePct={marketOrg.market_coverage_rate}
-            industryAlignmentIndex={marketOrg.industry_alignment_index}
-            topMissingSkills={marketOrg.top_missing_skills || []}
-            latestReport={latestReport}
-            onViewReport={() => navigate('/dashboard/skills')}
-          />
-        )}
-
-        <TopRisks
-          positions={skillsGapData.map(s => ({ position: s.position, coverage: s.coverage, employeesInPosition: s.employeesInPosition }))}
-          maxItems={3}
-          onViewAll={() => navigate('/dashboard/employees')}
-          isTrial={isFreeTrialUser}
-        />
-
-        <NextBestActions
-          criticalGaps={metrics.criticalGaps}
-          analysisCoveragePct={metrics.totalEmployees > 0 ? Math.round((metrics.analyzedCVs / metrics.totalEmployees) * 100) : 0}
-          industryAlignmentIndex={marketOrg?.industry_alignment_index}
-          onAssignLearning={() => navigate('/dashboard/courses')}
-          onViewSkills={() => navigate('/dashboard/skills')}
-          onImportCVs={() => navigate('/dashboard/employees?tab=import')}
-        />
-
-        {/* Skills Trends Section */}
-        <SkillsTrendsView
-          historicalData={mockHistoricalData}
-          skillsMomentum={mockSkillsMomentum}
-          isLoading={loading}
+        {/* Tabbed Analytics Section */}
+        <CompactAnalyticsTabs 
+          skillsTrendsData={{
+            historicalData: mockHistoricalData,
+            skillsMomentum: mockSkillsMomentum,
+            isLoading: loading
+          }}
+          marketIntelligenceData={{
+            trendingSkills,
+            marketData
+          }}
+          topRisks={skillsGapData.map(s => ({ 
+            position: s.position, 
+            coverage: s.coverage, 
+            employeesInPosition: s.employeesInPosition 
+          }))}
+          onNavigate={navigate}
         />
                     </div>
                     
