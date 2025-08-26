@@ -43,6 +43,52 @@ const STEPS = [
   { id: 'profile_verification', title: 'Profile Verification' }
 ];
 
+// Function to ensure all expected arrays are properly initialized
+const sanitizeFormData = (data: any): any => {
+  if (!data || typeof data !== 'object') return {};
+  
+  const sanitized = { ...data };
+  
+  // Ensure array fields are arrays
+  const arrayFields = [
+    'work_experience',
+    'education', 
+    'certifications',
+    'languages'
+  ];
+  
+  arrayFields.forEach(field => {
+    if (sanitized[field] !== undefined && !Array.isArray(sanitized[field])) {
+      console.warn(`[FormProfileBuilder] ${field} is not an array, converting:`, sanitized[field]);
+      sanitized[field] = [];
+    }
+  });
+  
+  // Handle nested objects that might have arrays
+  if (sanitized.skills && typeof sanitized.skills === 'object') {
+    if (sanitized.skills.skills !== undefined && !Array.isArray(sanitized.skills.skills)) {
+      console.warn('[FormProfileBuilder] skills.skills is not an array, converting:', sanitized.skills.skills);
+      sanitized.skills.skills = [];
+    }
+  }
+  
+  if (sanitized.daily_tasks && typeof sanitized.daily_tasks === 'object') {
+    if (sanitized.daily_tasks.selected !== undefined && !Array.isArray(sanitized.daily_tasks.selected)) {
+      console.warn('[FormProfileBuilder] daily_tasks.selected is not an array, converting:', sanitized.daily_tasks.selected);
+      sanitized.daily_tasks.selected = [];
+    }
+  }
+  
+  if (sanitized.tools_technologies && typeof sanitized.tools_technologies === 'object') {
+    if (sanitized.tools_technologies.selected !== undefined && !Array.isArray(sanitized.tools_technologies.selected)) {
+      console.warn('[FormProfileBuilder] tools_technologies.selected is not an array, converting:', sanitized.tools_technologies.selected);
+      sanitized.tools_technologies.selected = [];
+    }
+  }
+  
+  return sanitized;
+};
+
 export default function FormProfileBuilder({ employeeId, onComplete }: FormProfileBuilderProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [furthestStep, setFurthestStep] = useState(0);
@@ -149,7 +195,10 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       if (savedState) {
         setCurrentStep(savedState.step || 0);
         setFurthestStep(savedState.furthestStep || savedState.step || 0);
-        setFormData(savedState.formData || {});
+        
+        // Ensure all array fields are properly initialized
+        const sanitizedFormData = sanitizeFormData(savedState.formData || {});
+        setFormData(sanitizedFormData);
       }
 
       // Load existing profile sections
@@ -160,7 +209,10 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           sectionData[section.name] = section.data;
         }
       });
-      setFormData(prev => ({ ...prev, ...sectionData }));
+      
+      // Sanitize and merge section data
+      const sanitizedSectionData = sanitizeFormData(sectionData);
+      setFormData(prev => ({ ...sanitizeFormData(prev), ...sanitizedSectionData }));
       
       // Check for local draft recovery
       try {
@@ -303,8 +355,9 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   );
 
   const updateStepData = (stepId: string, data: any) => {
-    setFormData(prev => ({ ...prev, [stepId]: data }));
-    saveProgress(stepId, data);
+    const sanitizedData = sanitizeFormData({ [stepId]: data });
+    setFormData(prev => ({ ...sanitizeFormData(prev), ...sanitizedData }));
+    saveProgress(stepId, sanitizedData[stepId]);
   };
 
   const handlePrevious = () => {
