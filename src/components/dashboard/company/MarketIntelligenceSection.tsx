@@ -57,12 +57,6 @@ const MarketIntelligenceSection: React.FC<MarketIntelligenceSectionProps> = ({
         {/* Left side - Content and Controls */}
         <div className="lg:col-span-3 p-4 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-r">
           <div className="space-y-3">
-            <div>
-              <h3 className="text-lg font-semibold mb-1">Market Intelligence</h3>
-              <p className="text-xs text-muted-foreground">
-                Industry insights and trending skills analysis
-              </p>
-            </div>
 
             {/* Compact Analysis Selector */}
             <div className="space-y-2">
