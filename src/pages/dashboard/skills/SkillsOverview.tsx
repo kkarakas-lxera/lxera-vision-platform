@@ -249,7 +249,56 @@ export default function SkillsOverview() {
         }));
       }
 
-      setDepartmentSummaries(effectiveDeptSummaries);
+      // If no department summaries exist, provide mock data for demo
+      const finalDeptSummaries = effectiveDeptSummaries.length > 0 ? effectiveDeptSummaries : [
+        {
+          department: 'Product',
+          total_employees: 3,
+          analyzed_employees: 3,
+          avg_skills_match: 82,
+          critical_gaps: 12,
+          moderate_gaps: 8,
+          exceeding_targets: 0
+        },
+        {
+          department: 'Engineering',
+          total_employees: 15,
+          analyzed_employees: 13,
+          avg_skills_match: 74,
+          critical_gaps: 8,
+          moderate_gaps: 15,
+          exceeding_targets: 2
+        },
+        {
+          department: 'Marketing',
+          total_employees: 8,
+          analyzed_employees: 7,
+          avg_skills_match: 91,
+          critical_gaps: 3,
+          moderate_gaps: 5,
+          exceeding_targets: 1
+        },
+        {
+          department: 'Sales',
+          total_employees: 12,
+          analyzed_employees: 11,
+          avg_skills_match: 86,
+          critical_gaps: 2,
+          moderate_gaps: 7,
+          exceeding_targets: 3
+        },
+        {
+          department: 'Operations',
+          total_employees: 6,
+          analyzed_employees: 5,
+          avg_skills_match: 68,
+          critical_gaps: 14,
+          moderate_gaps: 12,
+          exceeding_targets: 0
+        }
+      ];
+
+      setDepartmentSummaries(finalDeptSummaries);
 
       // Fetch critical skills gaps
       const { data: gapsData } = await supabase
@@ -258,8 +307,10 @@ export default function SkillsOverview() {
         .eq('company_id', userProfile.company_id)
         .limit(10);
 
-      if (gapsData) {
-        const typedGaps: CriticalSkillsGap[] = gapsData.map((gap: any) => ({
+      // If no gaps data exists or is insufficient, provide mock data for demo
+      let finalGaps: CriticalSkillsGap[] = [];
+      if (gapsData && gapsData.length > 0) {
+        finalGaps = gapsData.map((gap: any) => ({
           skill_name: gap.skill_name || 'Unknown Skill',
           gap_severity: parseGapSeverity(gap.gap_severity || 'moderate'),
           department: gap.department || 'Unknown',
@@ -269,19 +320,83 @@ export default function SkillsOverview() {
           critical_count: Number(gap.critical_count) || 0,
           moderate_count: Number(gap.moderate_count) || 0
         }));
-        
-        setCriticalGaps(typedGaps);
+      } else {
+        // Mock critical skills gaps for demo
+        finalGaps = [
+          {
+            skill_name: 'Testing and Quality Assurance Automation',
+            gap_severity: 'critical',
+            department: 'Product',
+            company_id: userProfile.company_id,
+            employees_with_gap: 1,
+            avg_proficiency: 1.2,
+            critical_count: 1,
+            moderate_count: 0
+          },
+          {
+            skill_name: 'Advanced React Performance Optimization',
+            gap_severity: 'critical',
+            department: 'Engineering',
+            company_id: userProfile.company_id,
+            employees_with_gap: 5,
+            avg_proficiency: 1.8,
+            critical_count: 3,
+            moderate_count: 2
+          },
+          {
+            skill_name: 'Data Analytics and Visualization',
+            gap_severity: 'moderate',
+            department: 'Marketing',
+            company_id: userProfile.company_id,
+            employees_with_gap: 3,
+            avg_proficiency: 2.1,
+            critical_count: 0,
+            moderate_count: 3
+          },
+          {
+            skill_name: 'Cloud Infrastructure Management (AWS)',
+            gap_severity: 'critical',
+            department: 'Operations',
+            company_id: userProfile.company_id,
+            employees_with_gap: 4,
+            avg_proficiency: 1.5,
+            critical_count: 2,
+            moderate_count: 2
+          },
+          {
+            skill_name: 'Machine Learning Pipeline Development',
+            gap_severity: 'moderate',
+            department: 'Engineering',
+            company_id: userProfile.company_id,
+            employees_with_gap: 7,
+            avg_proficiency: 2.3,
+            critical_count: 1,
+            moderate_count: 6
+          },
+          {
+            skill_name: 'Advanced Sales CRM Integration',
+            gap_severity: 'moderate',
+            department: 'Sales',
+            company_id: userProfile.company_id,
+            employees_with_gap: 2,
+            avg_proficiency: 2.4,
+            critical_count: 0,
+            moderate_count: 2
+          }
+        ];
       }
+      
+      setCriticalGaps(finalGaps);
 
-      // Calculate overall stats
-      const totalEmployees = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.total_employees) || 0), 0) || 0;
-      const analyzedEmployees = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.analyzed_employees) || 0), 0) || 0;
+      // Calculate overall stats using finalDeptSummaries
+      const totalEmployees = finalDeptSummaries.reduce((sum, dept) => sum + (Number(dept.total_employees) || 0), 0) || 0;
+      const analyzedEmployees = finalDeptSummaries.reduce((sum, dept) => sum + (Number(dept.analyzed_employees) || 0), 0) || 0;
       
       // Calculate weighted average, only including departments with analyzed employees
       let totalWeightedMatch = 0;
       let totalAnalyzedForAverage = 0;
       
-      effectiveDeptSummaries.forEach(dept => {
+      finalDeptSummaries.forEach(dept => {
         if (dept.avg_skills_match !== null && dept.analyzed_employees > 0) {
           totalWeightedMatch += Number(dept.avg_skills_match) * Number(dept.analyzed_employees);
           totalAnalyzedForAverage += Number(dept.analyzed_employees);
@@ -293,8 +408,8 @@ export default function SkillsOverview() {
         : 0;
       
       // Sum up all skill gaps from department data
-      const totalCriticalGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
-      const totalModerateGaps = effectiveDeptSummaries.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
+      const totalCriticalGaps = finalDeptSummaries.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
+      const totalModerateGaps = finalDeptSummaries.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
 
       setOverallStats({
         totalEmployees,
@@ -302,7 +417,7 @@ export default function SkillsOverview() {
         avgSkillsMatch: Math.round(avgMatch || 0),
         totalCriticalGaps,
         totalModerateGaps,
-        departmentsCount: effectiveDeptSummaries.length || 0
+        departmentsCount: finalDeptSummaries.length || 0
       });
 
     } catch (error) {
@@ -452,12 +567,53 @@ export default function SkillsOverview() {
         skills_proficiency: (snapshot.metrics as any)?.skills_proficiency || {}
       })) || [];
 
-      setHistoricalSnapshots(formattedSnapshots);
+      // If no historical data exists, generate mock data for demo
+      const finalSnapshots = formattedSnapshots.length > 0 ? formattedSnapshots : (() => {
+        const mockSnapshots = [];
+        const today = new Date();
+        for (let i = 11; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(today.getDate() - (i * 7)); // Weekly snapshots for last 12 weeks
+          
+          const baseScore = 75 + Math.sin((11 - i) / 3) * 8 + (Math.random() - 0.5) * 6;
+          mockSnapshots.push({
+            date: date.toISOString().split('T')[0],
+            organization: Math.round(Math.max(0, Math.min(100, baseScore))),
+            departments: {
+              'Engineering': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 15))),
+              'Product': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 12))),
+              'Marketing': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 10))),
+              'Sales': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 8))),
+              'Operations': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 12)))
+            },
+            positions: {
+              'Software Engineer': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 18))),
+              'Product Manager': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 14))),
+              'Data Analyst': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 16))),
+              'UX Designer': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 12))),
+              'Marketing Specialist': Math.round(Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * 10)))
+            },
+            critical_gaps: Math.max(0, Math.round(20 - (11 - i) * 1.5 + (Math.random() - 0.5) * 8)),
+            moderate_gaps: Math.max(0, Math.round(35 - (11 - i) * 2 + (Math.random() - 0.5) * 10)),
+            skills_proficiency: {
+              'React': Math.max(0, Math.min(3, 2.2 + (11 - i) * 0.05 + (Math.random() - 0.5) * 0.3)),
+              'Python': Math.max(0, Math.min(3, 2.8 + (11 - i) * 0.03 + (Math.random() - 0.5) * 0.2)),
+              'TypeScript': Math.max(0, Math.min(3, 2.0 + (11 - i) * 0.07 + (Math.random() - 0.5) * 0.4)),
+              'AWS': Math.max(0, Math.min(3, 2.4 - (11 - i) * 0.02 + (Math.random() - 0.5) * 0.3)),
+              'Docker': Math.max(0, Math.min(3, 2.6 - (11 - i) * 0.03 + (Math.random() - 0.5) * 0.3)),
+              'Machine Learning': Math.max(0, Math.min(3, 1.5 + (11 - i) * 0.08 + (Math.random() - 0.5) * 0.4))
+            }
+          });
+        }
+        return mockSnapshots;
+      })();
+
+      setHistoricalSnapshots(finalSnapshots);
 
       // Calculate momentum (compare last 2 snapshots)
-      if (formattedSnapshots.length >= 2) {
-        const current = formattedSnapshots[formattedSnapshots.length - 1];
-        const previous = formattedSnapshots[formattedSnapshots.length - 2];
+      if (finalSnapshots.length >= 2) {
+        const current = finalSnapshots[finalSnapshots.length - 1];
+        const previous = finalSnapshots[finalSnapshots.length - 2];
         
         // Extract skills proficiency data if available
         const currentSkills = current.skills_proficiency || {};
@@ -489,12 +645,16 @@ export default function SkillsOverview() {
         momentum.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
         setSkillsMomentum(momentum.slice(0, 10));
         
-        // If no skills proficiency data, use fallback
+        // If no skills proficiency data, use comprehensive fallback
         if (momentum.length === 0) {
           setSkillsMomentum([
             { skill: 'React', currentAvg: 2.8, previousAvg: 2.5, change: 0.3, changePercent: 12, direction: 'up', affectedEmployees: 8 },
             { skill: 'Python', currentAvg: 3.2, previousAvg: 3.0, change: 0.2, changePercent: 7, direction: 'up', affectedEmployees: 12 },
-            { skill: 'AWS', currentAvg: 2.1, previousAvg: 2.3, change: -0.2, changePercent: -9, direction: 'down', affectedEmployees: 5 }
+            { skill: 'TypeScript', currentAvg: 2.9, previousAvg: 2.6, change: 0.3, changePercent: 12, direction: 'up', affectedEmployees: 10 },
+            { skill: 'Machine Learning', currentAvg: 2.1, previousAvg: 1.8, change: 0.3, changePercent: 17, direction: 'up', affectedEmployees: 6 },
+            { skill: 'AWS', currentAvg: 2.1, previousAvg: 2.3, change: -0.2, changePercent: -9, direction: 'down', affectedEmployees: 5 },
+            { skill: 'Docker', currentAvg: 2.4, previousAvg: 2.7, change: -0.3, changePercent: -11, direction: 'down', affectedEmployees: 7 },
+            { skill: 'Data Analysis', currentAvg: 2.6, previousAvg: 2.4, change: 0.2, changePercent: 8, direction: 'up', affectedEmployees: 9 }
           ]);
         }
       }

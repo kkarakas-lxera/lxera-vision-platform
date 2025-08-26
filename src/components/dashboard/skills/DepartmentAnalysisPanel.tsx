@@ -65,7 +65,7 @@ export default function DepartmentAnalysisPanel({
           return (
             <div 
               key={index} 
-              className="flex flex-col p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+              className="flex flex-col p-3 rounded-lg border bg-gray-50/50 hover:bg-gray-100/50 dark:bg-gray-800/20 dark:hover:bg-gray-800/40 transition-colors"
             >
               <div 
                 className="flex items-center justify-between cursor-pointer"

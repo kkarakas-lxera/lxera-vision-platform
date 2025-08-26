@@ -74,7 +74,7 @@ export default function CriticalSkillsPanel({ criticalGaps, className }: Critica
       </CardHeader>
       <CardContent className="space-y-3">
         {criticalGaps.slice(0, 6).map((gap, index) => (
-          <div key={index} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors">
+          <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50/50 hover:bg-gray-100/50 dark:bg-gray-800/20 dark:hover:bg-gray-800/40 transition-colors">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
                 <SkillBadge 
