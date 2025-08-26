@@ -3,6 +3,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // Responses API is available from v5.0.0 upward
 import OpenAI from 'https://esm.sh/openai@5.11.0'
 import { encode as base64Encode } from 'https://deno.land/std@0.168.0/encoding/base64.ts'
+
+// Deno global declarations for TypeScript
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 // Error handling utilities (inlined to avoid import issues)
 interface ErrorLogContext {
   requestId: string;
@@ -149,7 +156,12 @@ function createErrorResponse(
   // Create user-friendly response
   const userMessage = getUserFriendlyErrorMessage(error);
   
-  const responseBody = {
+  const responseBody: {
+    error: string;
+    request_id: string;
+    timestamp: string;
+    details?: string;
+  } = {
     error: userMessage,
     request_id: context.requestId,
     timestamp: new Date().toISOString()
@@ -220,6 +232,46 @@ function extractJsonObject(raw: string): any {
   }
   // As a last resort, return empty object
   return {}
+}
+
+/**
+ * Lenient JSON parser that attempts to coerce slightly malformed JSON into an object.
+ * - Strips code fences
+ * - Removes trailing commas before } or ]
+ * - Extracts inner object if extra tokens surround it
+ * - If top-level array is returned, tries to coerce to a single object; otherwise returns {}
+ */
+function parseJsonLenient(raw: string): any {
+  try {
+    return JSON.parse(raw)
+  } catch (_) {
+    let text = (raw || '').trim()
+    // Strip code fences
+    text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '')
+    // Remove trailing commas before } or ]
+    text = text.replace(/,(\s*[}\]])/g, '$1')
+    // Try direct parse again
+    try {
+      return JSON.parse(text)
+    } catch (_) {
+      const candidate = extractJsonObject(text)
+      if (candidate && !Array.isArray(candidate) && typeof candidate === 'object') {
+        return candidate
+      }
+      // If a top-level array was produced, try to coerce to a single object
+      if (text.startsWith('[')) {
+        try {
+          const arr = JSON.parse(text)
+          if (Array.isArray(arr) && arr.length === 1 && typeof arr[0] === 'object' && arr[0] !== null) {
+            return arr[0]
+          }
+        } catch (_) {
+          // ignore
+        }
+      }
+      return {}
+    }
+  }
 }
 
 /**
@@ -389,7 +441,7 @@ function transformCVDataKeys(rawResult: any): any {
   return transformed;
 }
 
-serve(async (req) => {
+serve(async (req: any) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -401,6 +453,15 @@ serve(async (req) => {
   let employee_id: string | undefined // Declare at function scope
   let company_id: string | undefined // Declare at function scope for error logging
   let statusUpdateCallCount = 0 // Circuit breaker for status updates
+  
+  // ENTRY POINT LOGGING
+  console.log(`[ENTRY] analyze-cv-enhanced function started`, {
+    requestId,
+    sessionId,
+    method: req.method,
+    timestamp: new Date().toISOString(),
+    headers: Object.fromEntries(req.headers.entries())
+  })
   
   // Initialize Supabase client at function scope for error handlers
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -414,6 +475,12 @@ serve(async (req) => {
   }
   
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  
+  console.log(`[INIT] Supabase client created`, {
+    requestId,
+    supabaseUrl: supabaseUrl ? 'configured' : 'missing',
+    serviceKey: supabaseServiceKey ? 'configured' : 'missing'
+  })
   
   try {
     // Check content type to determine how to parse the request
@@ -656,26 +723,60 @@ serve(async (req) => {
     }
     
     // Validate required parameters before proceeding
+    console.log(`[VALIDATION] Checking required parameters`, {
+      requestId,
+      employee_id: employee_id ? 'present' : 'missing',
+      file_path: file_path ? 'present' : 'missing'
+    })
+    
     if (!employee_id) {
+      console.error(`[VALIDATION_ERROR] Missing employee_id`, { requestId })
       throw new Error('Employee ID is required')
     }
     
     if (!file_path) {
+      console.error(`[VALIDATION_ERROR] Missing file_path`, { requestId })
       throw new Error('File path is required')
     }
     
+    console.log(`[VALIDATION_SUCCESS] All required parameters present`, { requestId })
+    
     // Initial status update
+    console.log(`[BEFORE_STATUS] About to call initial updateStatus`, {
+      requestId,
+      employee_id,
+      sessionId,
+      file_path
+    })
+    
     await updateStatus('started', 0, 'Starting CV analysis', file_path)
     
+    console.log(`[AFTER_STATUS] Initial status update completed`, { requestId })
+    
     // Fetch employee data to get company_id
+    console.log(`[DB_QUERY] Fetching employee data`, { requestId, employee_id })
+    
     const { data: employee, error: empError } = await supabase
       .from('employees')
-      .select('id, company_id, user_id, employee_profile_sections(id, section_name, data)')
+      .select('id, company_id, user_id, current_position_id, employee_profile_sections(id, section_name, data)')
       .eq('id', employee_id)
       .single()
     
+    console.log(`[DB_QUERY_RESULT] Employee fetch result`, {
+      requestId,
+      employee_id,
+      found: !!employee,
+      has_position: !!employee?.current_position_id,
+      current_position_id: employee?.current_position_id,
+      error: empError ? getSafeErrorMessage(empError) : null
+    })
+    
     if (empError || !employee) {
-      console.error('Employee query error:', empError)
+      console.error(`[DB_ERROR] Employee query failed`, {
+        requestId,
+        employee_id,
+        error: empError ? getSafeErrorMessage(empError) : 'No employee data returned'
+      })
       throw new Error(`Employee not found: ${employee_id}`)
     }
     
@@ -863,7 +964,7 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         temperature: 0,
         response_format: { type: "json_object" }
       })
-      rawAnalysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
+      rawAnalysisResult = parseJsonLenient(analysisResponse.choices[0]?.message?.content || '{}')
     } catch (jsonModeError: any) {
       // Fallback: ask for JSON but without enforced JSON mode
       console.warn('Groq JSON mode failed, retrying without response_format:', getSafeErrorMessage(jsonModeError))
@@ -877,7 +978,7 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         temperature: 0
       })
       const text = fallback.choices[0]?.message?.content || '{}'
-      rawAnalysisResult = extractJsonObject(text)
+      rawAnalysisResult = parseJsonLenient(text)
       analysisResponse = fallback
     }
     
@@ -1031,7 +1132,20 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         temperature: 0,
         response_format: { type: "json_object" }
       })
-      skillsData = safeJsonParse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
+      const rawSkillsContent = skillsResponse.choices[0]?.message?.content || '{"skills":[]}'
+      console.log(`[SKILLS_RAW] Groq skills response:`, {
+        requestId,
+        content_length: rawSkillsContent.length,
+        content_preview: rawSkillsContent.substring(0, 500),
+        usage_tokens: skillsResponse.usage
+      })
+      skillsData = parseJsonLenient(rawSkillsContent)
+      console.log(`[SKILLS_PARSED] Parsed skills data:`, {
+        requestId,
+        skills_count: skillsData?.skills?.length || 0,
+        has_skills_array: Array.isArray(skillsData?.skills),
+        skills_preview: skillsData?.skills?.slice(0, 3)
+      })
     } catch (skillsJsonError: any) {
       console.warn('Groq skills JSON mode failed, retrying without response_format:', getSafeErrorMessage(skillsJsonError))
       const fallbackSkills = await groq.chat.completions.create({
@@ -1044,8 +1158,18 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         temperature: 0
       })
       const text = fallbackSkills.choices[0]?.message?.content || '{"skills":[]}'
-      skillsData = extractJsonObject(text)
+      console.log(`[SKILLS_FALLBACK] Groq fallback response:`, {
+        requestId,
+        content_length: text.length,
+        content_preview: text.substring(0, 500)
+      })
+      skillsData = parseJsonLenient(text)
       skillsResponse = fallbackSkills
+      console.log(`[SKILLS_FALLBACK_PARSED] Fallback parsed:`, {
+        requestId,
+        skills_count: skillsData?.skills?.length || 0,
+        has_skills_array: Array.isArray(skillsData?.skills)
+      })
       if (!skillsData.skills || !Array.isArray(skillsData.skills)) {
         skillsData = { skills: [] }
       }
@@ -1110,8 +1234,15 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
     
     // Ensure employee has a current_position_id before creating skills profile
     // The database trigger requires this field to prevent orphaned skills profiles
+    console.log(`[POSITION_CHECK] Checking employee position assignment`, {
+      requestId,
+      employee_id,
+      current_position_id: employee.current_position_id,
+      has_position: !!employee.current_position_id
+    })
+    
     if (!employee.current_position_id) {
-      console.log('Employee lacks current_position_id, attempting to assign default position')
+      console.log(`[POSITION_ASSIGN] Employee lacks current_position_id, attempting to assign default position`, { requestId, employee_id })
       
       // Try to find an existing position for this company
       const { data: companyPositions, error: positionsError } = await supabase
@@ -1206,17 +1337,30 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
     await updateStatus('completed', 100, 'Analysis completed successfully')
     
     const totalDuration = Date.now() - startTime
-    console.log(`CV analysis completed in ${totalDuration}ms`)
+    console.log(`[SUCCESS] CV analysis completed`, {
+      requestId,
+      employee_id,
+      duration_ms: totalDuration,
+      analysis_keys: Object.keys(analysisResult || {}),
+      skills_count: skillsData?.skills?.length || 0
+    })
+    
+    const responseData = {
+      success: true,
+      employee_id,
+      analysis: analysisResult,
+      skills: skillsData.skills,
+      request_id: requestId,
+      duration_ms: totalDuration
+    }
+    
+    console.log(`[RESPONSE] Sending success response`, {
+      requestId,
+      response_size: JSON.stringify(responseData).length
+    })
     
     return new Response(
-      JSON.stringify({
-        success: true,
-        employee_id,
-        analysis: analysisResult,
-        skills: skillsData.skills,
-        request_id: requestId,
-        duration_ms: totalDuration
-      }),
+      JSON.stringify(responseData),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
@@ -1224,7 +1368,13 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
     )
     
   } catch (error: any) {
-    console.error('CV analysis error:', getSafeErrorMessage(error))
+    console.error(`[ERROR] CV analysis failed`, {
+      requestId,
+      employee_id,
+      company_id,
+      error: getSafeErrorMessage(error),
+      stack: error.stack?.substring(0, 500) // Limit stack trace length
+    })
     
     // Try to update status to failed
     if (employee_id) {
@@ -1276,6 +1426,11 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         console.error('Failed to log error metrics:', getSafeErrorMessage(metricsError))
       }
     }
+    
+    console.log(`[ERROR_RESPONSE] Sending error response`, {
+      requestId,
+      statusCode: getErrorStatusCode(error)
+    })
     
     return createErrorResponse(error, {
       requestId,

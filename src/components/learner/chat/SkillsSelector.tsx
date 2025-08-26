@@ -135,44 +135,69 @@ export default function SkillsSelector({
     setSuggestedSkills(suggestions);
   }, [extractedSkills, existingSkills, positionRequiredSkills, positionNiceToHaveSkills]);
 
-  // Fetch AI suggestions when there are no suggestions from position
+  // Fetch AI suggestions from Groq to supplement position-based suggestions
   useEffect(() => {
     const fetchAISuggestions = async () => {
       if (!employeeId) return;
       if (isSuggesting) return;
-      // Only fetch when we have no suggestions and there are some selected skills (so we have context)
-      if (suggestedSkills.length > 0) return;
+      
+      // Always try to fetch AI suggestions if we don't have enough suggestions
+      // or if we only have position-based suggestions
+      const hasOnlyPositionSuggestions = suggestedSkills.every(s => s.source === 'position');
+      const shouldFetchAI = suggestedSkills.length < 5 || hasOnlyPositionSuggestions;
+      
+      if (!shouldFetchAI) return;
+      
+      console.log('[SKILLS_AI] Fetching AI suggestions from Groq', { employeeId, currentSuggestions: suggestedSkills.length });
+      
       try {
         setIsSuggesting(true);
         const { data, error } = await supabase.functions.invoke('suggest-skills', {
           body: { employee_id: employeeId },
         });
-        if (error) throw error;
+        if (error) {
+          console.error('[SKILLS_AI] Error:', error);
+          throw error;
+        }
+        
+        console.log('[SKILLS_AI] Response:', data);
+        
         const aiSuggestions = Array.isArray(data?.suggestions)
-          ? (data.suggestions as Array<{ skill_name: string; category?: string }>)
+          ? (data.suggestions as Array<{ skill_name: string; category?: string; reason?: string; confidence?: number }>)
           : [];
-        // Map to Skill type, mark as manual source for verification flow
+          
+        console.log('[SKILLS_AI] AI suggestions received:', aiSuggestions.length);
+        
+        // Map to Skill type
         const mapped: Skill[] = aiSuggestions
           .filter((s) => s.skill_name)
           .map((s) => ({
             skill_name: s.skill_name,
             category: s.category || 'adjacent',
-            source: 'manual',
+            source: 'manual', // Mark as manual for UI purposes
             proficiency_level: 1,
-            suggestion_reason: (s as any)?.reason || undefined,
+            suggestion_reason: s.reason || undefined,
           }));
-        // De-duplicate vs selected
-        const lowerSelected = new Set(selectedSkills.map((s) => s.skill_name.toLowerCase()));
-        const merged = mapped.filter((s) => !lowerSelected.has(s.skill_name.toLowerCase()));
-        setSuggestedSkills(merged);
+        
+        // De-duplicate vs all selected skills
+        const lowerSelected = new Set([
+          ...selectedSkills.map((s) => s.skill_name.toLowerCase()),
+          ...suggestedSkills.map((s) => s.skill_name.toLowerCase())
+        ]);
+        const filtered = mapped.filter((s) => !lowerSelected.has(s.skill_name.toLowerCase()));
+        
+        console.log('[SKILLS_AI] Filtered suggestions:', filtered.length);
+        
+        // Add to existing suggestions instead of replacing
+        setSuggestedSkills(prev => [...prev, ...filtered]);
       } catch (e: any) {
-        // Silent fallback; keep empty suggestions
+        console.error('[SKILLS_AI] Failed to fetch suggestions:', e);
       } finally {
         setIsSuggesting(false);
       }
     };
     fetchAISuggestions();
-  }, [employeeId, suggestedSkills.length, selectedSkills]);
+  }, [employeeId, selectedSkills.length]); // Remove suggestedSkills.length dependency to prevent infinite loop
 
   useEffect(() => {
     onComplete(selectedSkills);
@@ -186,12 +211,47 @@ export default function SkillsSelector({
     setSuggestedSkills((prev) => prev.filter((s) => s.skill_name.toLowerCase() !== skill.skill_name.toLowerCase()));
   };
 
-  const removeSkillFromSelected = (skill: Skill) => {
+  const removeSkillFromSelected = async (skill: Skill) => {
     if (skill.category === 'position_required') {
       toast.info('Required skills are pinned for your position');
       return;
     }
+    
+    console.log('[SKILLS_REMOVE] Removing skill:', skill);
+    
+    // Remove from UI immediately
     setSelectedSkills((prev) => prev.filter((s) => s.skill_name.toLowerCase() !== skill.skill_name.toLowerCase()));
+    
+    // If it's a CV-extracted skill, remove from database
+    if (skill.source === 'cv') {
+      try {
+        const { error } = await supabase
+          .from('employee_skills')
+          .delete()
+          .eq('employee_id', employeeId)
+          .eq('skill_name', skill.skill_name)
+          .eq('source', 'cv');
+          
+        if (error) {
+          console.error('[SKILLS_REMOVE] Database error:', error);
+          toast.error('Failed to remove skill from database');
+          // Revert UI change
+          setSelectedSkills((prev) => [...prev, skill]);
+          return;
+        }
+        
+        console.log('[SKILLS_REMOVE] Successfully removed from database:', skill.skill_name);
+        toast.success('Skill removed');
+      } catch (e) {
+        console.error('[SKILLS_REMOVE] Exception:', e);
+        toast.error('Failed to remove skill');
+        // Revert UI change
+        setSelectedSkills((prev) => [...prev, skill]);
+        return;
+      }
+    }
+    
+    // Move back to suggestions if it was from CV or position
     if (skill.source === 'cv' || skill.source === 'position') {
       setSuggestedSkills((prev) => {
         const exists = prev.find((s) => s.skill_name.toLowerCase() === skill.skill_name.toLowerCase());
