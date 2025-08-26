@@ -130,6 +130,13 @@ export default function SkillsOverview() {
     }
   }, [activeTab, internalView, userProfile?.company_id]);
 
+  // Proactively load trends data for demo purposes
+  useEffect(() => {
+    if (userProfile?.company_id && historicalSnapshots.length === 0) {
+      fetchHistoricalSnapshots();
+    }
+  }, [userProfile?.company_id]);
+
   // Removed: checkCachedData for market benchmark
 
   // Removed: fetchBenchmarkData and related market logic
