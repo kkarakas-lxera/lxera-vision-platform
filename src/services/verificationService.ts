@@ -94,14 +94,6 @@ export class VerificationService {
         source: 'verified', // Mark as verified through assessment
         confidence: assessment.verification_score,
         evidence: `AI Assessment: ${assessment.score}% (${assessment.questions.length} questions)`,
-        assessment_data: {
-          score: assessment.score,
-          questions_count: assessment.questions.length,
-          time_taken: assessment.time_taken,
-          questions: assessment.questions,
-          responses: assessment.responses,
-          verified_at: new Date().toISOString()
-        },
         updated_at: new Date().toISOString()
       };
 
@@ -298,7 +290,7 @@ export class VerificationService {
       // Get employee's claimed skills from unified employee_skills table
       const { data: claimedSkills, error: claimedError } = await supabase
         .from('employee_skills')
-        .select('skill_name, skill_id, source, assessment_data')
+        .select('skill_name, skill_id, source')
         .eq('employee_id', employeeId)
         .neq('source', 'verified'); // Only unverified skills (cv, manual, etc.)
 
@@ -373,7 +365,7 @@ export class VerificationService {
           skill_name,
           proficiency,
           source,
-          assessment_data
+          evidence
         `)
         .eq('employee_id', employeeId);
 
