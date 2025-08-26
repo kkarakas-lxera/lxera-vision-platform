@@ -49,8 +49,11 @@ serve(async (req) => {
       .eq('id', employee_id)
       .single()
 
+    console.log('Employee query result:', { employee, empError })
+    
     if (empError || !employee) {
-      throw new Error('Failed to fetch employee data')
+      console.error('Employee fetch error:', empError)
+      throw new Error(`Failed to fetch employee data: ${empError?.message || 'No employee found'}`)
     }
 
     // Get work experience from profile sections

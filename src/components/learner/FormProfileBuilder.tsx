@@ -433,30 +433,38 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
   const saveUnverifiedSkills = async (skills: any[]) => {
     try {
+      // Validate skills array
+      if (!skills || !Array.isArray(skills)) {
+        console.error('saveUnverifiedSkills: skills is not an array:', skills);
+        return;
+      }
+
       // Prepare skills for validation table
-      const skillsToValidate = skills.map(skill => ({
-        employee_id: employeeId,
-        skill_name: skill.skill_name,
-        skill_id: skill.skill_id || null,
-        is_from_position: skill.source === 'position',
-        is_from_cv: skill.source === 'cv',
-        assessment_type: null, // Will be set during verification
-        proficiency_level: null // Will be determined during verification
-      }));
+      const skillsToValidate = skills
+        .filter(skill => skill && skill.skill_name)
+        .map(skill => ({
+          employee_id: employeeId,
+          skill_name: skill.skill_name,
+          skill_id: skill.skill_id || null,
+          is_from_position: skill.source === 'position',
+          is_from_cv: skill.source === 'cv',
+          assessment_type: null, // Will be set during verification
+          proficiency_level: null // Will be determined during verification
+        }));
 
       // Insert skills into employee_skills table for verification
       for (const skill of skillsToValidate) {
+        const source = skill.is_from_cv ? 'cv' : skill.is_from_position ? 'position' : 'manual';
         const { error } = await supabase
           .from('employee_skills')
           .upsert({
             employee_id: skill.employee_id,
             skill_name: skill.skill_name,
             proficiency: 0, // Will be determined during verification
-            source: skill.is_from_cv ? 'cv' : skill.is_from_position ? 'position' : 'manual',
-            confidence: 0.5, // Default confidence
-            needs_verification: true
+            source: source,
+            confidence: 0.5 // Default confidence
           }, {
-            onConflict: 'employee_id,skill_name'
+            onConflict: 'employee_id,skill_name,source'
           });
 
         if (error) {

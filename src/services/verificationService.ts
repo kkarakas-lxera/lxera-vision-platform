@@ -264,28 +264,32 @@ export class VerificationService {
 
         if (position) {
           // Add required skills
-          if (position.required_skills) {
+          if (position.required_skills && Array.isArray(position.required_skills)) {
             position.required_skills.forEach((skill: any) => {
-              skillsToVerify.push({
-                skill_name: skill.skill_name,
-                skill_id: skill.skill_id,
-                source: 'position_required',
-                required_level: this.mapProficiencyToNumber(skill.proficiency_level),
-                is_mandatory: true
-              });
+              if (skill && skill.skill_name) {
+                skillsToVerify.push({
+                  skill_name: skill.skill_name,
+                  skill_id: skill.skill_id,
+                  source: 'position_required',
+                  required_level: this.mapProficiencyToNumber(skill.proficiency_level),
+                  is_mandatory: true
+                });
+              }
             });
           }
 
           // Add nice-to-have skills
-          if (position.nice_to_have_skills) {
+          if (position.nice_to_have_skills && Array.isArray(position.nice_to_have_skills)) {
             position.nice_to_have_skills.forEach((skill: any) => {
-              skillsToVerify.push({
-                skill_name: skill.skill_name,
-                skill_id: skill.skill_id,
-                source: 'position_nice',
-                required_level: this.mapProficiencyToNumber(skill.proficiency_level),
-                is_mandatory: false
-              });
+              if (skill && skill.skill_name) {
+                skillsToVerify.push({
+                  skill_name: skill.skill_name,
+                  skill_id: skill.skill_id,
+                  source: 'position_nice',
+                  required_level: this.mapProficiencyToNumber(skill.proficiency_level),
+                  is_mandatory: false
+                });
+              }
             });
           }
         }
@@ -304,8 +308,14 @@ export class VerificationService {
         count: claimedSkills?.length || 0 
       });
 
-      if (claimedSkills) {
+      if (claimedSkills && Array.isArray(claimedSkills)) {
         claimedSkills.forEach(skill => {
+          // Validate skill structure
+          if (!skill || !skill.skill_name) {
+            console.warn('[VerificationService] Invalid skill structure:', skill);
+            return;
+          }
+          
           // Check if skill already in list
           const existing = skillsToVerify.find(s => s.skill_name === skill.skill_name);
           if (!existing) {
@@ -316,6 +326,8 @@ export class VerificationService {
             });
           }
         });
+      } else {
+        console.warn('[VerificationService] claimedSkills is not an array:', claimedSkills);
       }
 
       // Prioritize: required skills first, then nice-to-have, then others
