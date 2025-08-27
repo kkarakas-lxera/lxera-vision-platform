@@ -1,64 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '../../../ui/card';
+import React from 'react';
+import { Badge } from '../../../ui/badge';
 import { WaitlistVariant } from '../shared/contentSelector';
-
-const stepIcons = [ArrowRight, Unlock, Wrench, Users];
-
-const CardDecorator = ({ children, isLight = false }: { children: React.ReactNode; isLight?: boolean }) => (
-  <div aria-hidden className="relative mx-auto size-20 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
-    <div className={`absolute inset-0 ${isLight ? '[--border:black]' : '[--border:white]'} bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:16px_16px] opacity-20`} />
-    <div className={`absolute inset-0 m-auto flex size-10 items-center justify-center rounded-md border ${isLight ? 'border-black/25' : 'border-white/25'} bg-transparent`}>
-      {children}
-    </div>
-  </div>
-);
-
-const ProcessStepCardMobile: React.FC<{
-  step: any;
-  index: number;
-  icon: React.ComponentType<{ className?: string }>;
-}> = ({ step, index, icon: IconComponent }) => {
-  const [isPressed, setIsPressed] = useState(false);
-  const isLight = step.bgColor === 'bg-white';
-
-  return (
-    <div className="relative flex items-start gap-6">
-      {/* Step Number Circle */}
-      <div className="w-10 h-10 bg-[#7AE5C6] rounded-full flex items-center justify-center text-black font-bold text-base z-10 flex-shrink-0">
-        {index + 1}
-      </div>
-
-      {/* Content Card with mobile touch interactions */}
-      <div className="flex-1">
-        <Card 
-          className={`group border-0 bg-white text-black border border-gray-200 rounded-xl transition-all duration-200 ${
-            isPressed ? 'scale-98' : 'scale-100'
-          }`}
-          onTouchStart={() => setIsPressed(true)}
-          onTouchEnd={() => setIsPressed(false)}
-          onMouseDown={() => setIsPressed(true)}
-          onMouseUp={() => setIsPressed(false)}
-          onMouseLeave={() => setIsPressed(false)}
-        >
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardDecorator isLight={isLight}>
-              <IconComponent className={`size-4 ${step.iconColor}`} aria-hidden />
-            </CardDecorator>
-            <h3 className="mt-2 font-semibold text-sm text-black">
-              {step.title}
-            </h3>
-          </CardHeader>
-          <CardContent className="pt-0 px-4 pb-4">
-            <p className="text-gray-600 text-xs leading-relaxed">
-              {step.description}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};
 
 interface WaitingListProcessFlowMobileProps {
   content: any;
@@ -67,48 +9,78 @@ interface WaitingListProcessFlowMobileProps {
 
 export const WaitingListProcessFlowMobile: React.FC<WaitingListProcessFlowMobileProps> = ({ content, variant }) => {
   return (
-    <section className="relative py-16 text-white overflow-hidden" style={{ background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))' }}>
-      <div className="relative z-10 mx-auto max-w-4xl px-4">
-        {/* Header - Mobile optimized */}
+    <section className="relative py-16 text-white overflow-hidden" style={{
+      background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))'
+    }}>
+      {/* Background - same as desktop */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 w-full h-full" style={{
+          background: 'linear-gradient(to bottom right, rgb(0 0 0), rgb(15 23 42), rgba(8 145 178 / 0.6))'
+        }}>
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to top, rgba(0 0 0 / 0.7), transparent, rgba(122 229 198 / 0.05))'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at top right, rgba(122,229,198,0.15), transparent 50%)'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at bottom left, rgba(20,184,166,0.1), transparent 40%)'
+          }} />
+        </div>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6">
+        {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-white leading-tight">
             {content.PROCESS_FLOW_CONTENT.title}
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto text-base px-2">
-            {content.PROCESS_FLOW_CONTENT.subtitle}
+          <p className="text-base text-gray-300 max-w-2xl mx-auto px-4">
+            Experience how LXERA transforms your workforce with AI-powered insights and personalized learning solutions.
           </p>
         </div>
 
-        {/* Mobile Timeline flow with touch-optimized cards */}
-        <div className="relative">
-          {/* Vertical Connecting Line for Mobile */}
-          <div className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-[#7AE5C6]/50 via-[#7AE5C6]/30 to-[#7AE5C6]/50" />
-
-          {/* Steps */}
-          <div className="space-y-12">
-            {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => {
-              const IconComponent = stepIcons[index];
-
-              return (
-                <ProcessStepCardMobile
-                  key={index}
-                  step={step}
-                  index={index}
-                  icon={IconComponent}
+        {/* Mobile Features - Stacked Layout */}
+        <div className="space-y-16">
+          {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => (
+            <div key={index} className="space-y-8">
+              {/* Image */}
+              <div className="relative">
+                <img 
+                  src={step.image} 
+                  alt={step.title}
+                  className="w-full h-auto rounded-2xl shadow-2xl"
                 />
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        {/* Mobile progress hint */}
-        <div className="text-center mt-12">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#7AE5C6]/10 border border-[#7AE5C6]/30 px-4 py-2">
-            <div className="w-2 h-2 bg-[#7AE5C6] rounded-full animate-pulse"></div>
-            <span className="text-[#7AE5C6] text-sm font-medium">
-              Simple 4-step process
-            </span>
-          </div>
+              {/* Content */}
+              <div className="space-y-6 text-center">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-4 leading-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-base text-gray-300 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Tags */}
+                {step.tags && (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {step.tags.map((tag: string, tagIndex: number) => (
+                      <Badge 
+                        key={tagIndex}
+                        variant="secondary"
+                        className="bg-[#7AE5C6]/10 text-[#7AE5C6] border-[#7AE5C6]/20 hover:bg-[#7AE5C6]/20 hover:text-white transition-colors px-3 py-1 text-sm"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

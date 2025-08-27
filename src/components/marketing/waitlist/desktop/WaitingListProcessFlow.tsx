@@ -1,19 +1,6 @@
 import React from 'react';
-import { ArrowRight, UserPlus, Unlock, Wrench, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '../../../ui/card';
-import WhatsNextBackground from '../WhatsNextBackground';
+import { Badge } from '../../../ui/badge';
 import { WaitlistVariant } from '../shared/contentSelector';
-
-const stepIcons = [ArrowRight, Unlock, Wrench, Users];
-
-const CardDecorator = ({ children, isLight = false }: { children: React.ReactNode; isLight?: boolean }) => (
-  <div aria-hidden className="relative mx-auto size-32 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
-    <div className={`absolute inset-0 ${isLight ? '[--border:black]' : '[--border:white]'} bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:24px_24px] opacity-20`} />
-    <div className={`absolute inset-0 m-auto flex size-14 items-center justify-center rounded-md border ${isLight ? 'border-black/25' : 'border-white/25'} bg-transparent`}>
-      {children}
-    </div>
-  </div>
-);
 
 interface WaitingListProcessFlowProps {
   content: any;
@@ -22,71 +9,82 @@ interface WaitingListProcessFlowProps {
 
 export const WaitingListProcessFlow: React.FC<WaitingListProcessFlowProps> = ({ content, variant }) => {
   return (
-    <section className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
-      {/* Static gradient background instead of animated WhatsNextBackground */}
+    <section className="relative py-16 text-white overflow-hidden" style={{
+      background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))'
+    }}>
+      {/* Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-slate-900 to-cyan-950/60">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-[#7AE5C6]/5" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(122,229,198,0.15),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.1),transparent_40%)]" />
+        <div className="absolute inset-0 w-full h-full" style={{
+          background: 'linear-gradient(to bottom right, rgb(0 0 0), rgb(15 23 42), rgba(8 145 178 / 0.6))'
+        }}>
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to top, rgba(0 0 0 / 0.7), transparent, rgba(122 229 198 / 0.05))'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at top right, rgba(122,229,198,0.15), transparent 50%)'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at bottom left, rgba(20,184,166,0.1), transparent 40%)'
+          }} />
         </div>
       </div>
+
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold mb-4 lg:text-4xl text-white">
             {content.PROCESS_FLOW_CONTENT.title}
           </h2>
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+            Experience how LXERA transforms your workforce with AI-powered insights and personalized learning solutions.
+          </p>
         </div>
 
-        {/* Timeline flow with card-styled steps */}
-        <div className="relative">
-          {/* Connecting Line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#7AE5C6]/50 via-[#7AE5C6]/30 to-[#7AE5C6]/50 transform -translate-x-1/2 hidden lg:block" />
-
-          {/* Steps */}
-          <div className="space-y-12 lg:space-y-16">
-            {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => {
-              const IconComponent = stepIcons[index];
-              const isEven = index % 2 === 0;
-
-              return (
-                <div
-                  key={index}
-                  className={`relative flex flex-col items-center lg:grid lg:grid-cols-2 gap-8 lg:gap-16`}
-                >
-                  {/* Step Number Circle */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-[#7AE5C6] rounded-full flex items-center justify-center text-black font-bold text-lg z-10 hidden lg:flex">
-                    {index + 1}
-                  </div>
-
-                  {/* Content Card wrapper */}
-                  <div
-                    className={`w-full flex ${
-                      isEven
-                        ? 'justify-center lg:justify-end lg:pr-8 lg:col-start-1'
-                        : 'justify-center lg:justify-start lg:pl-8 lg:col-start-2'
-                    }`}
-                  >
-                    <Card className={`group border-0 ${step.bgColor === 'bg-white' ? 'bg-white/90 text-black' : 'bg-gray-800/60 text-white'} backdrop-blur-md rounded-2xl max-w-[240px] mx-auto lg:mx-0`}>
-                      <CardHeader className="pb-1 px-3 pt-3">
-                        <div className="w-7 h-7 bg-[#7AE5C6] rounded-full flex items-center justify-center text-black font-bold text-xs mb-3 lg:hidden">
-                          {index + 1}
-                        </div>
-                        <CardDecorator isLight={step.bgColor === 'bg-white'}>
-                          <IconComponent className={`size-5 ${step.iconColor}`} aria-hidden />
-                        </CardDecorator>
-                        <h3 className={`mt-2 font-semibold text-sm ${step.textColor === 'text-white' ? 'text-white' : 'text-black'}`}>{step.title}</h3>
-                      </CardHeader>
-                      <CardContent className="pt-0 px-3 pb-3">
-                        <p className={`${step.textColor === 'text-white' ? 'text-gray-300' : 'text-gray-700'} text-xs leading-snug`}>{step.description}</p>
-                      </CardContent>
-                    </Card>
-                  </div>
+        {/* Features Grid */}
+        <div className="space-y-24">
+          {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => (
+            <div key={index} className={`flex items-center gap-16 ${index % 2 === 1 ? 'flex-row-reverse' : ''}`}>
+              {/* Image Side */}
+              <div className="flex-1">
+                <div className="relative">
+                  <img 
+                    src={step.image} 
+                    alt={step.title}
+                    className="w-full h-auto rounded-2xl shadow-2xl"
+                  />
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              {/* Content Side */}
+              <div className="flex-1 space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Tags */}
+                {step.tags && (
+                  <div className="flex flex-wrap gap-3">
+                    {step.tags.map((tag: string, tagIndex: number) => (
+                      <Badge 
+                        key={tagIndex}
+                        variant="secondary"
+                        className="bg-[#7AE5C6]/10 text-[#7AE5C6] border-[#7AE5C6]/20 hover:bg-[#7AE5C6]/20 hover:text-white transition-colors px-3 py-1 text-sm"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

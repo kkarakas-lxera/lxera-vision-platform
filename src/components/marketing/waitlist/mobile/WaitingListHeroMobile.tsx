@@ -233,7 +233,7 @@ export const WaitingListHeroMobile: React.FC<WaitingListHeroMobileProps> = ({ co
                     <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 border border-orange-200 px-3 py-2 shadow-sm max-w-full">
                       <span role="img" aria-label="alarm clock" className="text-orange-400 flex-shrink-0">⏰</span>
                       <AnimatedShinyText className="text-xs font-inter m-0 text-center leading-tight text-orange-600">
-                        FREE for 30 days. No credit card.
+                        Free for 30 days. No credit card.
                       </AnimatedShinyText>
                     </div>
                   </div>

@@ -9,13 +9,10 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../ui/select';
 import { Checkbox } from '../../../ui/checkbox';
 import ClassicLoader from '../../../ui/ClassicLoader';
-import { WavyBackground } from '../../../ui/wavy-background';
 import { AnimatedTooltip } from '../../../ui/animated-tooltip';
 import { WaitlistVariant } from '../shared/contentSelector';
 import { validateWaitlistForm } from '../../../../utils/waitlistValidation';
 
-// Memoized colors array for WavyBackground
-const wavyColors = ["#7AE5C6", "#5EDBBA", "#4ECAA8", "#3EB896", "#2EA784"];
 
 interface WaitingListHeroProps {
   content: any;
@@ -368,16 +365,13 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
 
   return (
     <LazyMotion features={domAnimation}>
-    <WavyBackground
-      containerClassName="min-h-screen bg-white overflow-hidden font-inter"
-      colors={wavyColors}
-      waveWidth={50}
-      backgroundFill="white"
-      blur={10}
-      speed="fast"
-      waveOpacity={0.4}
-    >
-      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
+      <div 
+        className="min-h-screen bg-white overflow-hidden font-inter bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: 'url(https://finwsjdjo4tof45q.public.blob.vercel-storage.com/bg2.png)'
+        }}
+      >
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 z-20 h-full flex flex-col justify-center">
           {/* Real Lxera Logo (top-left) */}
           <div className="absolute top-6 left-4 sm:left-8 z-20">
             <button
@@ -393,7 +387,7 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
               aria-label={`Go to ${variant} homepage`}
             >
               <img
-                src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+                src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/logo.svg"
                 alt="LXERA logo"
                 className="h-10 sm:h-12 lg:h-14 object-contain"
                 draggable={false}
@@ -409,107 +403,217 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
           <div className="absolute top-6 right-4 sm:right-8 z-20">
             <Button
               onClick={() => window.location.href = '/login'}
-              className="px-6 py-2 bg-gradient-to-b from-business-black to-gray-800 text-white font-inter text-sm font-medium rounded-md hover:from-gray-800 hover:to-business-black transition-all duration-200 shadow-sm border-none"
+              className="px-6 py-2 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-inter text-sm font-medium rounded-md transition-all duration-200 shadow-sm border-none"
             >
               Login
             </Button>
           </div>
-          <m.div 
-            ref={ref}
-            className="text-center"
-            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-            animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
-            transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-          {/* Spacer to account for fixed logo height on small screens (increased) */}
-          <div className="h-10 sm:h-16 lg:h-20" />
-          
-          {/* Main Headline */}
-          <div className="mb-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-black leading-tight font-inter">
-              {content.HERO_CONTENT.title}
-            </h1>
-          </div>
-          
-          {/* Subheadline */}
-          <p className="mx-auto max-w-3xl text-base text-gray-700 mb-4 font-inter">
-            {content.HERO_CONTENT.subtitle}
-          </p>
-          
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 border border-orange-200 px-4 py-2 shadow-sm">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <AnimatedShinyText 
-                className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-business-black"
-                style={{ color: '#191919' }}
+
+          {/* Two-column layout for enterprise variant */}
+          {variant === 'enterprise' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] mt-16 lg:mt-20">
+              {/* Left Column - Content */}
+              <m.div 
+                ref={ref}
+                className="text-left"
+                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+                animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
+                transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                Full access FREE for 30 days. No credit card. Limited spots available.
-              </AnimatedShinyText>
-            </div>
-          </div>
-          
-          {/* Inline Form */}
-          <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder={content.HERO_CONTENT.formPlaceholders.name}
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  required
-                  className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
-                />
-                {nameError && (
-                  <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
-                )}
-              </div>
-              <div className="flex-1">
-                <Input
-                  type="email"
-                  placeholder={content.HERO_CONTENT.formPlaceholders.email}
-                  value={email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  required
-                  className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
-                />
-                {emailError && (
-                  <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
-                )}
-              </div>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <ClassicLoader />
-                    Getting access…
+                {/* Main Headline */}
+                <div className="mb-6">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white leading-tight font-inter">
+                    {content.HERO_CONTENT.title}
+                  </h1>
+                </div>
+                
+                {/* Subheadline */}
+                <p className="max-w-2xl text-base text-white/80 mb-4 font-inter">
+                  {content.HERO_CONTENT.subtitle}
+                </p>
+                
+                <div className="flex justify-start mb-12">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gray-200/90 border border-gray-300/50 px-4 py-2 shadow-sm">
+                    <Clock className="w-4 h-4 text-gray-600" />
+                    <AnimatedShinyText 
+                      className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-gray-800"
+                      style={{ color: '#374151' }}
+                    >
+                      Full access free for 30 days. No credit card. Limited spots available.
+                    </AnimatedShinyText>
+                  </div>
+                </div>
+                
+                {/* Inline Form */}
+                <form onSubmit={handleSubmit} className="max-w-lg mb-8">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder={content.HERO_CONTENT.formPlaceholders.name}
+                        value={name}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        required
+                        className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {nameError && (
+                        <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="email"
+                        placeholder={content.HERO_CONTENT.formPlaceholders.email}
+                        value={email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        required
+                        className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {emailError && (
+                        <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="h-12 px-6 bg-[#EBF9A6] hover:bg-[#DDF093] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <ClassicLoader />
+                          Getting access…
+                        </span>
+                      ) : content.HERO_CONTENT.ctaButtonText}
+                    </Button>
+                  </div>
+                </form>
+                
+                {/* Social Proof with Animated Tooltips */}
+                <div className="flex items-center gap-3 mb-12">
+                  <AnimatedTooltip items={people} />
+                  <span className="text-sm text-white/70 font-inter ml-2">
+                    {content.HERO_CONTENT.socialProof}
                   </span>
-                ) : content.HERO_CONTENT.ctaButtonText}
-              </Button>
+                </div>
+              </m.div>
+
+              {/* Right Column - Visual */}
+              <m.div 
+                className="hidden lg:block"
+                initial={shouldReduceMotion ? undefined : { opacity: 0, x: 20 }}
+                animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, x: 0 } : {})}
+                transition={shouldReduceMotion ? undefined : { duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
+              >
+                <div className="relative flex items-center justify-center">
+                  <img
+                    src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Group%20197.png"
+                    alt="LXERA Platform Dashboard"
+                    className="w-full h-auto object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </m.div>
             </div>
-          </form>
-          
-          {/* Social Proof with Animated Tooltips */}
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <AnimatedTooltip items={people} />
-            <span className="text-sm text-gray-600 font-inter ml-2">
-              {content.HERO_CONTENT.socialProof}
-            </span>
-          </div>
+          ) : (
+            // Original centered layout for personal variant
+            <m.div 
+              ref={ref}
+              className="text-center"
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
+              transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              {/* Spacer to account for fixed logo height on small screens (increased) */}
+              <div className="h-10 sm:h-16 lg:h-20" />
+              
+              {/* Main Headline */}
+              <div className="mb-6">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-white leading-tight font-inter">
+                  {content.HERO_CONTENT.title}
+                </h1>
+              </div>
+              
+              {/* Subheadline */}
+              <p className="mx-auto max-w-3xl text-base text-white/80 mb-4 font-inter">
+                {content.HERO_CONTENT.subtitle}
+              </p>
+              
+              <div className="flex justify-center mb-12">
+                <div className="inline-flex items-center gap-2 rounded-full bg-gray-200/90 border border-gray-300/50 px-4 py-2 shadow-sm">
+                  <Clock className="w-4 h-4 text-gray-600" />
+                  <AnimatedShinyText 
+                    className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-gray-800"
+                    style={{ color: '#374151' }}
+                  >
+                    Full access free for 30 days. No credit card. Limited spots available.
+                  </AnimatedShinyText>
+                </div>
+              </div>
+              
+              {/* Inline Form */}
+              <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
+                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                  <div className="flex-1">
+                    <Input
+                      type="text"
+                      placeholder={content.HERO_CONTENT.formPlaceholders.name}
+                      value={name}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                      required
+                      className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {nameError && (
+                      <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      type="email"
+                      placeholder={content.HERO_CONTENT.formPlaceholders.email}
+                      value={email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      required
+                      className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {emailError && (
+                      <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
+                    )}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <ClassicLoader />
+                        Getting access…
+                      </span>
+                    ) : content.HERO_CONTENT.ctaButtonText}
+                  </Button>
+                  </div>
+              </form>
+              
+              {/* Social Proof with Animated Tooltips */}
+              <div className="flex items-center justify-center gap-3 mb-12">
+                <AnimatedTooltip items={people} />
+                <span className="text-sm text-white/70 font-inter ml-2">
+                  {content.HERO_CONTENT.socialProof}
+                </span>
+              </div>
+            </m.div>
+          )}
           
           {/* Mouse scroll indicator at bottom */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-            <svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+            <svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white/60">
               <rect x="1.5" y="1.5" width="21" height="33" rx="10.5" stroke="currentColor" strokeWidth="1.5"/>
               <circle cx="12" cy="9" r="2" fill="currentColor" className="animate-bounce"/>
             </svg>
           </div>
-        </m.div>
         </div>
-    </WavyBackground>
+      </div>
 
       {/* Onboarding helper dialog using Radix (brand-styled) */}
       <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -533,7 +637,8 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
 
                   <div className="items-center gap-3 mt-6 text-sm sm:flex">
                     <button
-                      className="w-full mt-2 p-2.5 flex-1 text-black bg-[#7AE5C6] hover:bg-[#6BD4B5] rounded-md outline-none ring-offset-2 ring-[#7AE5C6] focus:ring-2"
+                      type="button"
+                      className="w-full mt-2 p-2.5 flex-1 text-black bg-[#EBF9A6] hover:bg-[#DDF093] rounded-md outline-none ring-offset-2 ring-[#EBF9A6] focus:ring-2"
                       onClick={() => setShowOnboarding(true)}
                     >
                       Answer a few questions

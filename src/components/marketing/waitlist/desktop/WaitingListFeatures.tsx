@@ -4,11 +4,13 @@ import { Target, Zap, TrendingUp, Lightbulb, BarChart3, Brain } from 'lucide-rea
 import { WaitlistVariant } from '../shared/contentSelector';
 
 const iconMap = {
+  'Analyze workforce skills': Target,
+  'Fuel innovation': Lightbulb,
+  'Prove ROI': BarChart3,
+  // Legacy mappings for backward compatibility
   'Spot skill gaps': Target,
   'Create training fast': Zap,
-  'Fuel innovation': Lightbulb,
   'Track progress': TrendingUp,
-  'Report ROI': BarChart3,
   'Stay future-ready': Brain
 };
 
@@ -27,13 +29,23 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
   const isInView = useInView(ref, { once: true, margin: "100px" });
   return (
     <LazyMotion features={domAnimation}>
-      <section ref={ref} className="relative py-16 bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
+      <section ref={ref} className="relative py-16 text-white overflow-hidden" style={{
+        background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))'
+      }}>
       {/* Static gradient background matching ProcessFlow */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-slate-900 to-cyan-950/60">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-[#7AE5C6]/5" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(122,229,198,0.15),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.1),transparent_40%)]" />
+        <div className="absolute inset-0 w-full h-full" style={{
+          background: 'linear-gradient(to bottom right, rgb(0 0 0), rgb(15 23 42), rgba(8 145 178 / 0.6))'
+        }}>
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to top, rgba(0 0 0 / 0.7), transparent, rgba(122 229 198 / 0.05))'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at top right, rgba(122,229,198,0.15), transparent 50%)'
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at bottom left, rgba(20,184,166,0.1), transparent 40%)'
+          }} />
         </div>
       </div>
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -48,13 +60,13 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {featuresWithIcons.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <m.div
                 key={index}
-                className="bg-gray-800/60 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50 hover:border-[#7AE5C6]/40 transition-all duration-300 shadow-lg"
+                className="bg-gray-800/60 backdrop-blur-md rounded-2xl p-8 border border-gray-700/50 hover:border-[#7AE5C6]/40 transition-all duration-300 shadow-lg"
                 initial={shouldReduceMotion ? undefined : { opacity: 0, y: 30 }}
                 animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
                 transition={shouldReduceMotion ? undefined : { 
@@ -71,10 +83,10 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
                 </div>
 
                 {/* Content */}
-                <h3 className="text-lg font-semibold mb-3 text-white">
+                <h3 className="text-xl font-semibold mb-4 text-white">
                   {feature.title}
                 </h3>
-                <p className="text-gray-300 mb-4 leading-snug text-sm">
+                <p className="text-gray-300 mb-6 leading-relaxed text-base">
                   {feature.description}
                 </p>
 

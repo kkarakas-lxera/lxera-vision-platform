@@ -2,7 +2,7 @@
 export const HERO_CONTENT = {
   title: "All-in-One Learning and Skill Management Platform",
   subtitle: "Identify skill gaps, create AI-powered training, and measure ROI in one platform.",
-  ctaBadge: "Full access FREE for 30 days. No credit card. Limited spots available.",
+  ctaBadge: "Full access free for 30 days. No credit card. Limited spots available.",
   ctaButtonText: "Get Early Access",
   formPlaceholders: {
     name: "Full Name",
@@ -16,34 +16,19 @@ export const FEATURES_CONTENT = {
   subtitle: "Stop juggling tools. LXERA gives you one platform to bridge skill gaps and prove business impact. Perfect for HR leaders, L&D managers, and talent development teams.",
   features: [
     {
-      title: 'Spot skill gaps',
-      description: 'See exactly which skills your employees need most.',
+      title: 'Analyze workforce skills',
+      description: 'Identify critical strengths and gaps to drive growth.',
       tags: ['Market benchmark', 'Internal readiness', 'Skills inventory']
     },
     {
-      title: 'Create training fast',
-      description: 'Use AI to build training from scratch in minutes or add your own content.',
-      tags: ['Knowledge hub integration', 'Industry sensitive']
-    },
-    {
       title: 'Fuel innovation',
-      description: 'Empower employees to turn ideas into practical solutions.',
+      description: 'Transform employee skills into real business solutions.',
       tags: ['Idea sandbox', 'AI feedback', 'Employee recognition']
     },
     {
-      title: 'Track progress',
-      description: 'Monitor participation, training activity, and skill growth in real time.',
-      tags: ['Smart notifications', 'AI insights']
-    },
-    {
-      title: 'Report ROI',
-      description: 'Show measurable impact on skills, performance, and business results.',
+      title: 'Prove ROI',
+      description: 'Demonstrate clear impact on performance and results.',
       tags: ['ROI dashboard', 'Impact cards', 'One-click export']
-    },
-    {
-      title: 'Stay future-ready',
-      description: "Know what's trending to keep training relevant.",
-      tags: ['Real-time data', 'Geo-specific', 'Target by role/department']
     }
   ]
 };
@@ -83,36 +68,44 @@ export const DIFFERENTIATORS_CONTENT = {
 };
 
 export const PROCESS_FLOW_CONTENT = {
-  title: "What's Next",
+  title: "See in Action",
   subtitle: "",
   steps: [
     {
-      title: 'Sign up free',
-      description: 'Join in minutes. No company setup. No credit card.',
+      title: 'Get a skills snapshot of your workforce',
+      description: 'Map existing skills across teams and see where strengths and weaknesses lie. Get a clear picture of organizational capability to support data-driven talent decisions.',
       bgColor: 'bg-white',
       textColor: 'text-black',
-      iconColor: 'text-black'
+      iconColor: 'text-black',
+      tags: ['Org-wide visibility', 'Team/role mapping', 'Individual skill profiles'],
+      image: 'https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20206.png'
     },
     {
-      title: 'Unlock full access',
-      description: 'Get full access right away. Try skill insights, AI training, and dashboards.',
+      title: 'Spot critical skill gaps',
+      description: 'Find missing skills before they impact performance. Use insights to prioritize the most urgent areas for development and future-proof your talent base.',
       bgColor: 'bg-gray-800',
       textColor: 'text-white',
-      iconColor: 'text-[#7AE5C6]'
+      iconColor: 'text-[#7AE5C6]',
+      tags: ['Risk alerts', 'Readiness scoring', 'Targeted upskilling'],
+      image: 'https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20207.png'
     },
     {
-      title: 'See the difference',
-      description: 'See how LXERA works and simplifies that you believe working your team.',
+      title: 'Generate role-based training content',
+      description: 'Automatically create personalized learning programs aligned with specific roles. Deliver high-quality training at scale without the manual workload.',
       bgColor: 'bg-white',
       textColor: 'text-black',
-      iconColor: 'text-black'
+      iconColor: 'text-black',
+      tags: ['Multimedia support', 'Fully customized', 'Knowledge hub integration'],
+      image: 'https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20209.png'
     },
     {
-      title: 'Bring everyone in',
-      description: 'Coordinate with your company, invite and start training employees.',
+      title: 'Align learning with market demands',
+      description: 'Ensure your workforce keeps up with changing industry needs. Adapt training content dynamically so employees build the right skills at the right time.',
       bgColor: 'bg-gray-800',
       textColor: 'text-white',
-      iconColor: 'text-[#7AE5C6]'
+      iconColor: 'text-[#7AE5C6]',
+      tags: ['Real-time data', 'Geo-specific', 'Target by role/department'],
+      image: 'https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20210.png'
     }
   ]
 };
