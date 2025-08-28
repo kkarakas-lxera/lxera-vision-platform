@@ -189,7 +189,7 @@ export const WaitingListFAQ: React.FC<WaitingListFAQProps> = ({ content, variant
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
             Frequently Asked Questions
           </h2>
-          <p className="text-white max-w-2xl mx-auto text-base">
+          <p className="text-white max-w-2xl mx-auto text-lg">
             Dashboards show measurable progress you can act on.
           </p>
         </div>
@@ -268,7 +268,11 @@ export const WaitingListFAQ: React.FC<WaitingListFAQProps> = ({ content, variant
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+                className={`h-12 px-6 font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none ${
+                  variant === 'enterprise' 
+                    ? 'bg-[#EBF9A6] hover:bg-[#E0F48B] text-black' 
+                    : 'bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black'
+                }`}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">

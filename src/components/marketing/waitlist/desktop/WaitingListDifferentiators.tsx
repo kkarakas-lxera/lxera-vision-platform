@@ -52,10 +52,10 @@ export const WaitingListDifferentiators: React.FC<WaitingListDifferentiatorsProp
         {/* Heading */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
-            Why LXERA Is Different
+            What Makes LXERA Different
           </h2>
           <p className="text-lg text-white/70">
-            Compare our comprehensive platform with traditional solutions
+            Compare the power of LXERA with the limits of traditional tools.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export const WaitingListDifferentiators: React.FC<WaitingListDifferentiatorsProp
               return (
                 <div key={index} className="grid hover:bg-white/5 transition-all duration-200" style={{ gridTemplateColumns: '1.6fr 0.7fr 0.7fr' }}>
                   <div className="py-3 px-5">
-                    <span className="text-white/90 text-sm leading-snug">{feature}</span>
+                    <span className="text-white/90 text-base leading-snug">{feature}</span>
                   </div>
                   <div className="py-3 px-3 text-center border-l border-white/10 bg-[#7AE5C6]/5 relative group">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#7AE5C6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>

@@ -65,10 +65,10 @@ export const WaitingListDifferentiatorsMobile: React.FC<WaitingListDifferentiato
         {/* Heading - Mobile optimized */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white leading-tight">
-            Why LXERA Is Different
+            What Makes LXERA Different
           </h2>
-          <p className="text-lg text-white/70 mt-4">
-            Compare our comprehensive platform with traditional solutions
+          <p className="text-base text-white/70 mt-4">
+            Compare the power of LXERA with the limits of traditional tools.
           </p>
         </div>
 

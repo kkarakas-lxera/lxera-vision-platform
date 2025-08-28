@@ -29,7 +29,7 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
   const isInView = useInView(ref, { once: true, margin: "100px" });
   return (
     <LazyMotion features={domAnimation}>
-      <section ref={ref} className="relative py-16 text-white overflow-hidden" style={{
+      <section ref={ref} className="relative py-32 text-white overflow-hidden" style={{
         background: 'linear-gradient(to bottom, rgb(17 24 39), rgb(0 0 0))'
       }}>
       {/* Static gradient background matching ProcessFlow */}
@@ -54,7 +54,7 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
           <h2 className="text-3xl font-bold mb-3 lg:text-4xl text-white">
             {content.FEATURES_CONTENT.title}
           </h2>
-          <p className="text-white max-w-3xl mx-auto text-base">
+          <p className="text-white max-w-3xl mx-auto text-lg">
             {content.FEATURES_CONTENT.subtitle}
           </p>
         </div>
@@ -91,11 +91,11 @@ export const WaitingListFeatures: React.FC<WaitingListFeaturesProps> = ({ conten
                 </p>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center justify-center">
                   {feature.tags.map((tag, tagIndex) => (
                     <span
                       key={tagIndex}
-                      className="px-3 py-1 bg-stone-100/60 text-business-black text-xs rounded-full border border-stone-200/20 shadow-sm backdrop-blur-sm"
+                      className="px-2.5 py-1.5 bg-stone-100/60 text-business-black text-xs rounded-full border border-stone-200/20 shadow-sm backdrop-blur-sm font-medium leading-tight whitespace-nowrap"
                       style={{ filter: 'blur(0.3px)' }}
                     >
                       {tag}

@@ -12,23 +12,23 @@ export const HERO_CONTENT = {
 };
 
 export const FEATURES_CONTENT = {
-  title: "What You Can Do",
-  subtitle: "Stop juggling tools. LXERA gives you one platform to bridge skill gaps and prove business impact. Perfect for HR leaders, L&D managers, and talent development teams.",
+  title: "What LXERA Helps You Achieve",
+  subtitle: "LXERA gives HR and L&D leaders complete clarity: uncover workforce gaps, turn learning into applied innovation, and connect development to measurable business results.",
   features: [
     {
       title: 'Analyze workforce skills',
       description: 'Identify critical strengths and gaps to drive growth.',
-      tags: ['Market benchmark', 'Internal readiness', 'Skills inventory']
+      tags: ['Workforce insights', 'Critical gaps', 'Readiness metrics']
     },
     {
       title: 'Fuel innovation',
-      description: 'Transform employee skills into real business solutions.',
-      tags: ['Idea sandbox', 'AI feedback', 'Employee recognition']
+      description: 'Transform employee skills into applied business solutions.',
+      tags: ['Innovation sandbox', 'Employee innovation', 'From idea to prototype']
     },
     {
       title: 'Prove ROI',
       description: 'Demonstrate clear impact on performance and results.',
-      tags: ['ROI dashboard', 'Impact cards', 'One-click export']
+      tags: ['Business impact', 'Executive reporting', 'Measurable outcomes']
     }
   ]
 };
@@ -68,8 +68,8 @@ export const DIFFERENTIATORS_CONTENT = {
 };
 
 export const PROCESS_FLOW_CONTENT = {
-  title: "See in Action",
-  subtitle: "",
+  title: "How You Turn Skills Into Impact",
+  subtitle: "Connect learning to real outcomes with our intelligent features and streamlined skill management.",
   steps: [
     {
       title: 'Get a skills snapshot of your workforce',

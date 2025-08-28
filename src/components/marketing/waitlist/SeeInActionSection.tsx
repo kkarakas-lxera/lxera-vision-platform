@@ -63,10 +63,10 @@ export const SeeInActionSection: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4 lg:text-4xl text-white">
-            See in Action
+            How You Turn Skills Into Impact
           </h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            Experience how LXERA transforms your workforce with AI-powered insights and personalized learning solutions.
+            Connect learning to real outcomes with our intelligent features and streamlined skill management.
           </p>
         </div>
 
@@ -80,7 +80,8 @@ export const SeeInActionSection: React.FC = () => {
                   <img 
                     src={feature.image} 
                     alt={feature.headline}
-                    className="w-full h-auto rounded-2xl shadow-2xl"
+                    className="w-full h-auto rounded-2xl"
+                    style={{ boxShadow: 'none', filter: 'none' }}
                   />
                               </div>
                         </div>

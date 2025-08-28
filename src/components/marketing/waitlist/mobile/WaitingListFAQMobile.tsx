@@ -185,7 +185,7 @@ export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ cont
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header - More compact */}
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold mb-3 text-white">
+          <h2 className="text-3xl font-bold mb-3 text-white">
             Frequently Asked Questions
           </h2>
           <p className="text-gray-300 max-w-2xl mx-auto text-sm">
@@ -269,7 +269,11 @@ export const WaitingListFAQMobile: React.FC<WaitingListFAQMobileProps> = ({ cont
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+                className={`h-12 px-6 font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none ${
+                  variant === 'enterprise' 
+                    ? 'bg-[#EBF9A6] hover:bg-[#E0F48B] text-black' 
+                    : 'bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black'
+                }`}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
