@@ -12,38 +12,23 @@ export const HERO_CONTENT = {
 };
 
 export const FEATURES_CONTENT = {
-  title: "What You Can Do",
-  subtitle: "LXERA helps you discover what to learn next and builds a personalized path to your career goals.",
+  title: "See How Far You Can Go",
+  subtitle: "From AI-powered training to hands-on projects, LXERA helps you learn with experience and see real results fast.",
   features: [
     {
-      title: 'Find out what you\'re missing',
-      description: 'See what skills you need for your next step at work.',
-      tags: ['Skill check', 'Role match']
-    },
-    {
       title: 'Get personalized courses',
-      description: 'Get career courses made for you with AI.',
-      tags: ['Personalized courses', 'Quick start']
+      description: 'Learn with courses made just for your goals and skill level.',
+      tags: ['AI courses', 'Quick start', 'Fully personalized']
     },
     {
       title: 'Apply your learning',
-      description: 'Practice with real projects you can add to your portfolio.',
+      description: 'Practice on real projects and build a portfolio that proves your skills.',
       tags: ['Practice projects', 'Portfolio work', 'Real cases']
     },
     {
-      title: 'Track your wins',
-      description: 'See your progress, celebrate milestones, and stay motivated.',
-      tags: ['Progress streaks', 'Learning reminders']
-    },
-    {
       title: 'Share your growth',
-      description: 'Earn certificates and share them with managers or on LinkedIn.',
-      tags: ['Career certificates', 'Progress reports']
-    },
-    {
-      title: 'Stay ahead',
-      description: 'Stay up to date with trending skills in your field.',
-      tags: ['Skill trends', 'Career insights']
+      description: 'Earn certificates and show your achievements to managers or on LinkedIn.',
+      tags: ['Career certificates', 'Progress reports', 'Market demand']
     }
   ]
 };
@@ -83,36 +68,29 @@ export const DIFFERENTIATORS_CONTENT = {
 };
 
 export const PROCESS_FLOW_CONTENT = {
-  title: "What's Next",
-  subtitle: "",
-  steps: [
+  title: "How will you grow your skills?",
+  subtitle: "Build skills step by step, celebrate progress, and unlock new potential for your career.",
+  features: [
     {
-      title: 'Start today for free',
-      description: 'Sign up in minutes. No credit card, no hassle.',
-      bgColor: 'bg-white',
-      textColor: 'text-black',
-      iconColor: 'text-black'
+      id: 1,
+      headline: "Match your skills to market needs",
+      text: "See how your abilities compare to real job demand. Find gaps, spot opportunities, and focus on the skills that matter most for your career.",
+      tags: ["Market analysis", "Skill gaps", "Career focus"],
+      image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20216.png"
     },
     {
-      title: 'Jump into learning',
-      description: 'Spot your skill gaps, let AI do the work, and start learning.',
-      bgColor: 'bg-gray-800',
-      textColor: 'text-white',
-      iconColor: 'text-[#7AE5C6]'
+      id: 2,
+      headline: "Track your growth in real time",
+      text: "Follow your progress with points, badges, and skill milestones. Celebrate every step forward and stay motivated as you level up.",
+      tags: ["Progress tracking", "Gamification", "Motivation"],
+      image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20213.png"
     },
     {
-      title: 'Grow on your terms',
-      description: 'Follow personalized paths and see how LXERA makes growth simple.',
-      bgColor: 'bg-white',
-      textColor: 'text-black',
-      iconColor: 'text-black'
-    },
-    {
-      title: 'Lead your learning journey',
-      description: 'See progress, get reports on your growth, and level up with confidence.',
-      bgColor: 'bg-gray-800',
-      textColor: 'text-white',
-      iconColor: 'text-[#7AE5C6]'
+      id: 3,
+      headline: "Test your knowledge in seconds",
+      text: "Take quick quizzes to check what you've learned. Get instant feedback so you know where you shine and where to practice more.",
+      tags: ["Quick assessments", "Instant feedback", "Knowledge check"],
+      image: "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20214.png"
     }
   ]
 };

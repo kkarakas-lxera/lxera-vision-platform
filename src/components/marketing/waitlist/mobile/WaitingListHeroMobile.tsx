@@ -299,6 +299,7 @@ export const WaitingListHeroMobile: React.FC<WaitingListHeroMobileProps> = ({ co
                     {content.HERO_CONTENT.socialProof}
                   </span>
                 </motion.div>
+
               </>
             ) : showSuccess && !showInlineOnboarding && !showFinalSuccess ? (
               /* Success State - Inline CTA */

@@ -516,93 +516,111 @@ export const WaitingListHero: React.FC<WaitingListHeroProps> = memo(({ content, 
               </m.div>
             </div>
           ) : (
-            // Original centered layout for personal variant
-            <m.div 
-              ref={ref}
-              className="text-center"
-              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-              animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
-              transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              {/* Spacer to account for fixed logo height on small screens (increased) */}
-              <div className="h-10 sm:h-16 lg:h-20" />
-              
-              {/* Main Headline */}
-              <div className="mb-6">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-white leading-tight font-inter">
-                  {content.HERO_CONTENT.title}
-                </h1>
-              </div>
-              
-              {/* Subheadline */}
-              <p className="mx-auto max-w-3xl text-base text-white/80 mb-4 font-inter">
-                {content.HERO_CONTENT.subtitle}
-              </p>
-              
-              <div className="flex justify-center mb-12">
-                <div className="inline-flex items-center gap-2 rounded-full bg-gray-200/90 border border-gray-300/50 px-4 py-2 shadow-sm">
-                  <Clock className="w-4 h-4 text-gray-600" />
-                  <AnimatedShinyText 
-                    className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-gray-800"
-                    style={{ color: '#374151' }}
-                  >
-                    Full access free for 30 days. No credit card. Limited spots available.
-                  </AnimatedShinyText>
+            // Two-column layout for personal variant (matching enterprise styling)
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] mt-16 lg:mt-20">
+              {/* Left Column - Content */}
+              <m.div 
+                ref={ref}
+                className="text-left"
+                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+                animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, y: 0 } : {})}
+                transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                {/* Main Headline */}
+                <div className="mb-6">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white leading-tight font-inter">
+                    {content.HERO_CONTENT.title}
+                  </h1>
                 </div>
-              </div>
-              
-              {/* Inline Form */}
-              <form onSubmit={handleSubmit} className="mx-auto max-w-lg mb-8">
-                <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                  <div className="flex-1">
-                    <Input
-                      type="text"
-                      placeholder={content.HERO_CONTENT.formPlaceholders.name}
-                      value={name}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      required
-                      className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
-                    />
-                    {nameError && (
-                      <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
-                    )}
+                
+                {/* Subheadline */}
+                <p className="max-w-2xl text-base text-white/80 mb-4 font-inter">
+                  {content.HERO_CONTENT.subtitle}
+                </p>
+                
+                <div className="flex justify-start mb-12">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gray-200/90 border border-gray-300/50 px-4 py-2 shadow-sm">
+                    <Clock className="w-4 h-4 text-gray-600" />
+                    <AnimatedShinyText 
+                      className="text-sm font-inter m-0 max-w-none whitespace-nowrap !text-gray-800"
+                      style={{ color: '#374151' }}
+                    >
+                      Full access free for 30 days. No credit card. Limited spots available.
+                    </AnimatedShinyText>
                   </div>
-                  <div className="flex-1">
-                    <Input
-                      type="email"
-                      placeholder={content.HERO_CONTENT.formPlaceholders.email}
-                      value={email}
-                      onChange={(e) => handleEmailChange(e.target.value)}
-                      required
-                      className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
-                    />
-                    {emailError && (
-                      <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
-                    )}
+                </div>
+                
+                {/* Inline Form */}
+                <form onSubmit={handleSubmit} className="max-w-lg mb-8">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder={content.HERO_CONTENT.formPlaceholders.name}
+                        value={name}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        required
+                        className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${nameError ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {nameError && (
+                        <p className="text-red-500 text-xs mt-1 font-inter">{nameError}</p>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="email"
+                        placeholder={content.HERO_CONTENT.formPlaceholders.email}
+                        value={email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        required
+                        className={`h-12 px-4 border rounded-md text-sm font-inter bg-white ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {emailError && (
+                        <p className="text-red-500 text-xs mt-1 font-inter">{emailError}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="h-12 px-6 bg-[#EBF9A6] hover:bg-[#DDF093] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <ClassicLoader />
+                          Getting access…
+                        </span>
+                      ) : content.HERO_CONTENT.ctaButtonText}
+                    </Button>
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-12 px-6 bg-[#7AE5C6] hover:bg-[#6BD4B5] text-black font-medium rounded-md whitespace-nowrap font-inter shadow-none border-none"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2">
-                        <ClassicLoader />
-                        Getting access…
-                      </span>
-                    ) : content.HERO_CONTENT.ctaButtonText}
-                  </Button>
-                  </div>
-              </form>
-              
-              {/* Social Proof with Animated Tooltips */}
-              <div className="flex items-center justify-center gap-3 mb-12">
-                <AnimatedTooltip items={people} />
-                <span className="text-sm text-white/70 font-inter ml-2">
-                  {content.HERO_CONTENT.socialProof}
-                </span>
-              </div>
-            </m.div>
+                </form>
+                
+                {/* Social Proof with Animated Tooltips */}
+                <div className="flex items-center gap-3 mb-12">
+                  <AnimatedTooltip items={people} />
+                  <span className="text-sm text-white/70 font-inter ml-2">
+                    {content.HERO_CONTENT.socialProof}
+                  </span>
+                </div>
+              </m.div>
+
+              {/* Right Column - Visual */}
+              <m.div 
+                className="hidden lg:block"
+                initial={shouldReduceMotion ? undefined : { opacity: 0, x: 20 }}
+                animate={shouldReduceMotion ? undefined : (isInView ? { opacity: 1, x: 0 } : {})}
+                transition={shouldReduceMotion ? undefined : { duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
+              >
+                <div className="relative flex items-center justify-center">
+                  <img
+                    src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Features%20Landing%20page/Group%20218.png"
+                    alt="LXERA Personal Learning Journey"
+                    className="w-full h-auto object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </m.div>
+            </div>
           )}
           
           {/* Mouse scroll indicator at bottom */}

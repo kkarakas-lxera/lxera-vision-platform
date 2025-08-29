@@ -36,21 +36,22 @@ export const WaitingListProcessFlow: React.FC<WaitingListProcessFlowProps> = ({ 
             {content.PROCESS_FLOW_CONTENT.title}
           </h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            Experience how LXERA transforms your workforce with AI-powered insights and personalized learning solutions.
+            {content.PROCESS_FLOW_CONTENT.subtitle}
           </p>
         </div>
 
         {/* Features Grid */}
         <div className="space-y-24">
-          {content.PROCESS_FLOW_CONTENT.steps.map((step: any, index: number) => (
-            <div key={index} className={`flex items-center gap-16 ${index % 2 === 1 ? 'flex-row-reverse' : ''}`}>
+          {(content.PROCESS_FLOW_CONTENT.features || content.PROCESS_FLOW_CONTENT.steps || []).map((feature: any, index: number) => (
+            <div key={feature.id || index} className={`flex items-center gap-16 ${index % 2 === 1 ? 'flex-row-reverse' : ''}`}>
               {/* Image Side */}
               <div className="flex-1">
                 <div className="relative">
                   <img 
-                    src={step.image} 
-                    alt={step.title}
-                    className="w-full h-auto rounded-2xl shadow-2xl"
+                    src={feature.image} 
+                    alt={feature.headline || feature.title}
+                    className="w-full h-auto rounded-2xl"
+                    style={{ boxShadow: 'none', filter: 'none' }}
                   />
                 </div>
               </div>
@@ -59,29 +60,25 @@ export const WaitingListProcessFlow: React.FC<WaitingListProcessFlowProps> = ({ 
               <div className="flex-1 space-y-6">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
-                    {step.title}
+                    {feature.headline || feature.title}
                   </h3>
                   <p className="text-lg text-gray-300 leading-relaxed">
-                    {step.description}
+                    {feature.text || feature.description}
                   </p>
                 </div>
 
                 {/* Tags */}
-                {step.tags && (
-                  <div className="flex flex-wrap gap-3">
-                    {step.tags.map((tag: string, tagIndex: number) => (
-                      <Badge 
-                        key={tagIndex}
-                        variant="secondary"
-                        className="bg-[#7AE5C6]/10 text-[#7AE5C6] border-[#7AE5C6]/20 hover:bg-[#7AE5C6]/20 hover:text-white transition-colors px-3 py-1 text-sm"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-
+                <div className="flex flex-wrap gap-3">
+                  {(feature.tags || []).map((tag: string, tagIndex: number) => (
+                    <Badge 
+                      key={tagIndex}
+                      variant="secondary"
+                      className="bg-[#7AE5C6]/10 text-[#7AE5C6] border-[#7AE5C6]/20 hover:bg-[#7AE5C6]/20 hover:text-white transition-colors px-3 py-1 text-sm"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
